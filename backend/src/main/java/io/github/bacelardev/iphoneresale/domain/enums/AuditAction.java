@@ -1,0 +1,17 @@
+package io.github.bacelardev.iphoneresale.domain.enums;
+
+public enum AuditAction {
+    CREATED,
+    UPDATED,
+    ARCHIVED,
+    ACTIVATED,
+    DEACTIVATED,
+    STATUS_CHANGED,
+    PHOTO_ADDED,
+    PHOTO_REMOVED,
+    MAINTENANCE_REGISTERED,
+    MAINTENANCE_CANCELLED,
+    SALE_REGISTERED,
+    SALE_CANCELLED,
+    FINANCIAL_TRANSACTION_CREATED
+}
