@@ -20,7 +20,8 @@ abstract class PostgresIntegrationTest {
 
     static final String TEST_USERNAME = String.join(".", "socio", "teste");
     static final String TEST_PASSWORD = UUID.nameUUIDFromBytes(
-            "integration-auth-fixture".getBytes(StandardCharsets.US_ASCII)).toString();
+            "integration-auth-fixture".getBytes(StandardCharsets.US_ASCII))
+            .toString().replace("-", "").repeat(4);
 
     @Container
     static final PostgreSQLContainer<?> POSTGRES =

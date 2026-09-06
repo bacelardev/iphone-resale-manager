@@ -1,10 +1,9 @@
 # Etapa E — Relatório de publicação e validação
 
 Versão: **1.0 proposta**  
-Status: **aguardando aprovação da Etapa E**  
-Pendência de aceite: **E-05 — compatibilidade da faixa de senha**
+Status: **ajuste final E-05 autorizado; validação integrada em andamento**
 
-## Resultado verificado
+## Histórico da validação anterior ao ajuste E-05
 
 Em 06/09/2026, o código da Etapa E foi publicado no branch `main` do repositório
 `bacelardev/iphone-resale-manager`. A autorização explícita do usuário permitiu criar
@@ -18,7 +17,7 @@ o commit e publicar backend, V2, testes, documentação e workflow.
 - Este relatório e sua referência na documentação são alterações documentais posteriores;
   não alteram o código validado no commit acima.
 
-## Ambiente e gates
+## Ambiente e gates da execução anterior
 
 | Verificação | Evidência |
 | --- | --- |
@@ -39,11 +38,11 @@ A evidência de build, Flyway, startup e Hibernate acima vem do GitHub Actions, 
 uma execução local presumida. A checagem SQL direta anterior em PostgreSQL 16.13 também
 verificou estrutura e restrições da V2, mas não foi usada como substituta do Flyway.
 
-## Cobertura executada
+## Cobertura da execução anterior
 
 | Suíte | Testes | Cobertura principal |
 | --- | ---: | --- |
-| `BCryptPasswordHashServiceTest` | 2 | Salt, custo 12, comparação e caracterização do limite de bytes |
+| Encoder anterior (substituído no ajuste final) | 2 | Salt, comparação e diagnóstico histórico da limitação |
 | `SecurityPropertiesTest` | 3 | Wildcard CORS, TTL não positivo, representação sem segredo |
 | `InMemoryLoginRateLimiterTest` | 2 | Limite, expiração, reinício e tamanho máximo |
 | `SecureRandomAccessTokenGeneratorTest` | 1 | Formato, 256 bits e unicidade na amostra |
@@ -87,18 +86,30 @@ foram incluídos nos commits da Etapa E. Não houve force push.
 
 A inspeção dos arquivos alterados não encontrou credenciais produtivas, `.env`
 versionado, segredo em `VITE_*` ou log de Authorization/body de login. As respostas
-usam DTOs explícitos; o banco guarda SHA-256 do token e BCrypt da senha.
+usam DTOs explícitos; o banco guarda SHA-256 do token e Argon2id da senha após o ajuste E-05.
 Essa inspeção não equivale a varredura completa do histórico ou de CVEs.
 
-## Pendências e limites do aceite
+## Ajuste final E-05
 
-**E-05 continua pendente.** BCrypt direto rejeita criação de hash para mais de 72 bytes
-UTF-8. O contrato de 12–128 caracteres foi preservado, mas a implementação atual não
-suporta toda essa faixa. O teste que caracteriza a rejeição é intencionalmente transparente:
-um build verde não significa que o requisito de 128 caracteres está atendido.
+O usuário autorizou substituir o encoder por Argon2id e encerrar a Etapa E após todos
+os gates. A alteração está implementada e aguarda a nova execução de CI; o resultado
+histórico acima não comprova esta alteração.
 
-A solução exige uma decisão explícita sobre compatibilidade do esquema de senha. Nenhum
-pré-processamento criptográfico ou redução do contrato foi introduzido nesta entrega.
+- Preservados `PasswordHashService`, os serviços de application, bootstrap e contratos.
+- Encoder Spring Security 6.5.0 + Bouncy Castle 1.80, 19 MiB / 2 iterações / p=1,
+  salt de 16 bytes e saída de 32 bytes. Mesmo custo em runtime e testes.
+- Formato Argon2id v=19 com 97 caracteres cabe em `password_hash varchar(255)`.
+- V1 e V2 intactas; nenhuma migration adicional.
+- Testes positivos: 12, 127, 128 caracteres ASCII; Unicode multibyte e suplementar;
+  alteração no final da senha não autentica; 11 e 129 rejeitados.
+- Bootstrap usa fixture de 128 caracteres, com persistência e login HTTP real.
+- Dummy usa o mesmo port e algoritmo; três falhas genéricas e ausência de segredos
+  são verificadas por HTTP.
+- O antigo teste de limitação foi removido.
+
+V2 SHA-256: `b14f6af892a89216987d4fd67b275e41e443c885f1914a17c80cdc3dc9009c1f`.
+
+## Limites operacionais
 
 Além disso:
 
@@ -112,8 +123,8 @@ Além disso:
 
 ## Arquivos da entrega
 
-A implementação, os ajustes e este relatório totalizam 75 arquivos:
-65 criados e 10 alterados. Os nomes completos abaixo permitem revisar o escopo.
+A implementação, os ajustes e este relatório totalizam 76 arquivos:
+66 criados e 10 alterados em relação à base anterior à Etapa E. Os nomes completos abaixo permitem revisar o escopo.
 
 ### Criados
 
@@ -142,7 +153,7 @@ A implementação, os ajustes e este relatório totalizam 75 arquivos:
 - `backend/src/main/java/io/github/bacelardev/iphoneresale/config/properties/CorsProperties.java`
 - `backend/src/main/java/io/github/bacelardev/iphoneresale/infrastructure/persistence/repository/AppUserJpaRepository.java`
 - `backend/src/main/java/io/github/bacelardev/iphoneresale/infrastructure/security/AuthenticatedUserPrincipal.java`
-- `backend/src/main/java/io/github/bacelardev/iphoneresale/infrastructure/security/BCryptPasswordHashService.java`
+- `backend/src/main/java/io/github/bacelardev/iphoneresale/infrastructure/security/Argon2PasswordHashService.java`
 - `backend/src/main/java/io/github/bacelardev/iphoneresale/infrastructure/security/BearerTokenAuthenticationFilter.java`
 - `backend/src/main/java/io/github/bacelardev/iphoneresale/infrastructure/security/BearerTokenFormat.java`
 - `backend/src/main/java/io/github/bacelardev/iphoneresale/infrastructure/security/InMemoryLoginRateLimiter.java`
@@ -170,7 +181,7 @@ A implementação, os ajustes e este relatório totalizam 75 arquivos:
 - `backend/src/main/resources/db/migration/V2__opaque_auth_sessions.sql`
 - `backend/src/test/java/io/github/bacelardev/iphoneresale/application/service/auth/AuthenticateUserServiceTest.java`
 - `backend/src/test/java/io/github/bacelardev/iphoneresale/application/service/auth/BootstrapFirstUserServiceTest.java`
-- `backend/src/test/java/io/github/bacelardev/iphoneresale/infrastructure/security/BCryptPasswordHashServiceTest.java`
+- `backend/src/test/java/io/github/bacelardev/iphoneresale/infrastructure/security/Argon2PasswordHashServiceTest.java`
 - `backend/src/test/java/io/github/bacelardev/iphoneresale/infrastructure/security/InMemoryLoginRateLimiterTest.java`
 - `backend/src/test/java/io/github/bacelardev/iphoneresale/infrastructure/security/SecureRandomAccessTokenGeneratorTest.java`
 - `backend/src/test/java/io/github/bacelardev/iphoneresale/infrastructure/security/SecurityPropertiesTest.java`
@@ -179,6 +190,7 @@ A implementação, os ajustes e este relatório totalizam 75 arquivos:
 - `backend/src/test/java/io/github/bacelardev/iphoneresale/web/AuthenticationFlowIT.java`
 - `backend/src/test/java/io/github/bacelardev/iphoneresale/web/LoginRateLimitIT.java`
 - `backend/src/test/java/io/github/bacelardev/iphoneresale/web/PostgresIntegrationTest.java`
+- `backend/src/test/java/io/github/bacelardev/iphoneresale/web/PasswordHashingIT.java`
 - `docs/security/etapa-e-seguranca-autenticacao.md`
 - `docs/security/security-baseline.md`
 - `docs/security/validacao-etapa-e.md`
@@ -202,6 +214,5 @@ E-01 a E-20 estão detalhadas em [segurança e autenticação](etapa-e-seguranca
 e no [registro arquitetural](../decisions/architecture-decisions.md).
 O [security baseline](security-baseline.md) permanece obrigatório nas etapas seguintes.
 
-A publicação e a validação técnica descritas estão concluídas. O encerramento da Etapa E
-permanece condicionado à resolução de E-05 e à aprovação explícita do usuário.
-
+O encerramento foi autorizado pelo usuário e será registrado após confirmação da nova
+validação integrada. Nenhuma implementação da Etapa F foi iniciada.

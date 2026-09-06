@@ -1,7 +1,7 @@
 # Etapa E — Segurança, autenticação e hardening do backend
 
 Versão: **1.0 proposta**  
-Status: **aguardando aprovação da Etapa E**
+Status: **ajuste final E-05 autorizado; validação integrada em andamento**
 
 ## 1. Escopo entregue
 
@@ -48,20 +48,45 @@ prefixo `irs_`. Antes da persistência, o valor é transformado em SHA-256 hexad
 minúsculo de 64 caracteres. O valor bruto existe somente na memória da requisição de
 login e na resposta correspondente; não é entidade, parâmetro de log ou dado do banco.
 
-### E-05 — Senha com BCrypt
+### E-05 — Senha com Argon2id
 
-Senhas aceitas pelo contrato têm de 12 a 128 caracteres. A persistência recebe apenas
-BCrypt com custo 12. Login de username inexistente executa comparação com um hash
-BCrypt dummy gerado na inicialização, e username inexistente, senha errada e usuário
-inativo produzem a mesma resposta pública `401 AUTHENTICATION_FAILED`.
+Senhas de 12–128 caracteres são armazenadas com **Argon2id**, sem truncamento,
+normalização ou pré-hash próprio. Preserva-se a contagem de `String.length()` / `@Size`
+do contrato Java (unidades UTF-16, não bytes UTF-8; caracteres suplementares ocupam duas
+unidades). Acentos, multibyte e caracteres suplementares dentro dessa faixa funcionam.
 
-**Pendência de aceite E-05:** o `BCryptPasswordEncoder` utilizado limita a criação do hash
-a 72 **bytes UTF-8**, enquanto o contrato aceita até 128 caracteres. Portanto, esta
-implementação direta não atende a toda a faixa aprovada: o bootstrap com senha acima
-de 72 bytes falha. O teste `documentsTheOutstandingDirectBcryptByteLimit` caracteriza
-essa limitação; sua aprovação não comprova suporte a 128 caracteres. A estratégia para
-conciliar BCrypt e a faixa aprovada exige decisão explícita; não foi introduzido
-pré-processamento criptográfico nem reduzido o contrato nesta entrega.
+`Argon2PasswordHashService` implementa o port `PasswordHashService`; application não
+depende de Argon2. Usa `Argon2PasswordEncoder` do Spring Security 6.5.0, gerenciado pelo
+Spring Boot 3.5.0, e `org.bouncycastle:bcprov-jdk18on:1.80`, explicitamente fixado na
+mesma versão usada pelo Spring Security 6.5.0.
+
+| Parâmetro | Valor |
+| --- | --- |
+| Algoritmo / versão | Argon2id / v=19 (0x13) |
+| Memória | 19.456 KiB (19 MiB) |
+| Iterações | 2 |
+| Paralelismo | 1 |
+| Salt aleatório | 16 bytes, novo por hash |
+| Hash derivado | 32 bytes |
+
+Os custos seguem o mínimo recomendado pela [OWASP](https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html),
+com consumo previsível por operação e sem reduzir parâmetros em testes. Uma calibração
+futura deve medir latência e memória no ambiente produtivo; esta entrega não estabelece
+um SLA de login a partir do tempo de CI.
+
+O encoding persistido é `$argon2id$v=19$m=19456,t=2,p=1$<salt-base64>$<hash-base64>`,
+com 97 caracteres (salt 22 e hash 43, sem padding), validado em teste. Cabe em
+`password_hash varchar(255)`: nenhuma migration nova é necessária, V1 e V2 intactas.
+
+`AuthenticateUserService` continua gerando o dummy pelo mesmo port na inicialização.
+Ele passa a ser Argon2id válido com os mesmos custos, sem segredo real. Usuário ausente
+sempre executa a verificação; inexistente, senha incorreta e inativo retornam o mesmo
+`401 AUTHENTICATION_FAILED`. O bootstrap mantém lock, default desabilitado e nunca
+reseta usuário existente. Não existe conversão automática de hashes legados: a troca
+não reescreve credenciais já persistidas nem introduz recuperação/reset de senha.
+
+Referências de implementação: [encoder Spring Security 6.5.0](https://github.com/spring-projects/spring-security/blob/6.5.0/crypto/src/main/java/org/springframework/security/crypto/argon2/Argon2PasswordEncoder.java)
+e [versão Bouncy Castle correspondente](https://github.com/spring-projects/spring-security/blob/6.5.0/gradle/libs.versions.toml).
 
 ### E-06 — Spring Security stateless
 
@@ -205,7 +230,7 @@ O bootstrap é executado por `ApplicationRunner` dentro de transação:
 1. se `APP_BOOTSTRAP_ENABLED=false`, não consulta nem altera usuários;
 2. quando habilitado, nome, username e senha são validados antes de acesso ao banco;
 3. um advisory lock transacional serializa inicializações simultâneas;
-4. somente tabela `app_user` vazia permite criar um `SOCIO` ativo com BCrypt;
+4. somente tabela `app_user` vazia permite criar um `SOCIO` ativo com Argon2id;
 5. se já existe usuário, nada é alterado e senha nenhuma é resetada.
 
 Após a criação, o operador deve desabilitar/remover as variáveis de bootstrap e reiniciar
@@ -226,17 +251,15 @@ a aplicação. Não existe endpoint público de cadastro nem senha default.
 
 ## 6. Validação e limitações
 
-Execução verificada no GitHub Actions: **30 testes, zero falhas, erros ou ignorados**,
-com JDK 21, Maven 3.9.16, PostgreSQL 16.15, Flyway V1+V2, startup HTTP real e Hibernate
-`validate`. Consulte o [relatório com evidências e arquivos](validacao-etapa-e.md).
-Esse resultado não encerra a pendência de compatibilidade E-05.
+O ajuste E-05 possui testes positivos de limites, Unicode, salt, hash e bootstrap com
+128 caracteres. O encerramento depende da nova execução integrada no GitHub Actions.
+Consulte o [relatório com evidências e arquivos](validacao-etapa-e.md).
 
 O comando obrigatório é `mvn clean verify`. Os integration tests usam PostgreSQL 16
 real e validam Flyway e `ddl-auto=validate`; não substituem PostgreSQL por H2.
 
 Limitações assumidas nesta versão:
 
-- E-05 permanece pendente para senhas acima de 72 bytes UTF-8, conforme detalhado acima;
 - rate limit em memória não agrega tentativas entre réplicas e reinicia com o processo;
 - não existe limpeza física de sessões; retenção/purga segura exige decisão futura e
   eventual evolução da trigger;
@@ -256,7 +279,7 @@ sendo correlação, não idempotência.
 ## 8. Registro da entrega
 
 Versão: **1.0 proposta**  
-Status: **aguardando aprovação da Etapa E**
+Status: **ajuste final E-05 autorizado; validação integrada em andamento**
 
-A aprovação e o encerramento só podem ser registrados após revisão explícita. Nenhum
-trabalho da Etapa F foi iniciado.
+O usuário autorizou o encerramento após sucesso de todos os critérios do ajuste E-05.
+Nenhum trabalho da Etapa F foi iniciado.

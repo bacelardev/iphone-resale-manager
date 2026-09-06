@@ -5,6 +5,8 @@ import io.github.bacelardev.iphoneresale.application.port.security.AuthUserStore
 import io.github.bacelardev.iphoneresale.application.port.security.PasswordHashService;
 import io.github.bacelardev.iphoneresale.config.properties.BootstrapProperties;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
@@ -72,7 +74,7 @@ class BootstrapFirstUserServiceTest {
         BootstrapProperties properties = properties(
                 true, "  Sócio Inicial  ", bootstrapUsername, bootstrapPassword);
         when(userStore.countUsers()).thenReturn(0L);
-        when(passwordHashService.encode(bootstrapPassword)).thenReturn("bcrypt-hash");
+        when(passwordHashService.encode(bootstrapPassword)).thenReturn("encoded-hash");
 
         boolean created = service(properties).bootstrapIfRequired();
 
@@ -81,7 +83,17 @@ class BootstrapFirstUserServiceTest {
                 ArgumentCaptor.forClass(CreateBootstrapUser.class);
         verify(userStore).createBootstrapUser(captor.capture());
         assertThat(captor.getValue()).isEqualTo(new CreateBootstrapUser(
-                "Sócio Inicial", bootstrapUsername.toLowerCase(Locale.ROOT), "bcrypt-hash"));
+                "Sócio Inicial", bootstrapUsername.toLowerCase(Locale.ROOT), "encoded-hash"));
+    }
+
+    @ParameterizedTest
+    @ValueSource(ints = {11, 129})
+    void rejectsPasswordsOutsideTheContractBeforeAccessingTheDatabase(int length) {
+        BootstrapProperties properties = properties(true, "Sócio", "socio", "x".repeat(length));
+        assertThatThrownBy(() -> service(properties).bootstrapIfRequired())
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("APP_BOOTSTRAP_PASSWORD");
+        verifyNoInteractions(userStore, passwordHashService);
     }
 
     private BootstrapFirstUserService service(BootstrapProperties properties) {

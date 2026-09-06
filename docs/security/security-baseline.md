@@ -19,7 +19,12 @@ está pronta quando mantém os controles aplicáveis abaixo e possui testes nega
 
 - Negar por padrão e liberar publicamente só a rota explicitamente documentada.
 - Validar sessão, expiração, revogação e usuário ativo em toda requisição protegida.
-- Persistir somente hash SHA-256 do token opaco; usar BCrypt de custo 12 para senha.
+- Persistir somente hash SHA-256 do token opaco; usar Argon2id para senha de 12–128
+  caracteres, sem truncamento ou pré-hash próprio. Parâmetros E-05: 19.456 KiB, 2
+  iterações, paralelismo 1, salt aleatório de 16 bytes e hash de 32 bytes.
+- Manter `PasswordHashService` entre application e infraestrutura. Usuário inexistente
+  verifica dummy Argon2id de mesmo custo; falhas inexistente/incorreta/inativa usam
+  `401 AUTHENTICATION_FAILED`. Hash codificado de 97 caracteres cabe em `varchar(255)`.
 - Revogar sessões em vez de apagá-las e oferecer revogação total por usuário.
 - Não transformar `X-Request-Id` em idempotência; mecanismo futuro usa decisão própria.
 
@@ -73,6 +78,8 @@ ALTER DEFAULT PRIVILEGES FOR ROLE iphone_resale_migrator IN SCHEMA public
 ### Dependências e configuração
 
 - Fixar versões via BOM do Spring Boot e revisar alertas de dependência continuamente.
+  Bouncy Castle `bcprov-jdk18on:1.80` tem versão explícita alinhada ao Spring Security
+  6.5.0, pois o BOM do Boot 3.5.0 não a gerencia.
 - Configuração inválida deve falhar de modo seguro no startup.
 - Separar defaults de desenvolvimento das exigências de produção.
 - Não habilitar debug de Spring Security, dump de headers/body ou SQL em produção.

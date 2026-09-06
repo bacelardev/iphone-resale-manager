@@ -104,7 +104,7 @@ As decisões D-01 a D-15 foram aprovadas como versão final da Etapa D. A Etapa 
 ## Etapa E — Segurança, Autenticação e Hardening
 
 Versão: **1.0 proposta**  
-Status: **aguardando aprovação da Etapa E**
+Status: **ajuste final E-05 autorizado; validação integrada em andamento**
 
 ### E-01 — Bearer token opaco
 
@@ -127,12 +127,21 @@ referencia `app_user` com `RESTRICT` e preserva histórico por revogação, não
 
 ### E-05 — Senha
 
-**Decisão:** usar BCrypt custo 12, senha de 12–128 caracteres, comparação dummy para
-username inexistente e falha pública indistinguível para inexistente/incorreta/inativa.
+**Decisão final autorizada:** senhas de 12–128 caracteres são armazenadas com Argon2id,
+sem truncamento ou composição criptográfica própria. `PasswordHashService` desacopla
+application; `Argon2PasswordHashService` usa `Argon2PasswordEncoder` (Spring Security
+6.5.0) e Bouncy Castle `bcprov-jdk18on:1.80` na infraestrutura.
 
-**Pendência técnica:** BCrypt direto limita novas senhas a 72 bytes UTF-8. O suporte à
-faixa completa de 12–128 caracteres ainda exige uma decisão explícita de compatibilidade.
-O contrato permanece aprovado; não houve substituição do algoritmo ou redução da faixa.
+**Parâmetros:** Argon2id v=19, memória 19.456 KiB, 2 iterações, paralelismo 1, salt
+aleatório de 16 bytes, hash de 32 bytes. Custos seguem o mínimo recomendado OWASP e
+permanecem iguais nos testes. Encoding de 97 caracteres cabe em `password_hash
+varchar(255)`; nenhuma migration adicional, V1 e V2 preservadas.
+
+Username inexistente verifica dummy Argon2id com o mesmo custo, e inexistente, senha
+incorreta ou usuário inativo recebem `401 AUTHENTICATION_FAILED` indistinguível.
+Bootstrap mantém validação, advisory lock e criação somente na ausência de usuários,
+sem reset. Preservada contagem UTF-16 Java de 12–128, sem limite artificial de bytes.
+Detalhes e referências em `docs/security/etapa-e-seguranca-autenticacao.md`.
 
 ### E-06 — Stateless
 
@@ -210,9 +219,8 @@ idempotência e rate limit de login bounded/expirável por peer direto. Não con
 **Decisão:** segurança só é aceita com testes negativos, PostgreSQL real, Flyway V1+V2,
 startup e Hibernate validate. Execução não realizada ou teste pulado deve ser declarado.
 
-## Registro da proposta
+## Registro do ajuste final
 
-As decisões E-01 a E-20 estão documentadas como proposta, com a ressalva técnica de E-05
-explicitada acima. Build e testes aprovados não encerram essa pendência. A Etapa E
-permanece aberta, aguardando revisão e aprovação explícita. Nenhuma implementação da
-Etapa F foi iniciada.
+O ajuste E-05 foi autorizado explicitamente, incluindo encerramento condicionado ao
+sucesso da validação integrada. As demais decisões E-01 a E-20 foram preservadas.
+Nenhuma implementação da Etapa F foi iniciada.

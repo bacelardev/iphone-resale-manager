@@ -7,7 +7,8 @@
 - autenticação stateless com Bearer token opaco e sessão persistida por hash SHA-256;
 - migration Flyway `V2__opaque_auth_sessions.sql`, sem alteração da V1;
 - login, `/auth/me` e logout com revogação persistente e repetição segura;
-- BCrypt custo 12, comparação dummy e resposta genérica de falha;
+- Argon2id (19 MiB, 2 iterações, paralelismo 1), comparação dummy e falha genérica;
+- suporte sem truncamento a 12–128 caracteres, incluindo Unicode, via `PasswordHashService`;
 - principal mínimo e `CurrentUserIdProvider` integrado ao SecurityContext;
 - default-deny, erros 401/403 padronizados, CORS allowlist e CSRF coerente;
 - request ID, no-store, headers defensivos e rate limit de login bounded/expirável;
@@ -21,9 +22,9 @@
 - Publicado no `main`; código `f31180c` validado pelo GitHub Actions em 06/09/2026:
   30 testes, nenhum erro ou ignorado, Flyway V1+V2, HTTP real e Hibernate validate.
   Evidências em `docs/security/validacao-etapa-e.md`.
-- Etapa E versão 1.0 proposta; aguardando aprovação explícita.
-- Pendência E-05: compatibilizar a faixa aprovada de 12–128 caracteres com o limite de
-  72 bytes do BCrypt direto, sem mudar silenciosamente o contrato ou o esquema de senha.
+- Ajuste final E-05 autorizado: Argon2id substitui o algoritmo anterior; testes de
+  limites, Unicode e bootstrap 128 acrescentados. Validação integrada final em andamento.
+- Encoding de 97 caracteres cabe na coluna existente; V1 e V2 permanecem intactas.
 - Nenhum recurso da Etapa F foi iniciado.
 
 ## 1.1 — Domínio e fundação de persistência
