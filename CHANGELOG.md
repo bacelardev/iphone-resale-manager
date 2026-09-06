@@ -1,6 +1,6 @@
 # Changelog
 
-## 1.2 — Segurança e autenticação (proposta)
+## 1.2 — Segurança e autenticação (Etapa E 1.0 aprovada)
 
 ### Implementado
 
@@ -19,12 +19,15 @@
 
 ### Status
 
-- Publicado no `main`; código `f31180c` validado pelo GitHub Actions em 06/09/2026:
-  30 testes, nenhum erro ou ignorado, Flyway V1+V2, HTTP real e Hibernate validate.
-  Evidências em `docs/security/validacao-etapa-e.md`.
-- Ajuste final E-05 autorizado: Argon2id substitui o algoritmo anterior; testes de
-  limites, Unicode e bootstrap 128 acrescentados. Validação integrada final em andamento.
+- Etapa E: **Versão: 1.0 aprovada**; **Status: Etapa E encerrada**, em 06/09/2026.
+- E-05 resolvida; código `9f920c4` aprovado no GitHub Actions
+  [34041521491](https://github.com/bacelardev/iphone-resale-manager/actions/runs/34041521491).
+- `mvn clean verify`: 46 testes (24 unitários + 22 de integração), zero falhas, erros ou
+  ignorados, JDK 21, Maven 3.9.16, PostgreSQL 16.15/Testcontainers, Flyway V1+V2,
+  startup HTTP real e Hibernate validate.
+- Limites 11/12/127/128/129, Unicode, bootstrap 128, enumeração e exposição verificados.
 - Encoding de 97 caracteres cabe na coluna existente; V1 e V2 permanecem intactas.
+- Evidências e arquivos em `docs/security/validacao-etapa-e.md`.
 - Nenhum recurso da Etapa F foi iniciado.
 
 ## 1.1 — Domínio e fundação de persistência

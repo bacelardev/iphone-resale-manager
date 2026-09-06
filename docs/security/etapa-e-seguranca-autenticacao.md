@@ -1,7 +1,7 @@
 # Etapa E — Segurança, autenticação e hardening do backend
 
-Versão: **1.0 proposta**  
-Status: **ajuste final E-05 autorizado; validação integrada em andamento**
+Versão: **1.0 aprovada**  
+Status: **Etapa E encerrada**
 
 ## 1. Escopo entregue
 
@@ -251,8 +251,11 @@ a aplicação. Não existe endpoint público de cadastro nem senha default.
 
 ## 6. Validação e limitações
 
-O ajuste E-05 possui testes positivos de limites, Unicode, salt, hash e bootstrap com
-128 caracteres. O encerramento depende da nova execução integrada no GitHub Actions.
+Em 06/09/2026, o [workflow 34041521491](https://github.com/bacelardev/iphone-resale-manager/actions/runs/34041521491)
+validou o commit `9f920c4`: **46 testes (24 unitários + 22 de integração), zero falhas,
+erros ou ignorados**. JDK 21, Maven 3.9.16, PostgreSQL 16.15/Testcontainers, Flyway V1+V2
+em bancos vazios, startup HTTP real e Hibernate `validate` passaram. Limites, Unicode,
+salt, dummy, ausência de exposição e bootstrap com 128 caracteres foram exercitados.
 Consulte o [relatório com evidências e arquivos](validacao-etapa-e.md).
 
 O comando obrigatório é `mvn clean verify`. Os integration tests usam PostgreSQL 16
@@ -278,8 +281,9 @@ sendo correlação, não idempotência.
 
 ## 8. Registro da entrega
 
-Versão: **1.0 proposta**  
-Status: **ajuste final E-05 autorizado; validação integrada em andamento**
+Versão: **1.0 aprovada**  
+Status: **Etapa E encerrada**
 
-O usuário autorizou o encerramento após sucesso de todos os critérios do ajuste E-05.
-Nenhum trabalho da Etapa F foi iniciado.
+Encerrada em 06/09/2026 conforme autorização explícita do ajuste final E-05 e sucesso
+de todos os critérios. E-05 resolvida. Nenhum trabalho da Etapa F foi iniciado; avançar
+exige nova autorização explícita.

@@ -103,8 +103,8 @@ As decisões D-01 a D-15 foram aprovadas como versão final da Etapa D. A Etapa 
 
 ## Etapa E — Segurança, Autenticação e Hardening
 
-Versão: **1.0 proposta**  
-Status: **ajuste final E-05 autorizado; validação integrada em andamento**
+Versão: **1.0 aprovada**  
+Status: **Etapa E encerrada**
 
 ### E-01 — Bearer token opaco
 
@@ -219,8 +219,10 @@ idempotência e rate limit de login bounded/expirável por peer direto. Não con
 **Decisão:** segurança só é aceita com testes negativos, PostgreSQL real, Flyway V1+V2,
 startup e Hibernate validate. Execução não realizada ou teste pulado deve ser declarado.
 
-## Registro do ajuste final
+## Registro de aprovação da Etapa E
 
-O ajuste E-05 foi autorizado explicitamente, incluindo encerramento condicionado ao
-sucesso da validação integrada. As demais decisões E-01 a E-20 foram preservadas.
-Nenhuma implementação da Etapa F foi iniciada.
+As decisões E-01 a E-20 são finais. E-05 foi resolvida com Argon2id, conforme autorização
+explícita. O commit `9f920c4` passou no workflow `34041521491`: 46 testes, nenhum erro ou
+ignorado, PostgreSQL 16, Flyway V1+V2, startup e Hibernate validate. A Etapa E está
+encerrada em versão 1.0 aprovada em 06/09/2026. Nenhuma implementação da Etapa F foi
+iniciada; é necessária nova autorização para avançar.

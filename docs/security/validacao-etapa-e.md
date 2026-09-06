@@ -1,23 +1,25 @@
 # Etapa E — Relatório de publicação e validação
 
-Versão: **1.0 proposta**  
-Status: **ajuste final E-05 autorizado; validação integrada em andamento**
+Versão: **1.0 aprovada**  
+Status: **Etapa E encerrada**
 
-## Histórico da validação anterior ao ajuste E-05
+## Resultado final verificado
 
 Em 06/09/2026, o código da Etapa E foi publicado no branch `main` do repositório
 `bacelardev/iphone-resale-manager`. A autorização explícita do usuário permitiu criar
 o commit e publicar backend, V2, testes, documentação e workflow.
 
 - Implementação inicial: [`08acdd3`](https://github.com/bacelardev/iphone-resale-manager/commit/08acdd361aed32c310b043a57d721fc3d2c585ba).
-- Código validado com correções: [`f31180c`](https://github.com/bacelardev/iphone-resale-manager/commit/f31180c0817a2bf46c6bcb5b77d581734a45a525).
-- Execução: [Backend verify #34038974418](https://github.com/bacelardev/iphone-resale-manager/actions/runs/34038974418).
+- Código final E-05: [`9f920c4`](https://github.com/bacelardev/iphone-resale-manager/commit/9f920c4e2511eeb9d8af87f80e22859e2f0e1d0e).
+- Execução final: [Backend verify #34041521491](https://github.com/bacelardev/iphone-resale-manager/actions/runs/34041521491), job `101509038795`.
+- Histórico anterior ao ajuste: `f31180c`, workflow `34038974418`, 30 testes. A execução
+  final abaixo substitui essa evidência para aceite da E-05.
 - Resultado do job `verify`: **success**.
 - Comando: `mvn --batch-mode --no-transfer-progress clean verify`.
 - Este relatório e sua referência na documentação são alterações documentais posteriores;
   não alteram o código validado no commit acima.
 
-## Ambiente e gates da execução anterior
+## Ambiente e gates finais
 
 | Verificação | Evidência |
 | --- | --- |
@@ -28,8 +30,8 @@ o commit e publicar backend, V2, testes, documentação e workflow.
 | Hibernate | Inicialização com `spring.jpa.hibernate.ddl-auto=validate` |
 | Aplicação | Tomcat iniciou em portas HTTP reais durante os testes |
 | Build | `BUILD SUCCESS` |
-| Testes unitários | 17; zero falhas, erros ou ignorados |
-| Testes de integração | 13; zero falhas, erros ou ignorados |
+| Testes unitários | 24; zero falhas, erros ou ignorados |
+| Testes de integração | 22; zero falhas, erros ou ignorados |
 | Gate adicional | Workflow exige relatórios de integração e rejeita testes ignorados |
 | Credencial automática | Autoconfiguração desabilitada; log final sem senha gerada |
 
@@ -38,18 +40,19 @@ A evidência de build, Flyway, startup e Hibernate acima vem do GitHub Actions, 
 uma execução local presumida. A checagem SQL direta anterior em PostgreSQL 16.13 também
 verificou estrutura e restrições da V2, mas não foi usada como substituta do Flyway.
 
-## Cobertura da execução anterior
+## Cobertura executada — 46 testes
 
 | Suíte | Testes | Cobertura principal |
 | --- | ---: | --- |
-| Encoder anterior (substituído no ajuste final) | 2 | Salt, comparação e diagnóstico histórico da limitação |
+| `Argon2PasswordHashServiceTest` | 7 | Salt, formato/custos, 97 caracteres, limites, Unicode, dummy válido e ausência de truncamento |
 | `SecurityPropertiesTest` | 3 | Wildcard CORS, TTL não positivo, representação sem segredo |
 | `InMemoryLoginRateLimiterTest` | 2 | Limite, expiração, reinício e tamanho máximo |
 | `SecureRandomAccessTokenGeneratorTest` | 1 | Formato, 256 bits e unicidade na amostra |
 | `SpringSecurityCurrentUserIdProviderTest` | 2 | Principal autenticado, anônimo e estrangeiro |
 | `Sha256AccessTokenHasherTest` | 1 | Vetor conhecido SHA-256 |
 | `AuthenticateUserServiceTest` | 2 | Hash dummy e persistência somente do hash do token |
-| `BootstrapFirstUserServiceTest` | 4 | Desabilitado, incompleto, usuário existente e criação normalizada |
+| `BootstrapFirstUserServiceTest` | 6 | Desabilitado, incompleto, usuário existente, criação normalizada e rejeição de 11/129 |
+| `PasswordHashingIT` | 9 | Bootstrap 128, coluna 255, HTTP 12/127/128/Unicode, rejeição 11/129, falhas indistinguíveis e exposição |
 | `AuthenticationFlowIT` | 11 | Flyway/JPA, autenticação, sessão, HTTP real, validação, CORS e headers |
 | `LoginRateLimitIT` | 2 | 429, peer direto sem confiar em X-Forwarded-For e reinício após sucesso |
 
@@ -87,13 +90,16 @@ foram incluídos nos commits da Etapa E. Não houve force push.
 A inspeção dos arquivos alterados não encontrou credenciais produtivas, `.env`
 versionado, segredo em `VITE_*` ou log de Authorization/body de login. As respostas
 usam DTOs explícitos; o banco guarda SHA-256 do token e Argon2id da senha após o ajuste E-05.
-Essa inspeção não equivale a varredura completa do histórico ou de CVEs.
+A inspeção foi repetida após o ajuste, incluindo padrões de chaves/tokens/hashes,
+configuração, DTOs, logging e log final de CI, sem achado de segredo real. Nenhum valor
+sensível foi incluído no relatório. O log final também não contém credencial automática
+ou erro de parsing Argon2. Essa inspeção não equivale a varredura completa do histórico
+ou de CVEs.
 
 ## Ajuste final E-05
 
 O usuário autorizou substituir o encoder por Argon2id e encerrar a Etapa E após todos
-os gates. A alteração está implementada e aguarda a nova execução de CI; o resultado
-histórico acima não comprova esta alteração.
+os gates. A implementação e a execução final de CI passaram; E-05 está resolvida.
 
 - Preservados `PasswordHashService`, os serviços de application, bootstrap e contratos.
 - Encoder Spring Security 6.5.0 + Bouncy Castle 1.80, 19 MiB / 2 iterações / p=1,
@@ -120,6 +126,27 @@ Além disso:
 - Não há limpeza física de sessões, refresh token ou recuperação de senha.
 - Não foram implementados casos de uso de negócio, API de negócio ou frontend.
 - A Etapa F não foi iniciada.
+
+## Arquivos do ajuste final E-05
+
+São 13 caminhos em relação ao commit `1767485`: 3 criados, 2 removidos e 8 alterados.
+Os serviços `AuthenticateUserService` e `BootstrapFirstUserService` foram revisados e
+preservados: ambos já dependem do port correto. API, workflow e migrations também
+foram preservados. O commit posterior de encerramento modifica somente documentação.
+
+- `CHANGELOG.md` — alterado.
+- `backend/pom.xml` — alterado.
+- `backend/src/main/java/io/github/bacelardev/iphoneresale/infrastructure/security/Argon2PasswordHashService.java` — criado.
+- `backend/src/main/java/io/github/bacelardev/iphoneresale/infrastructure/security/BCryptPasswordHashService.java` — removido.
+- `backend/src/test/java/io/github/bacelardev/iphoneresale/application/service/auth/BootstrapFirstUserServiceTest.java` — alterado.
+- `backend/src/test/java/io/github/bacelardev/iphoneresale/infrastructure/security/Argon2PasswordHashServiceTest.java` — criado.
+- `backend/src/test/java/io/github/bacelardev/iphoneresale/infrastructure/security/BCryptPasswordHashServiceTest.java` — removido.
+- `backend/src/test/java/io/github/bacelardev/iphoneresale/web/PasswordHashingIT.java` — criado.
+- `backend/src/test/java/io/github/bacelardev/iphoneresale/web/PostgresIntegrationTest.java` — alterado.
+- `docs/decisions/architecture-decisions.md` — alterado.
+- `docs/security/etapa-e-seguranca-autenticacao.md` — alterado.
+- `docs/security/security-baseline.md` — alterado.
+- `docs/security/validacao-etapa-e.md` — alterado.
 
 ## Arquivos da entrega
 
@@ -214,5 +241,6 @@ E-01 a E-20 estão detalhadas em [segurança e autenticação](etapa-e-seguranca
 e no [registro arquitetural](../decisions/architecture-decisions.md).
 O [security baseline](security-baseline.md) permanece obrigatório nas etapas seguintes.
 
-O encerramento foi autorizado pelo usuário e será registrado após confirmação da nova
-validação integrada. Nenhuma implementação da Etapa F foi iniciada.
+Todos os critérios finais foram atendidos no CI. Conforme autorização explícita do
+usuário: **Versão: 1.0 aprovada**; **Status: Etapa E encerrada** em 06/09/2026.
+Nenhuma implementação da Etapa F foi iniciada. Nova etapa exige nova autorização.

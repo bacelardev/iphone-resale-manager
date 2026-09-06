@@ -1,5 +1,8 @@
 # Security baseline do projeto
 
+Baseline aprovado no encerramento da Etapa E, versão 1.0, em 06/09/2026.
+E-05 validada com Argon2id no workflow `34041521491`.
+
 Este documento é obrigatório para todas as etapas posteriores. Uma funcionalidade só
 está pronta quando mantém os controles aplicáveis abaixo e possui testes negativos.
 
