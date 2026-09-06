@@ -226,6 +226,11 @@ a aplicação. Não existe endpoint público de cadastro nem senha default.
 
 ## 6. Validação e limitações
 
+Execução verificada no GitHub Actions: **30 testes, zero falhas, erros ou ignorados**,
+com JDK 21, Maven 3.9.16, PostgreSQL 16.15, Flyway V1+V2, startup HTTP real e Hibernate
+`validate`. Consulte o [relatório com evidências e arquivos](validacao-etapa-e.md).
+Esse resultado não encerra a pendência de compatibilidade E-05.
+
 O comando obrigatório é `mvn clean verify`. Os integration tests usam PostgreSQL 16
 real e validam Flyway e `ddl-auto=validate`; não substituem PostgreSQL por H2.
 

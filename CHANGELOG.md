@@ -18,6 +18,9 @@
 
 ### Status
 
+- Publicado no `main`; código `f31180c` validado pelo GitHub Actions em 06/09/2026:
+  30 testes, nenhum erro ou ignorado, Flyway V1+V2, HTTP real e Hibernate validate.
+  Evidências em `docs/security/validacao-etapa-e.md`.
 - Etapa E versão 1.0 proposta; aguardando aprovação explícita.
 - Pendência E-05: compatibilizar a faixa aprovada de 12–128 caracteres com o limite de
   72 bytes do BCrypt direto, sem mudar silenciosamente o contrato ou o esquema de senha.
