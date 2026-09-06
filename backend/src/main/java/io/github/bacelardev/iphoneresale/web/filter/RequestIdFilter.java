@@ -12,6 +12,8 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.util.UUID;
+import java.util.Collections;
+import java.util.regex.Pattern;
 
 @Component
 @Order(Ordered.HIGHEST_PRECEDENCE)
@@ -19,6 +21,8 @@ public class RequestIdFilter extends OncePerRequestFilter {
 
     public static final String HEADER_NAME = "X-Request-Id";
     public static final String ATTRIBUTE_NAME = RequestIdFilter.class.getName() + ".requestId";
+    private static final Pattern UUID_PATTERN = Pattern.compile(
+            "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$");
 
     private final ApiErrorWriter errorWriter;
 
@@ -34,10 +38,14 @@ public class RequestIdFilter extends OncePerRequestFilter {
     ) throws ServletException, IOException {
         String supplied = request.getHeader(HEADER_NAME);
         UUID requestId;
-        if (supplied == null || supplied.isBlank()) {
+        if (supplied == null) {
             requestId = UUID.randomUUID();
         } else {
             try {
+                if (Collections.list(request.getHeaders(HEADER_NAME)).size() != 1
+                        || !UUID_PATTERN.matcher(supplied).matches()) {
+                    throw new IllegalArgumentException("Invalid request ID format");
+                }
                 requestId = UUID.fromString(supplied);
             } catch (IllegalArgumentException exception) {
                 requestId = UUID.randomUUID();

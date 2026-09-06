@@ -56,4 +56,4 @@ server:
 logging:
   level:
     org.springframework.security: INFO
-    org.hibernate.SQL: OFF
+    org.hibernate.SQL: "OFF"

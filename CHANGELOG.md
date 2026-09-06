@@ -19,6 +19,8 @@
 ### Status
 
 - Etapa E versão 1.0 proposta; aguardando aprovação explícita.
+- Pendência E-05: compatibilizar a faixa aprovada de 12–128 caracteres com o limite de
+  72 bytes do BCrypt direto, sem mudar silenciosamente o contrato ou o esquema de senha.
 - Nenhum recurso da Etapa F foi iniciado.
 
 ## 1.1 — Domínio e fundação de persistência

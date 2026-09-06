@@ -130,6 +130,10 @@ referencia `app_user` com `RESTRICT` e preserva histórico por revogação, não
 **Decisão:** usar BCrypt custo 12, senha de 12–128 caracteres, comparação dummy para
 username inexistente e falha pública indistinguível para inexistente/incorreta/inativa.
 
+**Pendência técnica:** BCrypt direto limita novas senhas a 72 bytes UTF-8. O suporte à
+faixa completa de 12–128 caracteres ainda exige uma decisão explícita de compatibilidade.
+O contrato permanece aprovado; não houve substituição do algoritmo ou redução da faixa.
+
 ### E-06 — Stateless
 
 **Decisão:** Spring Security não usa sessão HTTP, form login, Basic, remember-me,
@@ -208,6 +212,7 @@ startup e Hibernate validate. Execução não realizada ou teste pulado deve ser
 
 ## Registro da proposta
 
-As decisões E-01 a E-20 estão implementadas e documentadas como proposta. A Etapa E
-permanece aberta, aguardando aprovação explícita. Nenhuma implementação da Etapa F foi
-iniciada.
+As decisões E-01 a E-20 estão documentadas como proposta, com a ressalva técnica de E-05
+explicitada acima. Build e testes aprovados não encerram essa pendência. A Etapa E
+permanece aberta, aguardando revisão e aprovação explícita. Nenhuma implementação da
+Etapa F foi iniciada.

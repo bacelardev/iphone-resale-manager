@@ -13,4 +13,13 @@ public record LoginRequest(
         @Size(min = 12, max = 128)
         String password
 ) {
+
+    public LoginRequest {
+        username = username == null ? null : username.trim();
+    }
+
+    @Override
+    public String toString() {
+        return "LoginRequest[username=[redacted], password=[redacted]]";
+    }
 }

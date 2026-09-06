@@ -12,6 +12,13 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.context.ApplicationContext;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
+import java.util.Map;
 
 import java.time.Instant;
 import java.util.UUID;
@@ -33,6 +40,68 @@ class AuthenticationFlowIT extends PostgresIntegrationTest {
     @Autowired private JdbcTemplate jdbcTemplate;
     @Autowired private AccessTokenGenerator tokenGenerator;
     @Autowired private AccessTokenHasher tokenHasher;
+    @Autowired private TestRestTemplate httpClient;
+    @Autowired private ApplicationContext context;
+
+    @Test
+    void fullFlowUsesRealHttpAndDefaultCredentialsDoNotExist() {
+        assertThat(context.getBeansOfType(UserDetailsService.class)).isEmpty();
+        assertThat(context.getEnvironment().getProperty("spring.jpa.hibernate.ddl-auto"))
+                .isEqualTo("validate");
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        ResponseEntity<JsonNode> login = httpClient.postForEntity("/api/v1/auth/login",
+                new HttpEntity<>(Map.of("username", TEST_USERNAME, "password", TEST_PASSWORD), headers),
+                JsonNode.class);
+        assertThat(login.getStatusCode().value()).isEqualTo(200);
+        assertThat(login.getHeaders().getCacheControl()).isEqualTo("no-store");
+        assertThat(login.getHeaders().containsKey(HttpHeaders.SET_COOKIE)).isFalse();
+        headers.setBearerAuth(login.getBody().path("accessToken").asText());
+        HttpEntity<Void> request = new HttpEntity<>(headers);
+        ResponseEntity<JsonNode> me = httpClient.exchange("/api/v1/auth/me", HttpMethod.GET,
+                request, JsonNode.class);
+        assertThat(me.getStatusCode().value()).isEqualTo(200);
+        assertThat(me.getBody().path("username").asText()).isEqualTo(TEST_USERNAME);
+        assertThat(httpClient.exchange("/api/v1/auth/logout", HttpMethod.POST, request, Void.class)
+                .getStatusCode().value()).isEqualTo(204);
+        assertThat(httpClient.exchange("/api/v1/auth/me", HttpMethod.GET, request, JsonNode.class)
+                .getStatusCode().value()).isEqualTo(401);
+        assertThat(httpClient.exchange("/api/v1/auth/logout", HttpMethod.POST, request, Void.class)
+                .getStatusCode().value()).isEqualTo(204);
+    }
+
+    @Test
+    void requestIdRequiresCanonicalUuidAndIsReusedForCorrelation() throws Exception {
+        String requestId = UUID.randomUUID().toString();
+        mockMvc.perform(get("/api/v1/auth/me").header("X-Request-Id", requestId))
+                .andExpect(status().isUnauthorized())
+                .andExpect(header().string("X-Request-Id", requestId))
+                .andExpect(jsonPath("$.requestId").value(requestId));
+        for (String invalidId : new String[]{"", "1-1-1-1-1", " "}) {
+            mockMvc.perform(get("/api/v1/auth/me").header("X-Request-Id", invalidId))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("$.code").value("INVALID_REQUEST_ID"));
+        }
+    }
+
+    @Test
+    void loginNormalizesUsernameAndRejectsInvalidInputs() throws Exception {
+        mockMvc.perform(post("/api/v1/auth/login").contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(Map.of(
+                                "username", "  " + TEST_USERNAME.toUpperCase(java.util.Locale.ROOT) + "  ",
+                                "password", TEST_PASSWORD))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.user.username").value(TEST_USERNAME));
+        for (Map<String, String> input : java.util.List.of(
+                Map.of("username", "bad@username", "password", TEST_PASSWORD),
+                Map.of("username", TEST_USERNAME, "password", "short"),
+                Map.of("username", TEST_USERNAME, "password", "x".repeat(129)))) {
+            mockMvc.perform(post("/api/v1/auth/login").contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(input)))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("$.code").value("VALIDATION_ERROR"));
+        }
+    }
 
     @Test
     void loginPersistsOnlySha256AndResponseNeverExposesInternalFields() throws Exception {

@@ -55,11 +55,23 @@ BCrypt com custo 12. Login de username inexistente executa comparação com um h
 BCrypt dummy gerado na inicialização, e username inexistente, senha errada e usuário
 inativo produzem a mesma resposta pública `401 AUTHENTICATION_FAILED`.
 
+**Pendência de aceite E-05:** o `BCryptPasswordEncoder` utilizado limita a criação do hash
+a 72 **bytes UTF-8**, enquanto o contrato aceita até 128 caracteres. Portanto, esta
+implementação direta não atende a toda a faixa aprovada: o bootstrap com senha acima
+de 72 bytes falha. O teste `documentsTheOutstandingDirectBcryptByteLimit` caracteriza
+essa limitação; sua aprovação não comprova suporte a 128 caracteres. A estratégia para
+conciliar BCrypt e a faixa aprovada exige decisão explícita; não foi introduzido
+pré-processamento criptográfico nem reduzido o contrato nesta entrega.
+
 ### E-06 — Spring Security stateless
 
 A cadeia usa `SessionCreationPolicy.STATELESS`; form login, HTTP Basic, remember-me,
 request cache e logout de sessão HTTP estão desabilitados. A aplicação não cria sessão
 de servlet para autenticação.
+
+A autoconfiguração `UserDetailsServiceAutoConfiguration` foi excluída para impedir a
+criação e o log de credencial automática sem utilidade no fluxo Bearer. O filtro Bearer
+é registrado apenas na cadeia Spring Security, sem registro duplicado no servlet.
 
 ### E-07 — Filtro Bearer
 
@@ -219,6 +231,7 @@ real e validam Flyway e `ddl-auto=validate`; não substituem PostgreSQL por H2.
 
 Limitações assumidas nesta versão:
 
+- E-05 permanece pendente para senhas acima de 72 bytes UTF-8, conforme detalhado acima;
 - rate limit em memória não agrega tentativas entre réplicas e reinicia com o processo;
 - não existe limpeza física de sessões; retenção/purga segura exige decisão futura e
   eventual evolução da trigger;

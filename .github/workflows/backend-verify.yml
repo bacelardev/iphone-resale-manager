@@ -29,6 +29,11 @@ jobs:
           distribution: temurin
           java-version: "21"
           cache: maven
+      - name: Confirm toolchain
+        run: |
+          java --version
+          mvn --version
+          docker version
       - name: Maven clean verify
         run: mvn --batch-mode --no-transfer-progress clean verify
       - name: Require PostgreSQL integration tests

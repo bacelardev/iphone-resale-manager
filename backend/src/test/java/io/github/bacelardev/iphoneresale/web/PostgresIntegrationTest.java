@@ -13,7 +13,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 
 @Testcontainers(disabledWithoutDocker = true)
-@SpringBootTest
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 abstract class PostgresIntegrationTest {
