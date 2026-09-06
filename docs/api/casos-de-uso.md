@@ -1,7 +1,7 @@
 # Etapa D — Casos de Uso
 
-Versão: **1.0 proposta**  
-Status: **aguardando aprovação da Etapa D**  
+Versão: **1.0 aprovada**  
+Status: **Etapa D encerrada**  
 Dependências: **Etapas A, B e C 1.0 aprovadas e encerradas**
 
 ## 1. Objetivo e limites
@@ -19,7 +19,8 @@ Permanecem fora desta etapa: controllers, services de produção, Spring Data re
 - Valores monetários são `BigDecimal`/`numeric(14,2)`, em BRL, e nunca são calculados pelo cliente como fonte de verdade.
 - DTOs não expõem entidades JPA. Senha, hash, chave de storage e dados de segurança nunca aparecem em respostas ou auditoria.
 - Toda mutação de entidade versionada recebe `expectedVersion`. Divergência retorna conflito e não sobrescreve dados.
-- Toda operação relevante usa um `requestId` único, recebido em `X-Request-Id` ou gerado pelo backend, e o propaga para a auditoria.
+- Toda operação relevante usa um `requestId` único, recebido em `X-Request-Id` ou gerado pelo backend, e o propaga para correlação, rastreabilidade e auditoria.
+- `X-Request-Id` não é chave de idempotência e não deve ser interpretado automaticamente dessa forma. Uma eventual idempotência de comandos críticos exigirá mecanismo próprio, como `Idempotency-Key`, e decisão arquitetural futura específica.
 - O ledger e o `AuditLog` são append-only. Correção financeira cria um novo lançamento; nenhum lançamento é editado ou apagado.
 - Uma operação de negócio gera preferencialmente um evento principal de auditoria. IDs dos efeitos secundários ficam em `changes` para evitar ruído.
 - A fronteira transacional inclui todas as alterações PostgreSQL do caso de uso. Efeitos no object storage usam compensação, pois não participam da transação SQL.
@@ -218,7 +219,7 @@ Recebem `expectedVersion`. São idempotentes e registram `ACTIVATED` ou `DEACTIV
 1. Validar payload, catálogo e arquivos antes de qualquer escrita.
 2. Enviar as imagens ao storage com chaves temporárias/únicas.
 3. Abrir transação PostgreSQL.
-4. Criar `Device`; o banco gera UUID e `internalCode`.
+4. Criar `Device`; nas escritas via Hibernate/JPA, `GenerationType.UUID` gera o UUID antes do `INSERT`. O PostgreSQL mantém `gen_random_uuid()` como default para SQL direto, cargas e integrações externas. O `internalCode` continua sendo gerado pelo PostgreSQL.
 5. Criar de 2 a 4 metadados `DevicePhoto` ativos.
 6. Criar `FinancialTransaction` `DEVICE_PURCHASE/OUTFLOW`, com valor e data iguais à compra.
 7. Criar auditoria principal `CREATED/DEVICE`, incluindo IDs das fotos e do lançamento em `changes`.
@@ -286,7 +287,7 @@ Transição exclusiva `PENDENTE_MANUTENCAO -> DISPONIVEL_VENDA`. Recebe `expecte
 5. Registrar um evento principal `ARCHIVED/DEVICE` com os IDs dos efeitos secundários.
 6. Confirmar tudo junto.
 
-**Regras:** arquivamento é terminal no MVP; não representa venda, perda ou descarte; fotos permanecem no histórico. Não existe endpoint de reativação.
+**Regras:** arquivamento é terminal no MVP; não representa venda, perda ou descarte; fotos permanecem no histórico. Não existe `UnarchiveDevice` no MVP, o aparelho arquivado permanece imutável e uma eventual reativação exigirá decisão arquitetural futura específica.
 
 **Erros:** `DEVICE_NOT_FOUND`, `DEVICE_ALREADY_ARCHIVED`, `DEVICE_HAS_ACTIVE_SALE`, `CONCURRENT_MODIFICATION`.
 
@@ -427,7 +428,7 @@ Aceita `from`, `to`, `type`, `direction`, paginação e ordenação. Retorna eve
 
 ### UC-FIN-03 — Registrar saldo inicial
 
-Recebe `amount > 0`, `occurredAt` e descrição. Cria `OPENING_BALANCE/INFLOW`, sem origem operacional, e `FINANCIAL_TRANSACTION_CREATED`. Apenas um saldo inicial não estornado pode existir. Saldo inicial zero não cria linha e deve ser tratado pelo cliente como ausência de operação.
+Recebe `amount > 0`, `occurredAt` e descrição. Cria `OPENING_BALANCE/INFLOW`, sem origem operacional, e `FINANCIAL_TRANSACTION_CREATED`. Apenas um saldo inicial não estornado pode existir. A implementação deve proteger a verificação e a criação contra requisições simultâneas com lock transacional, advisory lock ou estratégia equivalente. Saldo inicial zero não cria linha e deve ser tratado pelo cliente como ausência de operação. Essa definição não exige alteração da migration V1.
 
 ### UC-FIN-04 — Registrar aporte
 
@@ -484,9 +485,9 @@ Não existem casos de criar, editar ou remover auditoria pela API. Eventos nasce
 - Venda e cancelamento também bloqueiam a linha do aparelho durante a transação. A constraint única de venda ativa é a última barreira contra duplicidade.
 - Cadastro/remoção de fotos serializa por aparelho; as constraints diferíveis validam a cardinalidade ao final.
 - Manutenção serializa por aparelho para não competir com uma venda.
-- Saldo inicial usa a proteção transacional existente no PostgreSQL para impedir dois registros ativos simultâneos.
+- Saldo inicial deve usar lock transacional, advisory lock ou estratégia equivalente para impedir que requisições simultâneas criem dois `OPENING_BALANCE` não estornados; a migration V1 permanece inalterada.
 - Violações de unicidade concorrentes são traduzidas para códigos de conflito estáveis; detalhes de constraint SQL não vazam para o cliente.
 
-## 15. Critério de aceite deste documento
+## 15. Registro de encerramento
 
-Este artefato fica aprovado quando os fluxos, entradas, erros, transações, ledger, auditoria e regras de concorrência forem aceitos em conjunto com `contratos-api.md` e com as decisões D-01 a D-15. Nenhuma implementação da Etapa E foi iniciada.
+Os fluxos, entradas, erros, transações, ledger, auditoria e regras de concorrência deste artefato foram aprovados em conjunto com `contratos-api.md` e com as decisões finais D-01 a D-15. A Etapa D versão 1.0 está encerrada. Nenhuma implementação da Etapa E foi iniciada.

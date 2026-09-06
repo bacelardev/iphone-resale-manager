@@ -2,8 +2,8 @@
 
 ## Etapa D — Casos de Uso e Contratos REST
 
-Versão: **1.0 proposta**  
-Status: **aguardando aprovação**
+Versão: **1.0 aprovada**  
+Status: **Etapa D encerrada**
 
 As decisões abaixo detalham a fronteira HTTP e a orquestração dos casos de uso. Elas não alteram o domínio, a migration V1, as entidades JPA ou as fórmulas aprovadas nas Etapas A, B e C.
 
@@ -21,7 +21,7 @@ As decisões abaixo detalham a fronteira HTTP e a orquestração dos casos de us
 
 ### D-03 — Identificação
 
-**Decisão:** UUID é o identificador de rota. `Device.internalCode` (`IPH-000001`) é imutável, exibido e pesquisável, mas não substitui a chave técnica.
+**Decisão:** UUID é o identificador de rota. Nas escritas via Hibernate/JPA, `GenerationType.UUID` gera o UUID antes do `INSERT`; o PostgreSQL mantém `gen_random_uuid()` como default para SQL direto, cargas e integrações externas. `Device.internalCode` (`IPH-000001`) continua sendo gerado pelo PostgreSQL, é imutável, exibido e pesquisável, mas não substitui a chave técnica.
 
 **Consequência:** não se expõe volume sequencial e a API permanece adequada a clientes móveis futuros.
 
@@ -49,7 +49,7 @@ As decisões abaixo detalham a fronteira HTTP e a orquestração dos casos de us
 
 **Decisão:** cadastro de aparelho é multipart e conclui aparelho, 2–4 fotos, saída de compra e auditoria em uma operação logicamente única. Uploads externos usam compensação se a transação SQL falhar.
 
-**Refinamentos:** `batteryHealthPercent=0` é aceito como não aferido, mas sai como `null`; status não é alterado pelo PATCH; fotos têm remoção lógica; arquivamento usa endpoint semântico e é terminal.
+**Refinamentos:** `batteryHealthPercent=0` é aceito como não aferido, mas sai como `null`; status não é alterado pelo PATCH; fotos têm remoção lógica; arquivamento usa endpoint semântico e é terminal. Não existe `UnarchiveDevice` no MVP, aparelho arquivado permanece imutável e eventual reativação exige decisão futura.
 
 ### D-08 — Manutenção
 
@@ -65,11 +65,11 @@ As decisões abaixo detalham a fronteira HTTP e a orquestração dos casos de us
 
 **Decisão:** o resumo usa ledger para saldos, fontes ativas para métricas econômicas e snapshot atual para capital em estoque. `marginPercent` é `null` quando não há faturamento.
 
-**Refinamento:** `RegisterManualAdjustment` possui modo livre e modo de estorno. O modo de estorno só aceita lançamentos manuais; transações operacionais são revertidas pelo caso de uso de origem.
+**Refinamentos:** `RegisterManualAdjustment` possui modo livre e modo de estorno. O modo de estorno só aceita lançamentos manuais; transações operacionais são revertidas pelo caso de uso de origem. A criação de `OPENING_BALANCE` protege a regra de apenas um registro não estornado com lock transacional, advisory lock ou estratégia equivalente, sem alterar a migration V1.
 
 ### D-11 — Auditoria
 
-**Decisão:** auditoria é somente leitura pela API. Cada operação produz preferencialmente um evento principal legível; efeitos secundários são correlacionados em `changes` e `requestId`.
+**Decisão:** auditoria é somente leitura pela API. Cada operação produz preferencialmente um evento principal legível; efeitos secundários são correlacionados em `changes` e `requestId`. `X-Request-Id` serve para correlação, rastreabilidade e auditoria, não como chave automática de idempotência. Idempotência futura de comandos críticos exigirá mecanismo próprio, como `Idempotency-Key`, e decisão específica.
 
 **Consequência:** preserva rastreabilidade sem criar uma timeline ruidosa e sem expor segredo.
 
@@ -99,4 +99,4 @@ As decisões abaixo detalham a fronteira HTTP e a orquestração dos casos de us
 
 ## Registro de aprovação
 
-Estas decisões permanecem propostas até aprovação explícita do usuário. A Etapa E não deve começar antes dessa aprovação.
+As decisões D-01 a D-15 foram aprovadas como versão final da Etapa D. A Etapa D está encerrada. Nenhuma implementação da Etapa E foi iniciada, e a próxima etapa depende de nova autorização explícita.

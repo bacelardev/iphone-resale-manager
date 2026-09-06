@@ -1,7 +1,7 @@
 # Etapa D — Contratos da API REST
 
-Versão: **1.0 proposta**  
-Status: **aguardando aprovação da Etapa D**  
+Versão: **1.0 aprovada**  
+Status: **Etapa D encerrada**  
 Base: **`/api/v1`**
 
 ## 1. Convenções gerais
@@ -40,6 +40,8 @@ X-Request-Id: 7f1fead9-80cb-47c9-b4eb-09e03753d81c
 ```
 
 O servidor valida o UUID ou gera um novo, devolve o cabeçalho e o usa em `AuditLog.requestId`.
+
+`X-Request-Id` existe exclusivamente para correlação, rastreabilidade e auditoria. Repetir o mesmo valor não garante deduplicação nem repetição segura de um comando. Ele não deve ser tratado automaticamente como chave de idempotência. Se comandos críticos receberem idempotência no futuro, ela usará mecanismo próprio, como `Idempotency-Key`, após decisão arquitetural específica.
 
 ### 1.4 Concorrência otimista
 
@@ -582,6 +584,8 @@ Partes:
 
 Resposta: `201 DeviceDetailResponse`, `Location: /api/v1/devices/{id}`.
 
+Nas escritas deste endpoint via Hibernate/JPA, `GenerationType.UUID` gera o UUID do `Device` antes do `INSERT`. O default PostgreSQL `gen_random_uuid()` permanece disponível para SQL direto, cargas e integrações externas. O `internalCode` é gerado pelo PostgreSQL.
+
 Erros: `404 MODEL_NOT_FOUND`, `404 COLOR_NOT_FOUND`, `422 CATALOG_ITEM_INACTIVE`, `422 PHOTO_MINIMUM_VIOLATION`, `422 PHOTO_LIMIT_EXCEEDED`, `413 FILE_TOO_LARGE`, `415 UNSUPPORTED_IMAGE_TYPE`.
 
 ### GET `/devices`
@@ -652,6 +656,8 @@ Resposta: `200 DeviceDetailResponse`. Erros: `404 DEVICE_NOT_FOUND`, `422 INVALI
 ```
 
 Resposta: `200 DeviceDetailResponse`. A resposta só é emitida após cancelamentos/estornos necessários e arquivamento atômico.
+
+O arquivamento é terminal no MVP: não existe `UnarchiveDevice`, o aparelho arquivado permanece imutável e qualquer reativação futura dependerá de nova decisão arquitetural.
 
 Erros: `404 DEVICE_NOT_FOUND`, `409 DEVICE_ALREADY_ARCHIVED`, `422 DEVICE_HAS_ACTIVE_SALE`, `409 CONCURRENT_MODIFICATION`.
 
@@ -818,6 +824,8 @@ Resposta: `201 FinancialTransactionResponse` e `Location: /api/v1/financial/tran
 
 Saldo inicial adicional retorna `409 OPENING_BALANCE_ALREADY_EXISTS`. Valores zero ou negativos retornam `400 VALIDATION_ERROR`.
 
+A implementação deve tornar atômica a verificação e a criação do saldo inicial, usando lock transacional, advisory lock ou estratégia equivalente, para que requisições simultâneas não criem dois `OPENING_BALANCE` não estornados. A migration V1 não será alterada por esta decisão.
+
 ### POST `/financial/adjustments`
 
 Modo ajuste livre:
@@ -936,3 +944,7 @@ Não existem `POST`, `PATCH` ou `DELETE` para auditoria.
 - Listas evitam N+1 e sempre aplicam paginação, exceto fotos ativas.
 - Endpoints de escrita não aceitam campos derivados, autoria, status interno de cancelamento ou IDs de lançamento automático.
 - O contrato não autoriza alteração da migration V1 nem implementação antecipada da Etapa E.
+
+## 15. Registro de encerramento
+
+Este contrato e os casos de uso correspondentes foram aprovados como Etapa D versão 1.0. A Etapa D está encerrada, a migration V1 permanece inalterada e nenhuma implementação da Etapa E foi iniciada.
