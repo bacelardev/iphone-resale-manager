@@ -1,0 +1,107 @@
+name: Frontend verify
+
+on:
+  push:
+    paths: ["frontend/**", ".github/workflows/frontend-verify.yml"]
+  pull_request:
+    paths: ["frontend/**", ".github/workflows/frontend-verify.yml"]
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: frontend
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: iphone_resale_e2e
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: ci-isolated-database
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      CI: true
+      HUSKY: 0
+      VITE_API_BASE_URL: http://localhost:8080
+      DB_URL: jdbc:postgresql://localhost:5432/iphone_resale_e2e
+      DB_USERNAME: postgres
+      DB_PASSWORD: ci-isolated-database
+      PGHOST: localhost
+      PGPORT: 5432
+      PGUSER: postgres
+      PGPASSWORD: ci-isolated-database
+      PGDATABASE: iphone_resale_e2e
+      APP_CORS_ALLOWED_ORIGINS: http://localhost:5173
+      APP_BOOTSTRAP_ENABLED: true
+      APP_BOOTSTRAP_NAME: Sócio CI
+      APP_BOOTSTRAP_USERNAME: ci.socio
+      E2E_USERNAME: ci.socio
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+      - name: Install locked dependencies
+        run: npm ci
+      - name: Lint
+        run: npm run lint
+      - name: Format
+        run: npm run format:check
+      - name: Typecheck
+        run: npm run typecheck
+      - name: Unit and component tests
+        run: npm test -- --run
+      - name: Production build
+        run: npm run build
+      - name: Build existing backend
+        working-directory: backend
+        run: mvn --batch-mode --no-transfer-progress -DskipTests package
+      - name: Temporary bootstrap credential
+        run: |
+          fixture_password=$(openssl rand -hex 32)
+          echo "::add-mask::$fixture_password"
+          printf 'APP_BOOTSTRAP_PASSWORD=%s\nE2E_PASSWORD=%s\n' "$fixture_password" "$fixture_password" >> "$GITHUB_ENV"
+      - name: Start Spring Boot with Flyway and Hibernate validate
+        working-directory: backend
+        run: |
+          java -jar target/iphone-resale-0.0.1-SNAPSHOT.jar > "$RUNNER_TEMP/frontend-e2e-backend.log" 2>&1 &
+          for attempt in $(seq 1 60); do
+            status=$(curl --silent --output /dev/null --write-out '%{http_code}' http://localhost:8080/api/v1/auth/me || true)
+            if [ "$status" = "401" ]; then exit 0; fi
+            sleep 2
+          done
+          echo 'Backend startup failed; inspect the isolated runner.'
+          exit 1
+      - name: Browser dependencies
+        run: npx playwright install --with-deps chromium
+      - name: Real authentication, responsiveness and accessibility
+        run: npm run test:e2e
+      - name: Require browser tests without skips
+        run: |
+          node --input-type=module - <<'JS'
+          import fs from 'node:fs';
+          const { stats } = JSON.parse(fs.readFileSync('test-results/results.json', 'utf8'));
+          if (stats.expected < 10 || stats.skipped || stats.unexpected || stats.flaky) process.exit(1);
+          JS
+      - name: Save interface screenshots only
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-responsive-screenshots
+          path: frontend/test-results/*.png
+          retention-days: 7

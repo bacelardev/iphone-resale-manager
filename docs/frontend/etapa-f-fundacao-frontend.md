@@ -1,0 +1,111 @@
+# Etapa F — Fundação do frontend e autenticação real
+
+Versão: **1.0 proposta**  
+Status: **aguardando aprovação da Etapa F**
+
+## Escopo e arquitetura
+
+Frontend implementado sobre a Etapa E encerrada, base `9d3de88` (código E-05 `9f920c4`).
+Foram lidos os documentos de negócio, arquitetura, design, domínio A/B/C, casos de uso,
+contratos, segurança e decisões. Contratos reais inspecionados nos DTOs e AuthController.
+
+Fluxo: página → AuthProvider/useAuth → authApi → apiRequest → Spring Boot.
+O port de storage do navegador isola a persistência. Query cuida de /me; RHF+Zod do
+formulário. Componentes visuais ficam no Design System interno.
+
+Login e dashboard são funcionais. As rotas dos módulos futuros são placeholders
+protegidos, sem consultas de negócio, métricas fictícias, CRUD, upload ou storage.
+Nenhuma implementação da Etapa G foi iniciada. Backend, V1 e V2 foram preservados.
+
+## Decisões F-01 a F-20
+
+| ID | Tema | Decisão e consequência |
+| --- | --- | --- |
+| F-01 | Stack frontend | React 19, TypeScript estrito, Vite 8 e Tailwind 4; componentes internos no padrão shadcn/ui com Radix, Tabler, Query, Router, RHF e Zod. Node 24 LTS. Sem Redux/Next.js. |
+| F-02 | Estrutura | app compõe providers/query; features/auth concentra autenticação; lib/api centraliza transporte; lib/auth isola token; layouts, pages, routes, types e components/ui possuem fronteiras simples. |
+| F-03 | Design System | Paleta escura aprovada: #080808 / #101010 / #151515 / #1B1B1B; borda #262626; texto #F5F5F7 / #A1A1A6 / #6E6E73. Texto discreto essencial usa contraste maior; muted reservado a ornamento. Branco para ação principal, verde/vermelho/amarelo semânticos. Motion 180ms e reduced-motion. |
+| F-04 | Componentes | Button, Input, Card, Badge, Dialog, Skeleton, Spinner, FormField, PageHeader, EmptyState e ErrorState em components/ui; Radix encapsulado. Configuração components.json para manutenção shadcn, sem dependência de serviço externo. |
+| F-05 | Roteamento | /login e /dashboard funcionais. /devices, /devices/new, /devices/:id, /financial, /history e /settings/users protegidas com placeholders. Fallback vai ao dashboard, passando pelo guard. |
+| F-06 | App Shell | Sidebar fixa desktop, header discreto, menu modal Radix no mobile, navegação por links reais e identificação do sócio. Nenhum indicador financeiro fictício. |
+| F-07 | Cliente HTTP | apiRequest<T> concentra base URL, JSON/FormData, Bearer, UUID, 204, envelope de erro, rede, cancelamento e timeout 15s. Sem cookies, redirects ou cache HTTP; somente caminhos /api/v1 na origem configurada. |
+| F-08 | ApiError | Envelope REST tipado e validado com Zod; lógica decide por code. Mensagens públicas mapeadas, sem renderizar causas internas ou payloads desconhecidos. Erro sem JSON recebe fallback seguro. |
+| F-09 | Request ID | UUID novo por request; referência discreta em erros. Não é idempotência. Retry-After pode ser lido quando exposto pelo backend; mensagem 429 funciona sem depender desse header. |
+| F-10 | sessionStorage | AuthTokenStore concentra get/set/clear. Apenas token opaco é persistido por aba. Não há localStorage, usuário persistido, persistência do cache Query ou refresh token. |
+| F-11 | Segurança do token | Token somente no store e header Bearer; nunca URL, logs, console, analytics ou markup. Não há dangerouslySetInnerHTML, scripts externos, senhas no Query ou segredos VITE. sessionStorage não protege contra XSS. |
+| F-12 | Login real | RHF+Zod validam UX; POST real ao backend, guarda token, recebe DTO explícito e navega ao dashboard. Senha 12–128 unidades UTF-16 conforme backend, sem truncar ou normalizar. 401/429/rede/validação têm estados e botão de envio desabilitado. |
+| F-13 | Restauração | Sem token, visitante; com token, GET /auth/me via Query sem retry automático. 200 restaura; 401 remove; falha de rede preserva token e oferece retry, sem mostrar conteúdo protegido. |
+| F-14 | Estado de autenticação | AuthProvider/useAuth com checking/authenticated/unauthenticated/error, user, login, logout e retry. Contador de geração evita que resposta antiga restaure contexto encerrado. Efeitos compatíveis com StrictMode. |
+| F-15 | ProtectedRoute | Guard impede flash durante checking e error; visitante vai ao login; autenticado entra. /login redireciona autenticado ao dashboard. Autorização de negócio continua no backend. |
+| F-16 | Logout | POST real; finally remove token, usuário e queries privadas, cancelando consultas e redirecionando. Falha de rede encerra só a aba e informa que a sessão remota pode permanecer até expirar; sem promessa falsa de revogação. |
+| F-17 | 401 global | Chamada protegida com 401 invalida o contexto atual, limpa cache e leva ao login. Login é exceção. Resposta associada a token antigo não invalida login novo; não há retry infinito. |
+| F-18 | TanStack Query + forms | Query para estado do servidor (/me), sem credenciais nas chaves/cache. RHF+Zod para formulário, sem inserir senha/resposta com token no cache de mutation. Backend continua sendo a validação final. |
+| F-19 | Responsividade + acessibilidade | 375, 430, 768, 1024 e 1440px; labels, botões/inputs reais, foco visível, skip link, teclado, trap/restauração de foco Radix e reduced-motion. Playwright + axe verificam overflow e WCAG A/AA; não equivalem a auditoria assistiva completa. |
+| F-20 | Qualidade, testes e CI | ESLint 10, Prettier, Husky/lint-staged, Vitest/RTL e workflow frontend separado: npm ci, lint, format, typecheck, tests, build e Playwright contra Spring Boot/PostgreSQL reais. Gate exige E2E sem skips. Backend CI preservado. |
+
+## Fluxos e limites de segurança
+
+- Login não envia token anterior. Em sucesso, persiste somente accessToken e mantém
+  User em memória. O usuário ativo vem do backend; papel não autoriza regras no browser.
+- Refresh exige /me real. Falha de rede mantém o token, porém oculta o conteúdo privado.
+- Logout sempre limpa localmente e elimina cache privado; a impossibilidade de revogar
+  remotamente é informada. Encerrar uma aba não revoga a sessão no servidor por si só.
+- sessionStorage pode ser copiado pelo navegador ao duplicar uma aba e é legível por
+  scripts da mesma origem. Não é cofre, não elimina XSS e não substitui HTTPS/CSP.
+- Variável pública VITE_API_BASE_URL contém somente origem, sem segredo. CORS deve
+  corresponder à origem do frontend; não foi aberto wildcard.
+- Requests têm timeout e AbortSignal; redirecionamentos HTTP não são seguidos. Não
+  existe renovação silenciosa, PWA, cache offline ou credencial padrão.
+- A política de cache e CSP do **servidor estático de produção** será configurada no
+  deploy futuro: SPA fallback, HTTPS, `Cache-Control: no-store` para HTML e
+  `default-src 'self'; script-src 'self'; style-src 'self'; connect-src 'self' <origem-api>;
+  img-src 'self' data:; font-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'`.
+  A política deve ser ensaiada nesse ambiente; não foi realizado deploy.
+- O contrato não foi alterado. Header Retry-After não é requisito para exibir o erro 429;
+  a allowlist CORS atual pode impedir sua leitura cross-origin.
+
+## Validação
+
+Local: Node 24.19.0 / npm 11.9.0. `npm ci`, `format:check`, `lint`,
+`typecheck`, `npm test -- --run` e `build` passaram. **31 testes Vitest**, zero falhas.
+Build inicial: JS 460,58 kB (144,32 kB gzip), CSS 17,16 kB (4,71 kB gzip).
+Valores são tamanho de bundle, não benchmark de latência.
+
+CI e validação funcional real: **em andamento**, a registrar após execução.
+Não confundir fixtures dos testes Vitest com autenticação mockada na aplicação:
+a aplicação usa somente as três rotas reais. O workflow prepara PostgreSQL 16 vazio,
+Flyway V1+V2, Hibernate validate, backend Java 21 e navegador Chromium.
+E2E cobre login, refresh/me, placeholders, logout/revogação, token inválido/expirado,
+401/429, conexão recusada simulada e as cinco larguras com axe e teclado.
+Traces e vídeos desativados; screenshots sem senha/token.
+
+## Operação
+
+Ver `frontend/README.md`: comandos, bootstrap backend, CORS, SPA fallback,
+variáveis públicas e execução E2E em banco descartável. Scripts obrigatórios presentes.
+Husky usa lint-staged; sem build/servidor no pre-commit. CI é a verificação final.
+
+## Dependências
+
+Versões exatas e dependências transitivas em `frontend/package-lock.json`.
+Inventário completo será registrado na conferência final.
+
+## Arquivos
+
+Inventário do commit e evidências do workflow serão registrados na conferência final.
+
+## Limitações reais
+
+Sem módulos de negócio, deploy, OAuth, 2FA, recuperação, refresh token, storage ou PWA.
+Rate limit do backend continua por processo. Logout offline não garante revogação
+remota. Acessibilidade automatizada não substitui teste com leitores de tela.
+Nenhuma métrica de negócio foi simulada como dado real.
+
+## Referências técnicas
+
+- [shadcn/ui em Vite](https://ui.shadcn.com/docs/installation/vite)
+- [shadcn/ui e Tailwind 4](https://ui.shadcn.com/docs/tailwind-v4)
+- [TanStack Query — cancelamento](https://tanstack.com/query/latest/docs/framework/react/guides/query-cancellation)
+- [Node — ciclo LTS](https://nodejs.org/en/about/previous-releases)
+
+A Etapa F permanece proposta. Não avançar para a Etapa G sem aprovação explícita.
+
