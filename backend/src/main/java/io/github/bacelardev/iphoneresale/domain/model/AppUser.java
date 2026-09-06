@@ -30,6 +30,16 @@ public class AppUser extends AuditableEntity {
     protected AppUser() {
     }
 
+    public static AppUser bootstrapSocio(String name, String username, String passwordHash) {
+        AppUser user = new AppUser();
+        user.name = name;
+        user.username = username;
+        user.passwordHash = passwordHash;
+        user.role = UserRole.SOCIO;
+        user.active = true;
+        return user;
+    }
+
     public String getName() {
         return name;
     }

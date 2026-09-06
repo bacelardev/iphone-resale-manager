@@ -27,7 +27,9 @@ Base: **`/api/v1`**
 Authorization: Bearer <access-token>
 ```
 
-O token é opaco para o cliente. Seu formato interno, assinatura e persistência serão definidos na etapa de segurança sem alterar este transporte. Não há refresh token no MVP; credencial expirada exige novo login.
+O token é opaco para o cliente, possui prefixo público `irs_` e 256 bits aleatórios, mas não contém claims ou dados legíveis. Somente seu hash SHA-256 é persistido em sessão revogável; o valor bruto nunca é salvo. O TTL padrão é de 12 horas. Não há refresh token no MVP; credencial expirada exige novo login.
+
+`POST /auth/logout` possui uma exceção técnica no matcher para permitir semântica idempotente, mas não é semanticamente público: exige header Bearer sintaticamente válido. Credencial ausente ou malformada retorna 401; token bem formado desconhecido, expirado ou já revogado retorna 204.
 
 Todos os usuários do MVP têm papel `SOCIO`. Não há matriz complexa de permissões. O bootstrap do primeiro usuário é operacional e não será exposto como cadastro público.
 
@@ -418,14 +420,14 @@ Response `200`:
 
 ```json
 {
-  "accessToken": "opaque-access-token",
+  "accessToken": "irs_token-opaco-para-o-cliente",
   "tokenType": "Bearer",
   "expiresAt": "2026-09-04T22:30:00Z",
   "user": {}
 }
 ```
 
-Erros: `400 VALIDATION_ERROR`, `401 AUTHENTICATION_FAILED`. A resposta 401 é igual para username inexistente, senha incorreta ou usuário inativo.
+Erros: `400 VALIDATION_ERROR`, `401 AUTHENTICATION_FAILED`, `429 LOGIN_RATE_LIMITED`. A resposta 401 é igual para username inexistente, senha incorreta ou usuário inativo. O rate limit padrão permite cinco tentativas por minuto por peer direto, é reiniciado no sucesso e inclui `Retry-After` ao bloquear.
 
 ### GET `/auth/me`
 
@@ -433,7 +435,9 @@ Response `200`: `UserResponse`. Erros: `401 UNAUTHORIZED`.
 
 ### POST `/auth/logout`
 
-Invalida a credencial enviada e retorna `204`, inclusive se ela já tiver sido invalidada dentro da requisição autenticada. Não recebe body.
+Não recebe body. Bearer ausente ou malformado retorna `401 UNAUTHORIZED`. Bearer sintaticamente válido sempre retorna `204`: se a sessão estiver ativa, preenche `revokedAt`; se for desconhecida, expirada ou já revogada, não altera dados. Assim, repetição não revela a existência da sessão. O token revogado passa a retornar 401 nas rotas normais.
+
+As três rotas de autenticação usam `Cache-Control: no-store`, devolvem `X-Request-Id` e nunca expõem `passwordHash`, `tokenHash` ou entidade JPA. Respostas 401 incluem `WWW-Authenticate: Bearer realm="iphone-resale"`.
 
 ## 5. Usuários
 

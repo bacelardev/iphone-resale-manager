@@ -1,5 +1,26 @@
 # Changelog
 
+## 1.2 — Segurança e autenticação (proposta)
+
+### Implementado
+
+- autenticação stateless com Bearer token opaco e sessão persistida por hash SHA-256;
+- migration Flyway `V2__opaque_auth_sessions.sql`, sem alteração da V1;
+- login, `/auth/me` e logout com revogação persistente e repetição segura;
+- BCrypt custo 12, comparação dummy e resposta genérica de falha;
+- principal mínimo e `CurrentUserIdProvider` integrado ao SecurityContext;
+- default-deny, erros 401/403 padronizados, CORS allowlist e CSRF coerente;
+- request ID, no-store, headers defensivos e rate limit de login bounded/expirável;
+- bootstrap operacional, transacional e concorrente do primeiro `SOCIO`;
+- suporte a credenciais separadas de migration/runtime e Compose em loopback;
+- testes unitários e integração PostgreSQL 16/Testcontainers;
+- baseline de segurança permanente e decisões E-01 a E-20.
+
+### Status
+
+- Etapa E versão 1.0 proposta; aguardando aprovação explícita.
+- Nenhum recurso da Etapa F foi iniciado.
+
 ## 1.1 — Domínio e fundação de persistência
 
 ### Aprovado

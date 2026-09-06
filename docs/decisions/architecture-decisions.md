@@ -99,4 +99,115 @@ As decisões abaixo detalham a fronteira HTTP e a orquestração dos casos de us
 
 ## Registro de aprovação
 
-As decisões D-01 a D-15 foram aprovadas como versão final da Etapa D. A Etapa D está encerrada. Nenhuma implementação da Etapa E foi iniciada, e a próxima etapa depende de nova autorização explícita.
+As decisões D-01 a D-15 foram aprovadas como versão final da Etapa D. A Etapa D está encerrada. Até esse encerramento, nenhuma implementação da Etapa E havia sido iniciada; a Etapa E começou somente após nova autorização explícita.
+
+## Etapa E — Segurança, Autenticação e Hardening
+
+Versão: **1.0 proposta**  
+Status: **aguardando aprovação da Etapa E**
+
+### E-01 — Bearer token opaco
+
+**Decisão:** usar token opaco sem JWT, claims, payload de negócio ou refresh token.
+
+### E-02 — Sessões persistidas
+
+**Decisão:** a V2 cria `auth_session` em infraestrutura, guarda somente SHA-256 do token,
+referencia `app_user` com `RESTRICT` e preserva histórico por revogação, não por delete.
+
+### E-03 — Expiração
+
+**Decisão:** sessões expiram em 12 horas por default, configuráveis por
+`APP_AUTH_TOKEN_TTL`; duração não positiva falha no startup.
+
+### E-04 — Geração e hash
+
+**Decisão:** token tem 256 bits de `SecureRandom`, Base64 URL-safe sem padding e prefixo
+`irs_`; somente seu SHA-256 hexadecimal é persistido.
+
+### E-05 — Senha
+
+**Decisão:** usar BCrypt custo 12, senha de 12–128 caracteres, comparação dummy para
+username inexistente e falha pública indistinguível para inexistente/incorreta/inativa.
+
+### E-06 — Stateless
+
+**Decisão:** Spring Security não usa sessão HTTP, form login, Basic, remember-me,
+request cache ou logout stateful.
+
+### E-07 — Validação Bearer
+
+**Decisão:** cada acesso valida forma, hash, existência, expiração, revogação e usuário
+ativo antes de criar o SecurityContext.
+
+### E-08 — Principal e auditoria
+
+**Decisão:** principal contém apenas UUID, username e papel. A implementação real de
+`CurrentUserIdProvider` integra esse UUID à auditoria JPA.
+
+### E-09 — Contratos de autenticação
+
+**Decisão:** implementar somente login, `/me` e logout. Logout ausente/malformado é 401;
+token bem formado desconhecido, revogado ou expirado é 204; ativo é revogado e retorna 204.
+
+### E-10 — Revogação
+
+**Decisão:** preencher `revoked_at`, nunca apagar sessão, e manter operação reutilizável
+de revogação de todas as sessões de um usuário.
+
+### E-11 — Deny by default
+
+**Decisão:** somente login e preflight são públicos. Logout possui liberação técnica para
+a semântica especial do filtro; as demais rotas exigem autenticação por padrão.
+
+### E-12 — Erros de segurança
+
+**Decisão:** 401 e 403 usam o envelope comum; 401 inclui `WWW-Authenticate`; detalhes
+internos e segredos não são enviados.
+
+### E-13 — CORS e CSRF
+
+**Decisão:** origens exatas, sem wildcard nem credentials; métodos e headers em allowlist.
+CSRF fica desabilitado enquanto a credencial for Bearer explícita, e CORS não é autorização.
+
+### E-14 — Segredos
+
+**Decisão:** segredos existem somente no backend/ambiente e nunca em Git, logs, URL,
+frontend ou `VITE_*`.
+
+### E-15 — PostgreSQL e least privilege
+
+**Decisão:** Compose publica em loopback; produção usa rede privada, TLS e credenciais
+distintas de migration/runtime quando possível, com runtime sem DDL.
+
+### E-16 — Exposição explícita
+
+**Decisão:** entities não são responses, DTOs não carregam hashes/segredos, JSON extra é
+rejeitado e respostas da API usam `no-store`.
+
+### E-17 — Input e queries
+
+**Decisão:** validar no servidor, normalizar username, parametrizar consultas e manter
+allowlist de sort; não concatenar input em SQL/JPQL.
+
+### E-18 — Upload futuro
+
+**Decisão:** formalizar política de MIME, magic bytes, limites, dimensões, storage key
+aleatória e conteúdo seguro, sem implementar storage nesta etapa.
+
+### E-19 — Hardening operacional
+
+**Decisão:** headers defensivos, logging sem dado sensível, request ID sem semântica de
+idempotência e rate limit de login bounded/expirável por peer direto. Não confiar em
+`X-Forwarded-For` sem proxy configurado; solução distribuída fica para escala horizontal.
+
+### E-20 — Testes
+
+**Decisão:** segurança só é aceita com testes negativos, PostgreSQL real, Flyway V1+V2,
+startup e Hibernate validate. Execução não realizada ou teste pulado deve ser declarado.
+
+## Registro da proposta
+
+As decisões E-01 a E-20 estão implementadas e documentadas como proposta. A Etapa E
+permanece aberta, aguardando aprovação explícita. Nenhuma implementação da Etapa F foi
+iniciada.
