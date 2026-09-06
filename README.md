@@ -1,4 +1,4 @@
-# Kit de Documentação — MVP Gestão de Revenda de iPhones
+# Kit de Documentação - MVP Gestão de Revenda de iPhones
 
 Versão: **1.0**  
 Status: **Base oficial para início da implementação**
