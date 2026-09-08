@@ -1,5 +1,22 @@
 # Changelog
 
+## 1.3 — Fundação frontend (Etapa F 1.0 aprovada)
+
+- React/TypeScript/Vite/Tailwind; Design System interno shadcn/Radix/Tabler.
+- Baseline visual oficial versionado: desktop V2 e Mobile-first V1; login central sem
+  hero de marketing, tokens e motion alinhados aos protótipos.
+- Select, Drawer e BottomSheet incorporados à fronteira `components/ui`; Drawer usado
+  na navegação mobile, sem antecipar catálogo ou regra de negócio.
+- App Shell responsivo, login real e rotas protegidas; demais módulos são placeholders.
+- Cliente HTTP central, sessionStorage isolado, restauração /me, logout e 401 global.
+- Falha de rede distinta de credencial inválida; cache privado eliminado ao sair.
+- RHF/Zod, TanStack Query, ESLint, Prettier e Husky/lint-staged.
+- 33 testes Vitest locais e gate de 11 testes Playwright; workflow frontend separado com
+  PostgreSQL 16, backend real, Flyway/Hibernate validate e axe, sem skips.
+- Evidências finais em `docs/frontend/etapa-f-fundacao-frontend.md`.
+- **Versão: 1.0 aprovada**; **Status: Etapa F encerrada**.
+- Backend e migrations preservados. Etapa G não iniciada.
+
 ## 1.2 — Segurança e autenticação (Etapa E 1.0 aprovada)
 
 ### Implementado

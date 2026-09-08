@@ -1,5 +1,26 @@
 # Direção Visual e Design System
 
+## Baseline Visual Oficial
+
+As referências normativas do produto são:
+
+- [Desktop — Visual Prototype V2](prototypes/iphone-resale-manager-visual-prototype-v2.svg);
+- [Mobile — Mobile-first Prototype V1](prototypes/iphone-resale-manager-mobile-prototype-v1.svg).
+
+O V2 orienta desktop, notebook, sidebar, cards, grids, tabelas, formulários e
+hierarquia. O Mobile-first orienta iPhone, telas pequenas, drawers, bottom sheets,
+cards empilhados, ações touch e formulários em coluna única. Ambos definem linguagem
+visual; textos, números, catálogos e registros exibidos são exemplos, não contratos.
+
+Em caso de divergência, prevalecem nesta ordem:
+
+1. regras de negócio e contratos aprovados nas Etapas A–E;
+2. contratos reais implementados no backend;
+3. security baseline;
+4. baseline visual V2 + Mobile-first;
+5. este Design System;
+6. decisões específicas documentadas na Etapa F.
+
 ## Referências principais
 
 - Copilot Money
@@ -62,9 +83,13 @@ Sugestão:
 
 ## Movimento
 
-Duração típica:
+Durações oficiais:
 
-- 150ms a 250ms.
+- hover e press: 150ms;
+- input e toggle: 150–180ms;
+- card e mudança de estado: 180ms;
+- drawer, bottom sheet e modal: 200–220ms;
+- foto e crossfade: 180ms.
 
 Usar para:
 
@@ -112,8 +137,16 @@ components/
     button/
     card/
     dialog/
+    drawer/
+    bottom-sheet/
     input/
+    select/
     badge/
 ```
 
 Isso evita inconsistência visual e dependência excessiva de terceiros.
+
+O conjunto base inclui Button, Input, Select/Combobox, Card, Badge, Dialog, Drawer,
+BottomSheet, Skeleton, Spinner, FormField, PageHeader, EmptyState e ErrorState. Um
+catálogo só pode ser ligado ao Select/Combobox quando o backend o disponibilizar; a
+fundação não inventa modelos, cores ou capacidades.

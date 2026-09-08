@@ -226,3 +226,42 @@ explícita. O commit `9f920c4` passou no workflow `34041521491`: 46 testes, nenh
 ignorado, PostgreSQL 16, Flyway V1+V2, startup e Hibernate validate. A Etapa E está
 encerrada em versão 1.0 aprovada em 06/09/2026. Nenhuma implementação da Etapa F foi
 iniciada; é necessária nova autorização para avançar.
+
+
+## Etapa F — Fundação do frontend e autenticação
+
+Versão: 1.0 aprovada  
+Status: Etapa F encerrada
+
+| ID | Tema | Decisão e consequência |
+| --- | --- | --- |
+| F-01 | Stack frontend | React 19, TypeScript estrito, Vite 8 e Tailwind 4; componentes internos no padrão shadcn/ui com Radix, Tabler, Query, Router, RHF e Zod. Node 24 LTS. Sem Redux/Next.js. |
+| F-02 | Estrutura | app compõe providers/query; features/auth concentra autenticação; lib/api centraliza transporte; lib/auth isola token; layouts, pages, routes, types e components/ui possuem fronteiras simples. |
+| F-03 | Design System | `visual-prototype-v2.svg` no desktop e `mobile-prototype-v1.svg` no mobile são o baseline oficial, subordinado a A–E, backend e segurança. Paleta #080808 / #101010 / #151515 / #1B1B1B, borda #262626, textos #F5F5F7 / #A1A1A6 / #6E6E73 e cores apenas semânticas. Motion 150/180/200–220ms e reduced-motion. |
+| F-04 | Componentes | Button, Input, Select, Card, Badge, Dialog, Drawer, BottomSheet, Skeleton, Spinner, FormField, PageHeader, EmptyState e ErrorState em components/ui; Radix encapsulado. Select não contém catálogo inventado; Drawer é usado no App Shell e BottomSheet prepara o padrão mobile. |
+| F-05 | Roteamento | /login e /dashboard funcionais. /devices, /devices/new, /devices/:id, /financial, /history e /settings/users protegidas com placeholders. Fallback vai ao dashboard, passando pelo guard. |
+| F-06 | App Shell | Sidebar fixa desktop, header discreto e Drawer Radix no mobile, com navegação por links reais e identificação do sócio. A identidade é contínua entre breakpoints e não há indicador financeiro fictício. |
+| F-07 | Cliente HTTP | apiRequest<T> concentra base URL, JSON/FormData, Bearer, UUID, 204, envelope de erro, rede, cancelamento e timeout 15s. Sem cookies, redirects ou cache HTTP; somente caminhos /api/v1 na origem configurada. |
+| F-08 | ApiError | Envelope REST tipado e validado com Zod; lógica decide por code. Mensagens públicas mapeadas, sem renderizar causas internas ou payloads desconhecidos. Erro sem JSON recebe fallback seguro. |
+| F-09 | Request ID | UUID novo por request; referência discreta em erros. Não é idempotência. Retry-After pode ser lido quando exposto pelo backend; mensagem 429 funciona sem depender desse header. |
+| F-10 | sessionStorage | AuthTokenStore concentra get/set/clear. Apenas token opaco é persistido por aba. Não há localStorage, usuário persistido, persistência do cache Query ou refresh token. |
+| F-11 | Segurança do token | Token somente no store e header Bearer; nunca URL, logs, console, analytics ou markup. Não há dangerouslySetInnerHTML, scripts externos, senhas no Query ou segredos VITE. sessionStorage não protege contra XSS. |
+| F-12 | Login real | Composição central limpa e sem hero de marketing. RHF+Zod validam UX; POST real ao backend, guarda token, recebe DTO explícito e navega ao dashboard. Senha 12–128 unidades UTF-16 conforme backend, sem truncar ou normalizar. 401/429/rede/validação têm estados e botão sem resize. |
+| F-13 | Restauração | Sem token, visitante; com token, GET /auth/me via Query sem retry automático. 200 restaura; 401 remove; falha de rede preserva token e oferece retry, sem mostrar conteúdo protegido. |
+| F-14 | Estado de autenticação | AuthProvider/useAuth com checking/authenticated/unauthenticated/error, user, login, logout e retry. Contador de geração evita que resposta antiga restaure contexto encerrado. Efeitos compatíveis com StrictMode. |
+| F-15 | ProtectedRoute | Guard impede flash durante checking e error; visitante vai ao login; autenticado entra. /login redireciona autenticado ao dashboard. Autorização de negócio continua no backend. |
+| F-16 | Logout | POST real; finally remove token, usuário e queries privadas, cancelando consultas e redirecionando. Falha de rede encerra só a aba e informa que a sessão remota pode permanecer até expirar; sem promessa falsa de revogação. |
+| F-17 | 401 global | Chamada protegida com 401 invalida o contexto atual, limpa cache e leva ao login. Login é exceção. Resposta associada a token antigo não invalida login novo; não há retry infinito. |
+| F-18 | TanStack Query + forms | Query para estado do servidor (/me), sem credenciais nas chaves/cache. RHF+Zod para formulário, sem inserir senha/resposta com token no cache de mutation. Backend continua sendo a validação final. |
+| F-19 | Responsividade + acessibilidade | 375, 430, 768, 1024 e 1440px; labels, alvos de 44px, foco visível, skip link, teclado, trap/restauração de foco Radix, sem overflow e reduced-motion. Playwright + axe verificam WCAG A/AA; não equivalem a auditoria assistiva completa. |
+| F-20 | Qualidade, testes e CI | ESLint 10, Prettier, Husky/lint-staged, Vitest/RTL e workflow frontend separado: npm ci, lint, format, typecheck, tests, build e Playwright contra Spring Boot/PostgreSQL reais. Gate exige pelo menos 11 E2E sem skips, incluindo tokens e motion do baseline. Backend CI preservado. |
+
+Implementação e critérios de validação em `docs/frontend/etapa-f-fundacao-frontend.md`.
+A evidência principal da versão final é o commit
+`5c4546658f19e7cb24dc5f3799edbb6f5ea12a61`, aprovado com status `success` no
+workflow `34258007670`: 33/33 testes Vitest em 5 arquivos e 11/11 testes Playwright,
+sem falhas ou skips, com PostgreSQL 16, Flyway V1+V2, Hibernate `ddl-auto=validate`,
+backend real, autenticação/CORS, axe e as cinco larguras responsivas. O complemento
+visual oficial permanece versionado em `docs/design/prototypes/`.
+A Etapa F está encerrada em versão 1.0 aprovada. As decisões A–E, security baseline e
+migrations permanecem preservadas. Não foi iniciada a Etapa G.

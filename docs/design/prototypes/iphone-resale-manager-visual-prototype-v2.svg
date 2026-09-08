@@ -1,0 +1,431 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="2800" height="1800" viewBox="0 0 2800 1800">
+  <defs>
+    <style>
+      .bg{fill:#080808}
+      .panel{fill:#101010;stroke:#262626;stroke-width:1.5}
+      .card{fill:#151515;stroke:#262626;stroke-width:1.2}
+      .input{fill:#1B1B1B;stroke:#262626;stroke-width:1.2}
+      .line{stroke:#262626;stroke-width:1}
+      .text{fill:#F5F5F7;font-family:Inter,Arial,sans-serif}
+      .muted{fill:#A1A1A6;font-family:Inter,Arial,sans-serif}
+      .dim{fill:#6E6E73;font-family:Inter,Arial,sans-serif}
+      .h1{font-size:30px;font-weight:700}
+      .h2{font-size:20px;font-weight:650}
+      .h3{font-size:16px;font-weight:650}
+      .body{font-size:13px;font-weight:400}
+      .small{font-size:11px;font-weight:500}
+      .tiny{font-size:10px;font-weight:600;letter-spacing:.08em}
+      .whiteBtn{fill:#F5F5F7}
+      .green{fill:#32D583}
+      .red{fill:#F97066}
+      .yellow{fill:#FEC84B}
+      .pill{rx:14;ry:14}
+      .r12{rx:12;ry:12}
+      .r14{rx:14;ry:14}
+      .r16{rx:16;ry:16}
+      .r20{rx:20;ry:20}
+      .r24{rx:24;ry:24}
+    </style>
+    <filter id="shadow" x="-25%" y="-25%" width="150%" height="150%">
+      <feDropShadow dx="0" dy="16" stdDeviation="16" flood-color="#000" flood-opacity="0.25"/>
+    </filter>
+  </defs>
+
+  <rect class="bg" width="2800" height="1800"/>
+
+  <!-- Header -->
+  <text x="60" y="70" class="text h1">iPhone Resale Manager — Visual Prototype V2</text>
+  <text x="60" y="104" class="muted body">Referência principal aprovada · Dark Premium / Financial Minimalism · base pronta para levar ao Figma e depois ao código</text>
+  <rect x="60" y="126" width="2680" height="1" fill="#262626"/>
+
+  <!-- Legend -->
+  <g transform="translate(60 150)">
+    <rect width="320" height="1580" class="panel r24"/>
+    <text x="26" y="40" class="text h2">Sistema visual</text>
+    <text x="26" y="70" class="dim body">Mesma linguagem da imagem que você aprovou.</text>
+    <text x="26" y="116" class="muted tiny">CORES</text>
+    <circle cx="40" cy="142" r="12" fill="#080808" stroke="#262626"/><text x="64" y="147" class="muted body">Background · #080808</text>
+    <circle cx="40" cy="178" r="12" fill="#101010" stroke="#262626"/><text x="64" y="183" class="muted body">Surface · #101010</text>
+    <circle cx="40" cy="214" r="12" fill="#151515" stroke="#262626"/><text x="64" y="219" class="muted body">Card · #151515</text>
+    <circle cx="40" cy="250" r="12" fill="#F5F5F7"/><text x="64" y="255" class="muted body">Ação principal / Texto</text>
+    <circle cx="40" cy="286" r="12" fill="#32D583"/><text x="64" y="291" class="muted body">Disponível / Lucro</text>
+    <circle cx="40" cy="322" r="12" fill="#FEC84B"/><text x="64" y="327" class="muted body">Pendente</text>
+    <circle cx="40" cy="358" r="12" fill="#F97066"/><text x="64" y="363" class="muted body">Cancelado / Crítico</text>
+
+    <text x="26" y="420" class="muted tiny">COMPONENTES</text>
+    <rect x="26" y="444" width="268" height="46" class="whiteBtn r14"/>
+    <text x="160" y="472" text-anchor="middle" style="fill:#080808;font:700 13px Inter,Arial">Botão principal</text>
+    <rect x="26" y="506" width="268" height="46" class="card r14"/>
+    <text x="160" y="534" text-anchor="middle" class="muted body">Botão secundário</text>
+    <rect x="26" y="568" width="268" height="50" class="input r12"/>
+    <text x="44" y="599" class="dim body">Campo de entrada</text>
+    <rect x="26" y="636" width="90" height="28" class="card pill"/>
+    <text x="71" y="655" text-anchor="middle" class="muted small">Badge</text>
+
+    <text x="26" y="720" class="muted tiny">ANIMAÇÕES</text>
+    <text x="26" y="748" class="muted body">• Hover / press: 150ms</text>
+    <text x="26" y="774" class="muted body">• Modal / drawer: 200–220ms</text>
+    <text x="26" y="800" class="muted body">• Valores: fade + slide 180ms</text>
+    <text x="26" y="826" class="muted body">• Fotos: crossfade 180ms</text>
+    <text x="26" y="852" class="muted body">• Skeleton discreto</text>
+    <text x="26" y="878" class="muted body">• Respeitar reduced-motion</text>
+
+    <text x="26" y="938" class="muted tiny">NÚCLEO DO MVP</text>
+    <text x="26" y="968" class="muted body">1. Login</text>
+    <text x="26" y="990" class="muted body">2. Dashboard</text>
+    <text x="26" y="1012" class="muted body">3. Aparelhos</text>
+    <text x="26" y="1034" class="muted body">4. Cadastrar iPhone</text>
+    <text x="26" y="1056" class="muted body">5. Detalhes do aparelho</text>
+    <text x="26" y="1078" class="muted body">6. Registrar manutenção</text>
+    <text x="26" y="1100" class="muted body">7. Registrar venda</text>
+    <text x="26" y="1122" class="muted body">8. Financeiro</text>
+    <text x="26" y="1144" class="muted body">9. Histórico</text>
+    <text x="26" y="1166" class="muted body">10. Usuários / Config.</text>
+
+    <text x="26" y="1236" class="muted tiny">DERIVADAS</text>
+    <text x="26" y="1266" class="muted body">11–14. Lote 1 · Aparelhos</text>
+    <text x="26" y="1290" class="muted body">15–18. Lote 2 · Operação</text>
+    <text x="26" y="1314" class="muted body">19–22. Lote 3 · Financeiro / Sistema</text>
+
+    <text x="26" y="1398" class="muted tiny">PRINCÍPIO</text>
+    <text x="26" y="1428" class="text h3">Motion must never</text>
+    <text x="26" y="1452" class="text h3">delay work.</text>
+    <text x="26" y="1496" class="dim body">Arquivo vetorial SVG — pode ser importado</text>
+    <text x="26" y="1518" class="dim body">no Figma para revisão e refinamento.</text>
+  </g>
+
+  <!-- Top row - 5 primary screens -->
+  <!-- LOGIN -->
+  <g transform="translate(420 160)" filter="url(#shadow)">
+    <rect width="360" height="500" class="panel r24"/>
+    <text x="26" y="34" class="muted tiny">01 · LOGIN</text>
+    <text x="26" y="76" class="text h1">Bem-vindo.</text>
+    <text x="26" y="104" class="muted body">Entre para gerenciar estoque, vendas e caixa.</text>
+    <rect x="26" y="160" width="308" height="52" class="input r12"/>
+    <text x="42" y="183" class="dim small">Usuário</text>
+    <text x="42" y="202" class="muted body">bacelar</text>
+    <rect x="26" y="226" width="308" height="52" class="input r12"/>
+    <text x="42" y="249" class="dim small">Senha</text>
+    <text x="42" y="268" class="muted body">••••••••••••</text>
+    <rect x="26" y="302" width="308" height="50" class="whiteBtn r14"/>
+    <text x="180" y="333" text-anchor="middle" style="fill:#080808;font:700 14px Inter,Arial">Entrar</text>
+    <rect x="26" y="390" width="308" height="72" class="card r16"/>
+    <text x="42" y="418" class="muted small">Estado / UX</text>
+    <text x="42" y="441" class="muted body">erro de credencial · rate limit · loading</text>
+  </g>
+
+  <!-- DASHBOARD -->
+  <g transform="translate(810 160)" filter="url(#shadow)">
+    <rect width="520" height="500" class="panel r24"/>
+    <rect x="0" y="0" width="136" height="500" rx="24" fill="#0E0E0E" stroke="#262626"/>
+    <text x="20" y="36" class="text h3">Resale</text>
+    <text x="20" y="58" class="dim body">Manager</text>
+    <text x="20" y="118" class="muted body">Dashboard</text>
+    <text x="20" y="150" class="dim body">Aparelhos</text>
+    <text x="20" y="182" class="dim body">Financeiro</text>
+    <text x="20" y="214" class="dim body">Histórico</text>
+    <text x="20" y="246" class="dim body">Usuários</text>
+
+    <text x="160" y="36" class="muted tiny">02 · DASHBOARD</text>
+    <text x="160" y="76" class="text h2">Visão geral</text>
+    <text x="160" y="102" class="muted body">O que importa hoje, sem excesso.</text>
+    <rect x="160" y="126" width="160" height="96" class="card r16"/>
+    <text x="176" y="154" class="dim body">Saldo em caixa</text>
+    <text x="176" y="190" class="text h2">R$ 12.840</text>
+    <text x="176" y="210" class="small green">+8,4% no mês</text>
+    <rect x="336" y="126" width="160" height="96" class="card r16"/>
+    <text x="352" y="154" class="dim body">Capital em estoque</text>
+    <text x="352" y="190" class="text h2">R$ 18.300</text>
+    <text x="352" y="210" class="muted small">7 aparelhos</text>
+    <rect x="160" y="240" width="336" height="116" class="card r16"/>
+    <text x="176" y="268" class="muted body">Performance do mês</text>
+    <polyline points="176,330 220,316 264,322 308,294 352,304 396,280 468,286" fill="none" stroke="#F5F5F7" stroke-width="3"/>
+    <polyline points="176,342 220,336 264,338 308,320 352,328 396,312 468,318" fill="none" stroke="#32D583" stroke-width="3"/>
+    <rect x="160" y="374" width="336" height="96" class="card r16"/>
+    <text x="176" y="402" class="muted body">Atividade recente</text>
+    <text x="176" y="430" class="muted body">• Venda registrada · IPH-000023</text>
+    <text x="176" y="454" class="dim body">há 18 min · Bacelar</text>
+  </g>
+
+  <!-- DEVICES -->
+  <g transform="translate(1360 160)" filter="url(#shadow)">
+    <rect width="520" height="500" class="panel r24"/>
+    <text x="24" y="36" class="muted tiny">03 · APARELHOS</text>
+    <text x="24" y="76" class="text h2">Estoque</text>
+    <text x="24" y="102" class="muted body">Busca, filtros e visão rápida do status.</text>
+    <rect x="24" y="128" width="300" height="46" class="input r12"/>
+    <text x="40" y="157" class="dim body">Buscar código, modelo ou cor…</text>
+    <rect x="336" y="128" width="80" height="46" class="card r12"/>
+    <text x="376" y="156" text-anchor="middle" class="muted body">Filtros</text>
+    <rect x="430" y="128" width="66" height="46" class="whiteBtn r12"/>
+    <text x="463" y="156" text-anchor="middle" style="fill:#080808;font:700 12px Inter,Arial">Novo</text>
+    <g transform="translate(24 198)">
+      <rect width="472" height="76" class="card r16"/>
+      <rect x="12" y="12" width="52" height="52" rx="12" fill="#202020"/>
+      <text x="78" y="30" class="text h3">iPhone 13 Pro Max</text>
+      <text x="78" y="50" class="muted body">IPH-000023 · 256 GB · Grafite</text>
+      <rect x="78" y="54" width="114" height="22" rx="11" fill="#173729"/>
+      <text x="135" y="69" text-anchor="middle" class="small green">Disponível</text>
+      <text x="396" y="32" class="dim body">Invest.</text>
+      <text x="396" y="54" class="muted body">R$ 3.420</text>
+
+      <rect y="88" width="472" height="76" class="card r16"/>
+      <rect x="12" y="100" width="52" height="52" rx="12" fill="#202020"/>
+      <text x="78" y="118" class="text h3">iPhone 12</text>
+      <text x="78" y="138" class="muted body">IPH-000021 · 128 GB · Branco</text>
+      <rect x="78" y="142" width="138" height="22" rx="11" fill="#3A3012"/>
+      <text x="147" y="157" text-anchor="middle" class="small yellow">Pendente manutenção</text>
+
+      <rect y="176" width="472" height="76" class="card r16"/>
+      <rect x="12" y="188" width="52" height="52" rx="12" fill="#202020"/>
+      <text x="78" y="206" class="text h3">iPhone 15 Pro</text>
+      <text x="78" y="226" class="muted body">IPH-000017 · 256 GB · Titânio</text>
+      <rect x="78" y="230" width="68" height="22" rx="11" fill="#2E2E2E"/>
+      <text x="112" y="245" text-anchor="middle" class="small muted">Vendido</text>
+    </g>
+  </g>
+
+  <!-- REGISTER DEVICE -->
+  <g transform="translate(1910 160)" filter="url(#shadow)">
+    <rect width="380" height="500" class="panel r24"/>
+    <text x="24" y="36" class="muted tiny">04 · CADASTRAR IPHONE</text>
+    <text x="24" y="76" class="text h2">Novo aparelho</text>
+    <rect x="24" y="116" width="156" height="46" class="input r12"/>
+    <text x="40" y="145" class="dim body">Modelo</text>
+    <rect x="196" y="116" width="160" height="46" class="input r12"/>
+    <text x="212" y="145" class="dim body">Cor</text>
+    <rect x="24" y="176" width="156" height="46" class="input r12"/>
+    <text x="40" y="205" class="dim body">Capacidade</text>
+    <rect x="196" y="176" width="160" height="46" class="input r12"/>
+    <text x="212" y="205" class="dim body">Saúde da bateria %</text>
+    <rect x="24" y="236" width="332" height="102" class="card r16"/>
+    <text x="40" y="262" class="muted body">Fotos do aparelho (2–4)</text>
+    <rect x="40" y="278" width="66" height="44" rx="10" fill="#1B1B1B" stroke="#262626"/>
+    <rect x="118" y="278" width="66" height="44" rx="10" fill="#1B1B1B" stroke="#262626"/>
+    <rect x="196" y="278" width="66" height="44" rx="10" fill="#1B1B1B" stroke="#262626"/>
+    <rect x="274" y="278" width="66" height="44" rx="10" fill="#1B1B1B" stroke="#262626"/>
+    <rect x="24" y="358" width="332" height="46" class="card r12"/>
+    <text x="190" y="387" text-anchor="middle" class="muted body">Face ID · Tela original · Bateria original</text>
+    <rect x="24" y="426" width="332" height="48" class="whiteBtn r14"/>
+    <text x="190" y="456" text-anchor="middle" style="fill:#080808;font:700 13px Inter,Arial">Cadastrar aparelho</text>
+  </g>
+
+  <!-- DETAILS -->
+  <g transform="translate(2320 160)" filter="url(#shadow)">
+    <rect width="420" height="500" class="panel r24"/>
+    <text x="24" y="36" class="muted tiny">05 · DETALHES DO APARELHO</text>
+    <text x="24" y="76" class="text h2">iPhone 13 Pro Max</text>
+    <text x="24" y="100" class="muted body">IPH-000023 · 256 GB · Grafite</text>
+    <rect x="24" y="124" width="174" height="124" rx="16" fill="#202020"/>
+    <rect x="212" y="124" width="84" height="58" rx="12" fill="#1B1B1B"/>
+    <rect x="308" y="124" width="88" height="58" rx="12" fill="#1B1B1B"/>
+    <rect x="212" y="190" width="84" height="58" rx="12" fill="#1B1B1B"/>
+    <rect x="308" y="190" width="88" height="58" rx="12" fill="#1B1B1B"/>
+    <rect x="24" y="270" width="372" height="98" class="card r16"/>
+    <text x="40" y="298" class="dim body">Investimento</text>
+    <text x="40" y="334" class="text h2">R$ 3.420</text>
+    <text x="204" y="300" class="dim body">Compra</text>
+    <text x="204" y="324" class="muted body">R$ 3.100</text>
+    <text x="300" y="300" class="dim body">Manutenção</text>
+    <text x="300" y="324" class="muted body">R$ 320</text>
+    <rect x="24" y="390" width="114" height="44" class="card r12"/>
+    <text x="81" y="418" text-anchor="middle" class="muted body">Editar</text>
+    <rect x="150" y="390" width="114" height="44" class="card r12"/>
+    <text x="207" y="418" text-anchor="middle" class="muted body">Fotos</text>
+    <rect x="276" y="390" width="120" height="44" class="whiteBtn r12"/>
+    <text x="336" y="418" text-anchor="middle" style="fill:#080808;font:700 13px Inter,Arial">Venda</text>
+    <rect x="24" y="446" width="372" height="30" class="card pill"/>
+    <text x="210" y="466" text-anchor="middle" class="muted small">Ações derivadas: alterar status · arquivar · manutenção</text>
+  </g>
+
+  <!-- Bottom row primary -->
+  <!-- MAINTENANCE -->
+  <g transform="translate(420 700)" filter="url(#shadow)">
+    <rect width="420" height="350" class="panel r24"/>
+    <text x="24" y="36" class="muted tiny">06 · REGISTRAR MANUTENÇÃO</text>
+    <text x="24" y="76" class="text h2">Registrar manutenção</text>
+    <text x="24" y="102" class="muted body">IPH-000023</text>
+    <rect x="24" y="126" width="372" height="72" class="card r16"/>
+    <text x="40" y="154" class="muted body">Tela OLED</text>
+    <text x="40" y="176" class="dim body">R$ 280</text>
+    <rect x="24" y="210" width="372" height="72" class="card r16"/>
+    <text x="40" y="238" class="muted body">Vedação / adesivo</text>
+    <text x="40" y="260" class="dim body">R$ 40</text>
+    <text x="24" y="308" class="dim body">Total calculado</text>
+    <text x="24" y="336" class="text h2">R$ 320</text>
+    <rect x="228" y="296" width="168" height="40" class="whiteBtn r12"/>
+    <text x="312" y="322" text-anchor="middle" style="fill:#080808;font:700 13px Inter,Arial">Salvar manutenção</text>
+  </g>
+
+  <!-- SALE -->
+  <g transform="translate(870 700)" filter="url(#shadow)">
+    <rect width="420" height="350" class="panel r24"/>
+    <text x="24" y="36" class="muted tiny">07 · REGISTRAR VENDA</text>
+    <text x="24" y="76" class="text h2">Registrar venda</text>
+    <rect x="24" y="108" width="372" height="132" class="card r16"/>
+    <text x="40" y="136" class="dim body">Compra</text><text x="360" y="136" text-anchor="end" class="muted body">R$ 3.100</text>
+    <text x="40" y="166" class="dim body">Manutenção</text><text x="360" y="166" text-anchor="end" class="muted body">R$ 320</text>
+    <line x1="40" y1="186" x2="360" y2="186" class="line"/>
+    <text x="40" y="216" class="muted body">Investimento total</text><text x="360" y="216" text-anchor="end" class="text h3">R$ 3.420</text>
+    <rect x="24" y="256" width="372" height="46" class="input r12"/>
+    <text x="40" y="285" class="text h3">R$ 4.500</text>
+    <text x="24" y="326" class="dim body">Lucro estimado</text><text x="360" y="326" text-anchor="end" class="green h3 text">R$ 1.080 · 24,0%</text>
+  </g>
+
+  <!-- FINANCIAL -->
+  <g transform="translate(1320 700)" filter="url(#shadow)">
+    <rect width="420" height="350" class="panel r24"/>
+    <text x="24" y="36" class="muted tiny">08 · FINANCEIRO</text>
+    <text x="24" y="76" class="text h2">Financeiro</text>
+    <rect x="24" y="108" width="372" height="86" class="card r16"/>
+    <text x="40" y="136" class="dim body">Saldo atual</text>
+    <text x="40" y="170" class="text h2">R$ 12.840</text>
+    <rect x="24" y="210" width="178" height="76" class="card r16"/>
+    <text x="40" y="238" class="dim body">Faturamento</text>
+    <text x="40" y="266" class="text h3">R$ 18.900</text>
+    <rect x="218" y="210" width="178" height="76" class="card r16"/>
+    <text x="234" y="238" class="dim body">Lucro</text>
+    <text x="234" y="266" class="green h3 text">R$ 4.260</text>
+    <rect x="24" y="302" width="372" height="28" class="card pill"/>
+    <text x="210" y="321" text-anchor="middle" class="muted small">Extrato detalhado · Nova movimentação manual</text>
+  </g>
+
+  <!-- HISTORY -->
+  <g transform="translate(1770 700)" filter="url(#shadow)">
+    <rect width="420" height="350" class="panel r24"/>
+    <text x="24" y="36" class="muted tiny">09 · HISTÓRICO / AUDITORIA</text>
+    <text x="24" y="76" class="text h2">Timeline</text>
+    <rect x="24" y="108" width="372" height="58" class="card r16"/>
+    <text x="40" y="136" class="muted body">Venda registrada · IPH-000023</text>
+    <text x="40" y="156" class="dim body">06 set · 14:32 · Guilherme</text>
+    <rect x="24" y="178" width="372" height="58" class="card r16"/>
+    <text x="40" y="206" class="muted body">Manutenção cancelada · IPH-000021</text>
+    <text x="40" y="226" class="dim body">06 set · 11:12 · Bacelar</text>
+    <rect x="24" y="248" width="372" height="58" class="card r16"/>
+    <text x="40" y="276" class="muted body">Status alterado · IPH-000019</text>
+    <text x="40" y="296" class="dim body">05 set · 19:40 · Guilherme</text>
+  </g>
+
+  <!-- USERS -->
+  <g transform="translate(2220 700)" filter="url(#shadow)">
+    <rect width="520" height="350" class="panel r24"/>
+    <text x="24" y="36" class="muted tiny">10 · USUÁRIOS / CONFIGURAÇÕES</text>
+    <text x="24" y="76" class="text h2">Usuários</text>
+    <rect x="24" y="108" width="472" height="72" class="card r16"/>
+    <circle cx="60" cy="144" r="18" fill="#1F1F1F" stroke="#262626"/>
+    <text x="60" y="148" text-anchor="middle" class="muted small">GB</text>
+    <text x="92" y="138" class="muted body">Guilherme Bacelar</text>
+    <text x="92" y="160" class="dim body">@bacelar · Sócio</text>
+    <rect x="24" y="194" width="472" height="72" class="card r16"/>
+    <circle cx="60" cy="230" r="18" fill="#1F1F1F" stroke="#262626"/>
+    <text x="60" y="234" text-anchor="middle" class="muted small">GS</text>
+    <text x="92" y="224" class="muted body">Sócio 2</text>
+    <text x="92" y="246" class="dim body">@socio2 · Sócio</text>
+    <rect x="24" y="286" width="472" height="28" class="card pill"/>
+    <text x="260" y="305" text-anchor="middle" class="muted small">Meu perfil / sessão · logout</text>
+  </g>
+
+  <!-- Bottom section derived screens as compact cards -->
+  <text x="420" y="1110" class="text h2">Telas derivadas — Lotes 1, 2 e 3</text>
+  <text x="420" y="1140" class="muted body">Esses cards representam modais, drawers e telas complementares que completam o fluxo sem poluir o MVP.</text>
+
+  <!-- Derived cards grid -->
+  <g transform="translate(420 1170)">
+    <!-- Row 1 -->
+    <g transform="translate(0 0)">
+      <rect width="220" height="130" class="card r20"/>
+      <text x="18" y="26" class="muted tiny">11 · EDITAR IPHONE</text>
+      <text x="18" y="56" class="text h3">Mesma base do cadastro</text>
+      <text x="18" y="80" class="muted body">Campos preenchidos · salvar</text>
+      <text x="18" y="102" class="dim body">Ação derivada de Detalhes</text>
+    </g>
+    <g transform="translate(238 0)">
+      <rect width="220" height="130" class="card r20"/>
+      <text x="18" y="26" class="muted tiny">12 · ALTERAR STATUS</text>
+      <text x="18" y="56" class="text h3">Modal seletor</text>
+      <text x="18" y="80" class="muted body">Pendente ↔ Disponível</text>
+      <text x="18" y="102" class="dim body">“Vendido” não entra aqui</text>
+    </g>
+    <g transform="translate(476 0)">
+      <rect width="220" height="130" class="card r20"/>
+      <text x="18" y="26" class="muted tiny">13 · VISUALIZAR FOTOS</text>
+      <text x="18" y="56" class="text h3">Lightbox / galeria</text>
+      <text x="18" y="80" class="muted body">Foto grande + miniaturas</text>
+      <text x="18" y="102" class="dim body">Crossfade 180ms</text>
+    </g>
+    <g transform="translate(714 0)">
+      <rect width="220" height="130" class="card r20"/>
+      <text x="18" y="26" class="muted tiny">14 · ARQUIVAR APARELHO</text>
+      <text x="18" y="56" class="text h3">Modal crítico</text>
+      <text x="18" y="80" class="muted body">Resumo + irreversibilidade</text>
+      <text x="18" y="102" class="dim body">Ação terminal no MVP</text>
+    </g>
+    <g transform="translate(952 0)">
+      <rect width="220" height="130" class="card r20"/>
+      <text x="18" y="26" class="muted tiny">15 · DETALHES MANUTENÇÃO</text>
+      <text x="18" y="56" class="text h3">Itens + custo + timeline</text>
+      <text x="18" y="80" class="muted body">Consulta do evento</text>
+      <text x="18" y="102" class="dim body">Se custo zero, explicitar</text>
+    </g>
+    <g transform="translate(1190 0)">
+      <rect width="220" height="130" class="card r20"/>
+      <text x="18" y="26" class="muted tiny">16 · CANCELAR MANUTENÇÃO</text>
+      <text x="18" y="56" class="text h3">Modal crítico</text>
+      <text x="18" y="80" class="muted body">Motivo + impacto financeiro</text>
+      <text x="18" y="102" class="dim body">Gera estorno se necessário</text>
+    </g>
+
+    <!-- Row 2 -->
+    <g transform="translate(0 150)">
+      <rect width="220" height="130" class="card r20"/>
+      <text x="18" y="26" class="muted tiny">17 · DETALHES DA VENDA</text>
+      <text x="18" y="56" class="text h3">Resumo financeiro completo</text>
+      <text x="18" y="80" class="muted body">Compra + manutenção + lucro</text>
+      <text x="18" y="102" class="dim body">Tela de consulta</text>
+    </g>
+    <g transform="translate(238 150)">
+      <rect width="220" height="130" class="card r20"/>
+      <text x="18" y="26" class="muted tiny">18 · CANCELAR VENDA</text>
+      <text x="18" y="56" class="text h3">Modal crítico</text>
+      <text x="18" y="80" class="muted body">Estorno + volta ao estoque</text>
+      <text x="18" y="102" class="dim body">Clareza total do impacto</text>
+    </g>
+    <g transform="translate(476 150)">
+      <rect width="220" height="130" class="card r20"/>
+      <text x="18" y="26" class="muted tiny">19 · NOVA MOVIMENTAÇÃO</text>
+      <text x="18" y="56" class="text h3">Entrada ou saída manual</text>
+      <text x="18" y="80" class="muted body">Aporte · retirada · ajuste</text>
+      <text x="18" y="102" class="dim body">Preview do saldo após ação</text>
+    </g>
+    <g transform="translate(714 150)">
+      <rect width="220" height="130" class="card r20"/>
+      <text x="18" y="26" class="muted tiny">20 · EXTRATO DETALHADO</text>
+      <text x="18" y="56" class="text h3">Tabela / cards filtráveis</text>
+      <text x="18" y="80" class="muted body">Cada entrada e saída do caixa</text>
+      <text x="18" y="102" class="dim body">Ligação com origem</text>
+    </g>
+    <g transform="translate(952 150)">
+      <rect width="220" height="130" class="card r20"/>
+      <text x="18" y="26" class="muted tiny">21 · DETALHES AUDITORIA</text>
+      <text x="18" y="56" class="text h3">Drawer lateral</text>
+      <text x="18" y="80" class="muted body">Usuário · ação · mudanças</text>
+      <text x="18" y="102" class="dim body">RequestId em área de suporte</text>
+    </g>
+    <g transform="translate(1190 150)">
+      <rect width="220" height="130" class="card r20"/>
+      <text x="18" y="26" class="muted tiny">22 · MEU PERFIL / SESSÃO</text>
+      <text x="18" y="56" class="text h3">Conta do usuário logado</text>
+      <text x="18" y="80" class="muted body">Nome · username · logout</text>
+      <text x="18" y="102" class="dim body">Sessão atual e expiração</text>
+    </g>
+  </g>
+
+  <!-- Flow line -->
+  <g transform="translate(420 1528)">
+    <rect width="2320" height="150" class="panel r24"/>
+    <text x="24" y="34" class="muted tiny">FLUXO GERAL DO MVP</text>
+    <text x="24" y="74" class="text h3">Login → Dashboard → Aparelhos → Detalhes → Manutenção / Venda → Financeiro → Histórico → Perfil</text>
+    <text x="24" y="104" class="muted body">As telas derivadas entram como modais, drawers ou estados complementares: editar, alterar status, visualizar fotos, arquivar, cancelar, extrato, auditoria e perfil.</text>
+    <text x="24" y="132" class="dim body">Próxima iteração recomendada: gerar variações mobile e organizar um arquivo Figma com frames nomeados exatamente por tela.</text>
+  </g>
+</svg>

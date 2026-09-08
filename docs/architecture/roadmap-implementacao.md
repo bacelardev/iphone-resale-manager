@@ -99,3 +99,14 @@ Status: concluída na versão inicial.
 - validação mobile;
 - backup;
 - deploy.
+
+
+## Registro por etapas — 06/09/2026
+
+- A, B e C: domínio e persistência aprovados e encerrados.
+- D: contratos e casos de uso aprovados e encerrados.
+- E: segurança e autenticação, versão 1.0 aprovada e encerrada; Argon2id validado.
+- F: fundação frontend e integração real de autenticação, **versão 1.0 aprovada**,
+  **Etapa F encerrada**. Entrega reúne a fundação visual da Fase 3 e a integração web
+  da Fase 4. Validação final em `docs/frontend/etapa-f-fundacao-frontend.md`.
+- G e módulos de negócio: não iniciados; exigem nova autorização explícita.

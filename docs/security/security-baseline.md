@@ -66,8 +66,9 @@ ALTER DEFAULT PRIVILEGES FOR ROLE iphone_resale_migrator IN SCHEMA public
 - `Access-Control-Allow-Credentials` permanece ausente/falso no modelo Bearer atual.
 - Nenhuma variável `VITE_*` contém segredo. Chaves públicas devem ser tratadas como
   públicas mesmo quando possuem a palavra “key”.
-- Token fica apenas no mecanismo de armazenamento aprovado futuramente; esta etapa não
-  prescreve `localStorage` nem implementa frontend.
+- Token fica apenas no mecanismo de armazenamento aprovado para cada cliente. No frontend
+  web da Etapa F, isso significa `AuthTokenStore` sobre `sessionStorage`; `localStorage`
+  e caches persistentes permanecem proibidos.
 
 ### Input, consultas e upload
 
@@ -102,3 +103,17 @@ ALTER DEFAULT PRIVILEGES FOR ROLE iphone_resale_migrator IN SCHEMA public
 Se um segredo real for versionado, não o repita em issue, chat ou log. Remova o uso,
 revogue/rotacione imediatamente, investigue acessos e trate o histórico como exposto.
 Apagar apenas o arquivo ou o commit mais recente não invalida a credencial vazada.
+
+
+## Fundação frontend — regras permanentes F-10 a F-17
+
+- Token opaco somente por `AuthTokenStore` em `sessionStorage`; nunca localStorage,
+  URL, console, analytics, markup ou cache persistido. Senha não entra no Query.
+- `sessionStorage` é acessível a scripts da mesma origem e não protege contra XSS.
+  Preservar escaping React, limitar scripts e aplicar CSP/HTTPS no deploy.
+- Cliente HTTP único com origem explícita, sem credenciais em VITE, sem cookies e sem
+  redirecionamentos de requests autenticados para outros destinos.
+- 401 protegido limpa sessão e cache privado; 401 de login é erro de credencial.
+  Falha de rede na restauração preserva token e permite retry, sem liberar conteúdo.
+- Logout com rede indisponível limpa a aba, mas não promete revogação no servidor.
+  Respostas atrasadas nunca podem restabelecer sessão encerrada ou invalidar login novo.
