@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
-  IconArrowUpRight,
   IconArrowRight,
   IconEye,
   IconEyeOff,
@@ -45,36 +44,8 @@ export function LoginPage() {
   });
   return (
     <main className="login-page">
-      <section className="login-story" aria-label="iPhone Resale">
-        <Brand />
-        <div className="story-content">
-          <p className="eyebrow">
-            <span className="status-dot" /> GESTÃO EM CADA DETALHE
-          </p>
-          <h1>
-            Seu próximo
-            <br />
-            passo começa
-            <br />
-            <span>com clareza.</span>
-          </h1>
-          <p className="story-description">
-            Um espaço para acompanhar sua operação.
-            <br />
-            Do primeiro investimento à próxima conquista.
-          </p>
-          <div className="story-line">
-            <span>Menos ruído. Mais visão.</span>
-            <IconArrowUpRight size={24} stroke={1.5} aria-hidden />
-          </div>
-        </div>
-        <div className="story-footer">
-          <span>Feito para a sua operação.</span>
-          <span>01 — ACESSO</span>
-        </div>
-      </section>
       <section className="login-access" aria-label="Acesso ao sistema">
-        <div className="mobile-brand">
+        <div className="login-brand">
           <Brand />
         </div>
         <div className="login-form-wrap">

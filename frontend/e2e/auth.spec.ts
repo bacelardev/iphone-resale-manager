@@ -94,6 +94,56 @@ test('offline restoration retains session and retry reconnects', async ({ page, 
   await expect(page.getByRole('heading', { name: /Olá,/ })).toBeVisible();
 });
 
+test('official visual baseline tokens are applied without a marketing hero', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 960 });
+  await page.goto('/login');
+
+  expect(await page.locator('.login-story').count()).toBe(0);
+  expect(
+    await page.evaluate(() => {
+      const styles = getComputedStyle(document.documentElement);
+      return {
+        background: styles.getPropertyValue('--color-background').trim(),
+        surface: styles.getPropertyValue('--color-surface').trim(),
+        card: styles.getPropertyValue('--color-card').trim(),
+        hover: styles.getPropertyValue('--color-hover').trim(),
+        border: styles.getPropertyValue('--color-border').trim(),
+      };
+    }),
+  ).toEqual({
+    background: '#080808',
+    surface: '#101010',
+    card: '#151515',
+    hover: '#1b1b1b',
+    border: '#262626',
+  });
+  expect(
+    await page.locator('.login-form-wrap').evaluate((el) => getComputedStyle(el).backgroundColor),
+  ).toBe('rgb(16, 16, 16)');
+  expect(
+    await page.getByLabel('Usuário').evaluate((el) => getComputedStyle(el).backgroundColor),
+  ).toBe('rgb(27, 27, 27)');
+  expect(
+    await page
+      .getByRole('button', { name: 'Entrar', exact: true })
+      .evaluate((el) => getComputedStyle(el).transitionDuration),
+  ).toContain('0.15s');
+
+  await login(page);
+  expect(
+    await page
+      .locator('.module-card')
+      .first()
+      .evaluate((el) => getComputedStyle(el).backgroundColor),
+  ).toBe('rgb(21, 21, 21)');
+  expect(
+    await page
+      .locator('.module-card')
+      .first()
+      .evaluate((el) => getComputedStyle(el).transitionDuration),
+  ).toContain('0.18s');
+});
+
 for (const width of [375, 430, 768, 1024, 1440]) {
   test(`responsive and accessible at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 960 });
@@ -118,6 +168,7 @@ for (const width of [375, 430, 768, 1024, 1440]) {
       await page.getByRole('button', { name: 'Abrir menu' }).click();
       const dialog = page.getByRole('dialog');
       await expect(dialog).toBeVisible();
+      await expect(dialog).toHaveAttribute('data-placement', 'drawer');
       for (let i = 0; i < 8; i++) {
         await page.keyboard.press('Tab');
         expect(await dialog.evaluate((el) => el.contains(document.activeElement))).toBe(true);

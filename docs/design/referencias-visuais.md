@@ -1,5 +1,18 @@
 # Referências Visuais
 
+## Baseline oficial do produto
+
+- [Desktop — `iphone-resale-manager-visual-prototype-v2.svg`](prototypes/iphone-resale-manager-visual-prototype-v2.svg)
+- [Mobile — `iphone-resale-manager-mobile-prototype-v1.svg`](prototypes/iphone-resale-manager-mobile-prototype-v1.svg)
+
+Esses arquivos são fonte da verdade visual. O desktop define layouts amplos, sidebar,
+cards, tabelas, grids, formulários e hierarquia. O mobile define adaptação para iPhone,
+drawer, bottom sheet, cards empilhados, coluna única e comportamento touch.
+
+Eles não substituem domínio, contrato, API ou segurança. Números, nomes, catálogos e
+registros presentes nos protótipos são demonstrações; não devem ser hardcoded na
+aplicação real.
+
 ## Objetivo
 
 Este documento reúne referências visuais utilizadas como base para o design do sistema.
@@ -16,7 +29,8 @@ As referências devem ser usadas como inspiração de:
 - organização de dashboards;
 - sensação de fluidez.
 
-Não devem ser utilizadas como cópia direta de layout ou identidade.
+As referências externas não devem ser utilizadas como cópia direta de layout ou
+identidade e nunca prevalecem sobre os dois protótipos oficiais.
 
 ---
 

@@ -10,26 +10,36 @@ export function Dialog({ children, ...props }: ComponentProps<typeof Primitive.R
 export function DialogTrigger({ children }: { children: ReactNode }) {
   return <Primitive.Trigger asChild>{children}</Primitive.Trigger>;
 }
+
+export type DialogContentProps = {
+  title: string;
+  description: string;
+  children: ReactNode;
+  placement?: 'center' | 'drawer' | 'bottom-sheet';
+};
+
 export function DialogContent({
   title,
   description,
   children,
-  drawer = false,
-}: {
-  title: string;
-  description: string;
-  children: ReactNode;
-  drawer?: boolean;
-}) {
+  placement = 'center',
+}: DialogContentProps) {
   return (
     <Primitive.Portal>
       <Primitive.Overlay className="dialog-overlay" />
-      <Primitive.Content className={cn('dialog-content', drawer && 'dialog-drawer')}>
+      <Primitive.Content
+        className={cn(
+          'dialog-content',
+          placement === 'drawer' && 'dialog-drawer',
+          placement === 'bottom-sheet' && 'dialog-sheet',
+        )}
+        data-placement={placement}
+      >
         <Primitive.Title className="dialog-title">{title}</Primitive.Title>
         <Primitive.Description className="dialog-description">{description}</Primitive.Description>
         {children}
         <Primitive.Close asChild>
-          <Button className="dialog-close" variant="ghost" size="icon" aria-label="Fechar menu">
+          <Button className="dialog-close" variant="ghost" size="icon" aria-label="Fechar">
             <IconX size={20} aria-hidden />
           </Button>
         </Primitive.Close>

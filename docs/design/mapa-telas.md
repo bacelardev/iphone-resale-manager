@@ -153,3 +153,26 @@ MVP:
 - visualizar usuários;
 - alterar configurações mínimas;
 - sem sistema complexo de permissões.
+
+## Interfaces derivadas do baseline visual
+
+O mapa visual oficial também prevê os estados abaixo. Eles não representam
+necessariamente páginas React independentes: podem ser Dialog, Drawer, BottomSheet,
+lightbox ou estado da própria tela.
+
+11. Editar iPhone;
+12. Alterar status;
+13. Visualizador de fotos;
+14. Arquivar aparelho;
+15. Detalhes da manutenção;
+16. Cancelar manutenção;
+17. Detalhes da venda;
+18. Cancelar venda;
+19. Nova movimentação manual;
+20. Extrato financeiro detalhado;
+21. Detalhes da auditoria;
+22. Meu perfil / sessão.
+
+Na Etapa F somente Login, App Shell, dashboard estrutural, navegação, autenticação,
+estados globais e placeholders protegidos são implementados. As demais interfaces
+permanecem mapeadas para etapas futuras, sem antecipar regras de negócio.

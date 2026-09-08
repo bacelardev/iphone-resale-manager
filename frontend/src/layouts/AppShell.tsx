@@ -3,7 +3,7 @@ import { NavLink, Outlet, useLocation } from 'react-router-dom';
 import { IconMenu2, IconLogout, IconChevronRight, IconLock } from '@tabler/icons-react';
 import { Brand } from '@/components/Brand';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
+import { Drawer, DrawerContent, DrawerTrigger } from '@/components/ui/drawer';
 import { useAuth } from '@/features/auth/context';
 import { navigation } from '@/routes/navigation';
 
@@ -51,20 +51,16 @@ export function AppShell() {
       <div className="shell-body">
         <header className="app-header">
           <div className="header-path">
-            <Dialog open={open} onOpenChange={setOpen}>
-              <DialogTrigger>
+            <Drawer open={open} onOpenChange={setOpen}>
+              <DrawerTrigger>
                 <Button className="mobile-menu" variant="ghost" size="icon" aria-label="Abrir menu">
                   <IconMenu2 size={21} aria-hidden />
                 </Button>
-              </DialogTrigger>
-              <DialogContent
-                title="Seu espaço"
-                description="Navegue pelos módulos do sistema."
-                drawer
-              >
+              </DrawerTrigger>
+              <DrawerContent title="Seu espaço" description="Navegue pelos módulos do sistema.">
                 <Navigation onNavigate={() => setOpen(false)} />
-              </DialogContent>
-            </Dialog>
+              </DrawerContent>
+            </Drawer>
             <span className="breadcrumb-root">Espaço de trabalho</span>
             <IconChevronRight className="breadcrumb-root" size={14} aria-hidden />
             <span>{title}</span>

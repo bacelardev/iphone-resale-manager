@@ -96,7 +96,7 @@ jobs:
           node --input-type=module - <<'JS'
           import fs from 'node:fs';
           const { stats } = JSON.parse(fs.readFileSync('test-results/results.json', 'utf8'));
-          if (stats.expected < 10 || stats.skipped || stats.unexpected || stats.flaky) process.exit(1);
+          if (stats.expected < 11 || stats.skipped || stats.unexpected || stats.flaky) process.exit(1);
           JS
       - name: Save interface screenshots only
         if: success()

@@ -3,6 +3,10 @@
 Etapa F: **1.0 proposta**, aguardando aprovação. Fundação e autenticação reais; módulos
 de negócio são placeholders protegidos.
 
+Baseline visual oficial: `docs/design/prototypes/iphone-resale-manager-visual-prototype-v2.svg`
+para desktop e `docs/design/prototypes/iphone-resale-manager-mobile-prototype-v1.svg`
+para mobile. Os arquivos orientam composição, não contratos nem dados de negócio.
+
 ## Desenvolvimento
 
 Requisitos: Node 24 LTS, npm e backend da Etapa E com PostgreSQL 16.
