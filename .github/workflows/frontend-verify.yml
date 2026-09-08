@@ -40,6 +40,8 @@ jobs:
       PGPASSWORD: ci-isolated-database
       PGDATABASE: iphone_resale_e2e
       APP_CORS_ALLOWED_ORIGINS: http://localhost:5173
+      APP_PHOTO_STORAGE_ROOT: ${{ runner.temp }}/iphone-resale-device-photos
+      APP_PHOTO_STORAGE_SIGNING_SECRET: ci-only-photo-signing-secret-generated-for-isolated-runner
       APP_BOOTSTRAP_ENABLED: true
       APP_BOOTSTRAP_NAME: Sócio CI
       APP_BOOTSTRAP_USERNAME: ci.socio

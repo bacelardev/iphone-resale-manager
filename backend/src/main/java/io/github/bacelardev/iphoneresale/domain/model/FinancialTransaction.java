@@ -54,7 +54,36 @@ public class FinancialTransaction extends CreatedOnlyEntity {
     @Column(name = "description", updatable = false, length = 500)
     private String description;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "owner_user_id", updatable = false)
+    private AppUser ownerUser;
+
     protected FinancialTransaction() {
+    }
+
+    public static FinancialTransaction devicePurchase(Device device) {
+        FinancialTransaction transaction = new FinancialTransaction();
+        transaction.direction = FinancialDirection.OUTFLOW;
+        transaction.type = FinancialTransactionType.DEVICE_PURCHASE;
+        transaction.amount = device.getPurchasePrice();
+        transaction.occurredAt = device.getPurchasedAt();
+        transaction.device = device;
+        return transaction;
+    }
+
+    public static FinancialTransaction devicePurchaseReversal(
+            FinancialTransaction original,
+            String description
+    ) {
+        FinancialTransaction transaction = new FinancialTransaction();
+        transaction.direction = FinancialDirection.INFLOW;
+        transaction.type = FinancialTransactionType.DEVICE_PURCHASE_REVERSAL;
+        transaction.amount = original.amount;
+        transaction.occurredAt = original.occurredAt;
+        transaction.device = original.device;
+        transaction.reversalOf = original;
+        transaction.description = description;
+        return transaction;
     }
 
     public FinancialDirection getDirection() {
@@ -91,5 +120,9 @@ public class FinancialTransaction extends CreatedOnlyEntity {
 
     public String getDescription() {
         return description;
+    }
+
+    public AppUser getOwnerUser() {
+        return ownerUser;
     }
 }

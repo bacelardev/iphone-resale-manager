@@ -23,6 +23,30 @@ public class IphoneModel extends AuditableEntity {
     protected IphoneModel() {
     }
 
+    public IphoneModel(String code, String name, int displayOrder) {
+        this.code = code;
+        this.name = name;
+        this.displayOrder = displayOrder;
+        this.active = true;
+    }
+
+    public void update(String name, int displayOrder) {
+        this.name = name;
+        this.displayOrder = displayOrder;
+    }
+
+    public boolean activate() {
+        boolean changed = !active;
+        active = true;
+        return changed;
+    }
+
+    public boolean deactivate() {
+        boolean changed = active;
+        active = false;
+        return changed;
+    }
+
     public String getCode() {
         return code;
     }

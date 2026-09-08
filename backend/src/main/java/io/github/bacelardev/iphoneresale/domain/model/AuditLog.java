@@ -57,6 +57,28 @@ public class AuditLog extends BaseUuidEntity {
     protected AuditLog() {
     }
 
+    public AuditLog(
+            Instant occurredAt,
+            AppUser actorUser,
+            AuditAction action,
+            AuditedEntityType entityType,
+            UUID entityId,
+            String entityReference,
+            String summary,
+            Map<String, Object> changes,
+            UUID requestId
+    ) {
+        this.occurredAt = occurredAt;
+        this.actorUser = actorUser;
+        this.action = action;
+        this.entityType = entityType;
+        this.entityId = entityId;
+        this.entityReference = entityReference;
+        this.summary = summary;
+        this.changes = changes;
+        this.requestId = requestId;
+    }
+
     public Instant getOccurredAt() {
         return occurredAt;
     }

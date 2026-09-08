@@ -38,6 +38,26 @@ public class DevicePhoto extends CreatedOnlyEntity {
     protected DevicePhoto() {
     }
 
+    public DevicePhoto(
+            Device device,
+            String storageKey,
+            String originalFilename,
+            String mimeType,
+            long sizeBytes,
+            int position
+    ) {
+        this.device = device;
+        this.storageKey = storageKey;
+        this.originalFilename = originalFilename;
+        this.mimeType = mimeType;
+        this.sizeBytes = sizeBytes;
+        this.position = position;
+    }
+
+    public void remove(Instant removedAt) {
+        this.removedAt = removedAt;
+    }
+
     public Device getDevice() {
         return device;
     }

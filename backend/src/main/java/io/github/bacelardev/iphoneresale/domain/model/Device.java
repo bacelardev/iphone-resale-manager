@@ -1,6 +1,7 @@
 package io.github.bacelardev.iphoneresale.domain.model;
 
 import io.github.bacelardev.iphoneresale.domain.enums.DeviceStatus;
+import io.github.bacelardev.iphoneresale.domain.enums.RegistrationOrigin;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -65,7 +66,68 @@ public class Device extends AuditableEntity {
     @JoinColumn(name = "archived_by")
     private AppUser archivedBy;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "registration_origin", nullable = false, updatable = false, length = 24)
+    private RegistrationOrigin registrationOrigin;
+
     protected Device() {
+    }
+
+    public Device(
+            IphoneModel model,
+            DeviceColor color,
+            int storageGb,
+            BigDecimal purchasePrice,
+            Instant purchasedAt,
+            boolean faceIdWorking,
+            boolean originalScreen,
+            boolean originalBattery,
+            int batteryHealthPercent,
+            DeviceStatus status,
+            RegistrationOrigin registrationOrigin
+    ) {
+        this.model = model;
+        this.color = color;
+        this.storageGb = storageGb;
+        this.purchasePrice = purchasePrice;
+        this.purchasedAt = purchasedAt;
+        this.faceIdWorking = faceIdWorking;
+        this.originalScreen = originalScreen;
+        this.originalBattery = originalBattery;
+        this.batteryHealthPercent = batteryHealthPercent;
+        this.status = status;
+        this.registrationOrigin = registrationOrigin;
+    }
+
+    public void update(
+            IphoneModel model,
+            DeviceColor color,
+            int storageGb,
+            BigDecimal purchasePrice,
+            Instant purchasedAt,
+            boolean faceIdWorking,
+            boolean originalScreen,
+            boolean originalBattery,
+            int batteryHealthPercent
+    ) {
+        this.model = model;
+        this.color = color;
+        this.storageGb = storageGb;
+        this.purchasePrice = purchasePrice;
+        this.purchasedAt = purchasedAt;
+        this.faceIdWorking = faceIdWorking;
+        this.originalScreen = originalScreen;
+        this.originalBattery = originalBattery;
+        this.batteryHealthPercent = batteryHealthPercent;
+    }
+
+    public void changeStatus(DeviceStatus status) {
+        this.status = status;
+    }
+
+    public void archive(Instant archivedAt, AppUser archivedBy) {
+        this.archivedAt = archivedAt;
+        this.archivedBy = archivedBy;
     }
 
     public String getInternalCode() {
@@ -122,5 +184,9 @@ public class Device extends AuditableEntity {
 
     public AppUser getArchivedBy() {
         return archivedBy;
+    }
+
+    public RegistrationOrigin getRegistrationOrigin() {
+        return registrationOrigin;
     }
 }

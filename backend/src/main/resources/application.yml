@@ -28,8 +28,8 @@ spring:
       enabled: false
   servlet:
     multipart:
-      max-file-size: ${APP_UPLOAD_MAX_FILE_SIZE:8MB}
-      max-request-size: ${APP_UPLOAD_MAX_REQUEST_SIZE:32MB}
+      max-file-size: ${APP_UPLOAD_MAX_FILE_SIZE:10MB}
+      max-request-size: ${APP_UPLOAD_MAX_REQUEST_SIZE:42MB}
 
 app:
   business-time-zone: ${APP_BUSINESS_TIMEZONE:America/Bahia}
@@ -40,6 +40,10 @@ app:
     login-max-tracked-clients: ${APP_AUTH_LOGIN_MAX_TRACKED_CLIENTS:10000}
   cors:
     allowed-origins: ${APP_CORS_ALLOWED_ORIGINS:http://localhost:5173}
+  photo-storage:
+    root: ${APP_PHOTO_STORAGE_ROOT}
+    signing-secret: ${APP_PHOTO_STORAGE_SIGNING_SECRET}
+    signed-url-ttl: ${APP_PHOTO_STORAGE_SIGNED_URL_TTL:PT5M}
   bootstrap:
     enabled: ${APP_BOOTSTRAP_ENABLED:false}
     name: ${APP_BOOTSTRAP_NAME:}
