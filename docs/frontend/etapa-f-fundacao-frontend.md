@@ -130,7 +130,7 @@ Não há dependência Redux, Next.js, analytics, SDK de autenticação ou storag
 
 ## Arquivos
 
-Esta proposta atualizada altera **67 arquivos** em relação a `main`: workflow
+Esta proposta atualizada altera **70 arquivos** em relação a `main`: workflow
 `frontend-verify.yml`; relatório, ADR, roadmap, baseline e changelog; configuração
 Node/Vite/TypeScript/Tailwind/ESLint/Prettier/Husky/Playwright; aplicação em `src/`;
 33 testes unitários/de componente; suíte E2E real; lockfile; documentação operacional;
