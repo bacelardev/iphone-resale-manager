@@ -71,11 +71,11 @@ Build inicial: JS 460,58 kB (144,32 kB gzip), CSS 17,16 kB (4,71 kB gzip).
 Valores são tamanho de bundle, não benchmark de latência.
 
 CI e validação funcional real: **concluídos com sucesso** no workflow
-[`Frontend verify` #34064009643](https://github.com/bacelardev/iphone-resale-manager/actions/runs/34064009643),
-commit `b653c3a`, em 2026-09-06. O job executou Node 24, Java 21,
+[`Frontend verify` #34243971100](https://github.com/bacelardev/iphone-resale-manager/actions/runs/34243971100),
+commit `7c15430`, em 2026-09-08. O job executou Node 24, Java 21,
 PostgreSQL 16 vazio, Flyway V1+V2, `ddl-auto=validate`, backend real e Chromium.
 Passaram instalação bloqueada, lint, formatação, typecheck, build de produção,
-**31 testes Vitest em 4 arquivos** e **10 testes Playwright** em 12,1 s, sem skips,
+**31 testes Vitest em 4 arquivos** e **10 testes Playwright** em 16,3 s, sem skips,
 resultados inesperados ou flakiness. O startup HTTP só ficou disponível após Flyway,
 validação do Hibernate e bootstrap efêmero concluírem; a autenticação E2E usou a API
 real e comprovou CORS.
@@ -85,7 +85,7 @@ a aplicação usa somente as três rotas reais. O E2E cobriu login, refresh/me,
 placeholders, logout e revogação, token inválido/expirado, 401/429, conexão recusada
 simulada e as cinco larguras com axe e teclado. Traces, vídeos e storage snapshots
 ficaram desativados. O artefato `frontend-responsive-screenshots`, digest
-`sha256:e9d4c47fc6529dec26e6f50b68ddf400da39f7908b5d865e6eec4e30f821f1b8`,
+`sha256:3e99f672c347fb655fac233346312adc4afd0fad3ef08bd7407ae1b404260142`,
 contém somente capturas da interface, sem senha ou token expostos.
 
 ## Operação
@@ -113,8 +113,8 @@ Node/Vite/TypeScript/Tailwind/ESLint/Prettier/Husky/Playwright; aplicação em `
 31 testes unitários/de componente; suíte E2E real; lockfile e documentação operacional.
 Backend, migrations V1/V2 e artefatos das Etapas A–E não foram alterados.
 
-Entrega preparada na branch `codex/etapa-f-foundation`, um commit à frente de `main`
-e sem divergência da base `9d3de88`. A etapa permanece proposta até revisão e merge;
+Entrega preparada na branch `codex/etapa-f-foundation`, à frente de `main` e sem
+divergência da base `9d3de88`. A etapa permanece proposta até revisão e merge;
 nenhuma publicação direta em `main` faz parte desta conferência.
 
 ## Limitações reais

@@ -257,4 +257,7 @@ Status: **aguardando aprovação da Etapa F**
 | F-20 | Qualidade, testes e CI | ESLint 10, Prettier, Husky/lint-staged, Vitest/RTL e workflow frontend separado: npm ci, lint, format, typecheck, tests, build e Playwright contra Spring Boot/PostgreSQL reais. Gate exige E2E sem skips. Backend CI preservado. |
 
 Implementação e critérios de validação em `docs/frontend/etapa-f-fundacao-frontend.md`.
+O commit `7c15430` passou no workflow `34243971100`: 31 testes Vitest e 10 testes
+Playwright, sem falhas ou skips, com PostgreSQL 16, Flyway V1+V2, Hibernate validate,
+backend real, CORS, axe e cinco larguras responsivas. A proposta está pronta para revisão.
 As decisões A–E e migrations permanecem preservadas. Não foi iniciada a Etapa G.

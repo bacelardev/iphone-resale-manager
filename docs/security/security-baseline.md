@@ -66,8 +66,9 @@ ALTER DEFAULT PRIVILEGES FOR ROLE iphone_resale_migrator IN SCHEMA public
 - `Access-Control-Allow-Credentials` permanece ausente/falso no modelo Bearer atual.
 - Nenhuma variável `VITE_*` contém segredo. Chaves públicas devem ser tratadas como
   públicas mesmo quando possuem a palavra “key”.
-- Token fica apenas no mecanismo de armazenamento aprovado futuramente; esta etapa não
-  prescreve `localStorage` nem implementa frontend.
+- Token fica apenas no mecanismo de armazenamento aprovado para cada cliente. No frontend
+  web da Etapa F, isso significa `AuthTokenStore` sobre `sessionStorage`; `localStorage`
+  e caches persistentes permanecem proibidos.
 
 ### Input, consultas e upload
 

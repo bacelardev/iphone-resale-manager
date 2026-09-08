@@ -7,7 +7,8 @@
 - Cliente HTTP central, sessionStorage isolado, restauração /me, logout e 401 global.
 - Falha de rede distinta de credencial inválida; cache privado eliminado ao sair.
 - RHF/Zod, TanStack Query, ESLint, Prettier e Husky/lint-staged.
-- 31 testes Vitest locais aprovados; workflow frontend separado com E2E real e axe.
+- 31 testes Vitest e 10 testes Playwright aprovados; workflow frontend separado com
+  PostgreSQL 16, backend real, Flyway/Hibernate validate e axe, sem skips.
 - Evidências finais em `docs/frontend/etapa-f-fundacao-frontend.md`.
 - **Versão: 1.0 proposta**; **Status: aguardando aprovação da Etapa F**.
 - Backend e migrations preservados. Etapa G não iniciada.
