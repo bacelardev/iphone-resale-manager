@@ -1,7 +1,7 @@
 # Etapa F — Fundação do frontend e autenticação real
 
-Versão: **1.0 proposta**  
-Status: **aguardando aprovação da Etapa F**
+Versão: 1.0 aprovada  
+Status: Etapa F encerrada
 
 ## Escopo e arquitetura
 
@@ -88,28 +88,33 @@ Local: Node 24.19.0 / npm 11.9.0. `npm ci`, `format:check`, `lint`,
 (144,18 kB gzip), CSS 17,94 kB (4,97 kB gzip). Valores são tamanho de bundle,
 não benchmark de latência.
 
-CI e validação funcional real: **concluídos com sucesso** no workflow
-[`Frontend verify` #34243971100](https://github.com/bacelardev/iphone-resale-manager/actions/runs/34243971100),
-commit `7c15430`, em 2026-09-08. O job executou Node 24, Java 21,
-PostgreSQL 16 vazio, Flyway V1+V2, `ddl-auto=validate`, backend real e Chromium.
+Evidência principal da versão final: commit
+[`5c4546658f19e7cb24dc5f3799edbb6f5ea12a61`](https://github.com/bacelardev/iphone-resale-manager/commit/5c4546658f19e7cb24dc5f3799edbb6f5ea12a61),
+workflow [`Frontend verify` #34258007670](https://github.com/bacelardev/iphone-resale-manager/actions/runs/34258007670),
+status **success**, em 2026-09-08. O job executou Node 24, Java 21, PostgreSQL 16
+vazio, Flyway V1+V2, Hibernate `ddl-auto=validate`, backend real e Chromium.
 Passaram instalação bloqueada, lint, formatação, typecheck, build de produção,
-**31 testes Vitest em 4 arquivos** e **10 testes Playwright** em 16,3 s, sem skips,
+**33/33 testes Vitest em 5 arquivos** e **11/11 testes Playwright**, sem skips,
 resultados inesperados ou flakiness. O startup HTTP só ficou disponível após Flyway,
-validação do Hibernate e bootstrap efêmero concluírem; a autenticação E2E usou a API
-real e comprovou CORS.
+validação do Hibernate e bootstrap efêmero concluírem; a suíte E2E comprovou os fluxos
+reais de autenticação e CORS.
 
 Não confundir fixtures dos testes Vitest com autenticação mockada na aplicação:
 a aplicação usa somente as três rotas reais. O E2E cobriu login, refresh/me,
 placeholders, logout e revogação, token inválido/expirado, 401/429, conexão recusada
 simulada e as cinco larguras com axe e teclado. Traces, vídeos e storage snapshots
 ficaram desativados. O artefato `frontend-responsive-screenshots`, digest
-`sha256:3e99f672c347fb655fac233346312adc4afd0fad3ef08bd7407ae1b404260142`,
+`sha256:028324eccf5fae869c89a0910224e8781513c3f746cd3ee054bbd17d2d51a702`,
 contém somente capturas da interface, sem senha ou token expostos.
 
-O complemento amplia o E2E para **11 cenários** e verifica explicitamente ausência de
-hero no login, tokens de fundo/surface/card/hover/borda, cores efetivas de Input/Card,
-motion de Button/Card e Drawer mobile. O check `Frontend verify` do head do PR #1 é a
-evidência integrada exigida antes da aprovação desta versão atualizada.
+Os **11/11 testes Playwright** verificam autenticação e CORS contra o backend real,
+acessibilidade com axe, teclado, ausência de hero no login, tokens de
+fundo/surface/card/hover/borda, cores efetivas de Input/Card, motion de Button/Card,
+Drawer mobile e responsividade em 375, 430, 768, 1024 e 1440px.
+
+Como histórico, o commit `7c15430` também passou no workflow `34243971100`, com
+31 testes Vitest e 10 testes Playwright. Essa execução anterior não constitui a
+evidência principal da versão 1.0 final.
 
 ## Operação
 
@@ -130,7 +135,7 @@ Não há dependência Redux, Next.js, analytics, SDK de autenticação ou storag
 
 ## Arquivos
 
-Esta proposta atualizada altera **70 arquivos** em relação a `main`: workflow
+Esta versão aprovada altera **70 arquivos** em relação a `main`: workflow
 `frontend-verify.yml`; relatório, ADR, roadmap, baseline e changelog; configuração
 Node/Vite/TypeScript/Tailwind/ESLint/Prettier/Husky/Playwright; aplicação em `src/`;
 33 testes unitários/de componente; suíte E2E real; lockfile; documentação operacional;
@@ -138,8 +143,8 @@ e os dois SVGs oficiais em `docs/design/prototypes/`.
 Backend, migrations V1/V2 e artefatos das Etapas A–E não foram alterados.
 
 Entrega preparada na branch `codex/etapa-f-foundation`, à frente de `main` e sem
-divergência da base `9d3de88`. A etapa permanece proposta até revisão e merge;
-nenhuma publicação direta em `main` faz parte desta conferência.
+divergência da base `9d3de88`. A versão 1.0 foi aprovada e a Etapa F foi encerrada;
+nenhuma publicação direta em `main` faz parte deste fechamento documental.
 
 ## Limitações reais
 
@@ -156,4 +161,5 @@ fundação visual sem catálogo ou fluxo de negócio conectado nesta etapa.
 - [TanStack Query — cancelamento](https://tanstack.com/query/latest/docs/framework/react/guides/query-cancellation)
 - [Node — ciclo LTS](https://nodejs.org/en/about/previous-releases)
 
-A Etapa F permanece proposta. Não avançar para a Etapa G sem aprovação explícita.
+A Etapa F está encerrada em versão 1.0 aprovada. Não avançar para a Etapa G sem nova
+autorização explícita.

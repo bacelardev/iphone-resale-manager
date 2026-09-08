@@ -230,8 +230,8 @@ iniciada; é necessária nova autorização para avançar.
 
 ## Etapa F — Fundação do frontend e autenticação
 
-Versão: **1.0 proposta**  
-Status: **aguardando aprovação da Etapa F**
+Versão: 1.0 aprovada  
+Status: Etapa F encerrada
 
 | ID | Tema | Decisão e consequência |
 | --- | --- | --- |
@@ -257,10 +257,11 @@ Status: **aguardando aprovação da Etapa F**
 | F-20 | Qualidade, testes e CI | ESLint 10, Prettier, Husky/lint-staged, Vitest/RTL e workflow frontend separado: npm ci, lint, format, typecheck, tests, build e Playwright contra Spring Boot/PostgreSQL reais. Gate exige pelo menos 11 E2E sem skips, incluindo tokens e motion do baseline. Backend CI preservado. |
 
 Implementação e critérios de validação em `docs/frontend/etapa-f-fundacao-frontend.md`.
-O commit `7c15430` passou no workflow `34243971100`: 31 testes Vitest e 10 testes
-Playwright, sem falhas ou skips, com PostgreSQL 16, Flyway V1+V2, Hibernate validate,
-backend real, CORS, axe e cinco larguras responsivas. A proposta está pronta para revisão.
-O complemento visual oficial está versionado em `docs/design/prototypes/`, eleva a suíte
-local para 33 testes e a integrada para 11 cenários. A aprovação da atualização fica
-condicionada ao check `Frontend verify` verde no head do PR #1.
-As decisões A–E e migrations permanecem preservadas. Não foi iniciada a Etapa G.
+A evidência principal da versão final é o commit
+`5c4546658f19e7cb24dc5f3799edbb6f5ea12a61`, aprovado com status `success` no
+workflow `34258007670`: 33/33 testes Vitest em 5 arquivos e 11/11 testes Playwright,
+sem falhas ou skips, com PostgreSQL 16, Flyway V1+V2, Hibernate `ddl-auto=validate`,
+backend real, autenticação/CORS, axe e as cinco larguras responsivas. O complemento
+visual oficial permanece versionado em `docs/design/prototypes/`.
+A Etapa F está encerrada em versão 1.0 aprovada. As decisões A–E, security baseline e
+migrations permanecem preservadas. Não foi iniciada a Etapa G.
