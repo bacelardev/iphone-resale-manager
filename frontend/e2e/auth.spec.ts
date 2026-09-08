@@ -30,7 +30,10 @@ test('real login, CORS, session restoration, protected navigation and logout', a
   const restored = page.waitForResponse((response) => response.url().endsWith('/auth/me'));
   await page.reload();
   expect((await restored).status()).toBe(200);
-  await expect(page.getByRole('heading', { name: /Olá,/ })).toBeVisible();
+  const dashboardHeading = page.getByRole('heading', { name: /Olá,/ });
+  await expect(dashboardHeading).toBeVisible();
+  await expect(dashboardHeading).toBeFocused();
+  await expect(page).toHaveTitle(/Olá,.* · iPhone Resale/);
   await page.goto('/devices/new');
   await expect(page.getByRole('heading', { name: 'Novo aparelho' })).toBeVisible();
   await page.getByRole('button', { name: 'Sair', exact: true }).click();

@@ -5,14 +5,16 @@ import { LoginPage } from '@/pages/LoginPage';
 import { DashboardPage } from '@/pages/DashboardPage';
 import { PlaceholderPage } from '@/pages/PlaceholderPage';
 import { ProtectedRoute, PublicRoute } from '@/routes/guards';
+import { useAuth } from '@/features/auth/context';
 
 export function App() {
   const location = useLocation();
+  const { status } = useAuth();
   useEffect(() => {
     const heading = document.querySelector<HTMLElement>('#main-content h1');
     heading?.focus();
     document.title = `${heading?.textContent ?? 'Acesso'} · iPhone Resale`;
-  }, [location.pathname]);
+  }, [location.pathname, status]);
   return (
     <Routes>
       <Route element={<PublicRoute />}>

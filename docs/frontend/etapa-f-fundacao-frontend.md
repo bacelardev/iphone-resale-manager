@@ -70,13 +70,23 @@ Local: Node 24.19.0 / npm 11.9.0. `npm ci`, `format:check`, `lint`,
 Build inicial: JS 460,58 kB (144,32 kB gzip), CSS 17,16 kB (4,71 kB gzip).
 Valores são tamanho de bundle, não benchmark de latência.
 
-CI e validação funcional real: **em andamento**, a registrar após execução.
+CI e validação funcional real: **concluídos com sucesso** no workflow
+[`Frontend verify` #34064009643](https://github.com/bacelardev/iphone-resale-manager/actions/runs/34064009643),
+commit `b653c3a`, em 2026-09-06. O job executou Node 24, Java 21,
+PostgreSQL 16 vazio, Flyway V1+V2, `ddl-auto=validate`, backend real e Chromium.
+Passaram instalação bloqueada, lint, formatação, typecheck, build de produção,
+**31 testes Vitest em 4 arquivos** e **10 testes Playwright** em 12,1 s, sem skips,
+resultados inesperados ou flakiness. O startup HTTP só ficou disponível após Flyway,
+validação do Hibernate e bootstrap efêmero concluírem; a autenticação E2E usou a API
+real e comprovou CORS.
+
 Não confundir fixtures dos testes Vitest com autenticação mockada na aplicação:
-a aplicação usa somente as três rotas reais. O workflow prepara PostgreSQL 16 vazio,
-Flyway V1+V2, Hibernate validate, backend Java 21 e navegador Chromium.
-E2E cobre login, refresh/me, placeholders, logout/revogação, token inválido/expirado,
-401/429, conexão recusada simulada e as cinco larguras com axe e teclado.
-Traces e vídeos desativados; screenshots sem senha/token.
+a aplicação usa somente as três rotas reais. O E2E cobriu login, refresh/me,
+placeholders, logout e revogação, token inválido/expirado, 401/429, conexão recusada
+simulada e as cinco larguras com axe e teclado. Traces, vídeos e storage snapshots
+ficaram desativados. O artefato `frontend-responsive-screenshots`, digest
+`sha256:e9d4c47fc6529dec26e6f50b68ddf400da39f7908b5d865e6eec4e30f821f1b8`,
+contém somente capturas da interface, sem senha ou token expostos.
 
 ## Operação
 
@@ -87,11 +97,25 @@ Husky usa lint-staged; sem build/servidor no pre-commit. CI é a verificação f
 ## Dependências
 
 Versões exatas e dependências transitivas em `frontend/package-lock.json`.
-Inventário completo será registrado na conferência final.
+Dependências diretas de runtime: React/React DOM 19.2.8, React Router DOM 7.18.3,
+TanStack Query 5.102.8, React Hook Form 7.87.0, Zod 4.5.4, resolvers 5.9.1,
+Radix Dialog 1.1.23, Radix Slot 1.3.3, Tabler Icons 3.46.0, CVA 0.7.1,
+clsx 2.1.1 e tailwind-merge 3.6.0. Toolchain: Vite 8.2.2, TypeScript 6.0.3,
+Tailwind CSS 4.3.3, ESLint 10.10.0, Prettier 3.9.6, Vitest 5.0.0,
+Testing Library, Playwright 1.63.0, axe 4.13.0, Husky 9.1.7 e lint-staged 17.5.0.
+Não há dependência Redux, Next.js, analytics, SDK de autenticação ou storage persistente.
 
 ## Arquivos
 
-Inventário do commit e evidências do workflow serão registrados na conferência final.
+O commit inicial da proposta altera **61 arquivos** em relação a `main`: workflow
+`frontend-verify.yml`; relatório, ADR, roadmap, baseline e changelog; configuração
+Node/Vite/TypeScript/Tailwind/ESLint/Prettier/Husky/Playwright; aplicação em `src/`;
+31 testes unitários/de componente; suíte E2E real; lockfile e documentação operacional.
+Backend, migrations V1/V2 e artefatos das Etapas A–E não foram alterados.
+
+Entrega preparada na branch `codex/etapa-f-foundation`, um commit à frente de `main`
+e sem divergência da base `9d3de88`. A etapa permanece proposta até revisão e merge;
+nenhuma publicação direta em `main` faz parte desta conferência.
 
 ## Limitações reais
 
@@ -108,4 +132,3 @@ Nenhuma métrica de negócio foi simulada como dado real.
 - [Node — ciclo LTS](https://nodejs.org/en/about/previous-releases)
 
 A Etapa F permanece proposta. Não avançar para a Etapa G sem aprovação explícita.
-
