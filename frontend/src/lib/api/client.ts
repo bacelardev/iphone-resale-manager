@@ -12,6 +12,13 @@ if (
 ) {
   throw new Error('VITE_API_BASE_URL deve conter somente uma origem HTTP(S).');
 }
+
+export function apiAssetUrl(path: string): string {
+  if (!path.startsWith('/api/v1/device-photos/content/')) {
+    throw new Error('Caminho de mídia inválido.');
+  }
+  return new URL(path, base.origin).toString();
+}
 if (
   import.meta.env.PROD &&
   base.protocol !== 'https:' &&

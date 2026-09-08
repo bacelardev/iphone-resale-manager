@@ -40,8 +40,7 @@ jobs:
       PGPASSWORD: ci-isolated-database
       PGDATABASE: iphone_resale_e2e
       APP_CORS_ALLOWED_ORIGINS: http://localhost:5173
-      APP_PHOTO_STORAGE_ROOT: ${{ runner.temp }}/iphone-resale-device-photos
-      APP_PHOTO_STORAGE_SIGNING_SECRET: ci-only-photo-signing-secret-generated-for-isolated-runner
+      APP_PHOTO_STORAGE_ROOT: /tmp/iphone-resale-device-photos
       APP_BOOTSTRAP_ENABLED: true
       APP_BOOTSTRAP_NAME: Sócio CI
       APP_BOOTSTRAP_USERNAME: ci.socio
@@ -76,8 +75,10 @@ jobs:
       - name: Temporary bootstrap credential
         run: |
           fixture_password=$(openssl rand -hex 32)
+          photo_signing_secret=$(openssl rand -hex 32)
           echo "::add-mask::$fixture_password"
-          printf 'APP_BOOTSTRAP_PASSWORD=%s\nE2E_PASSWORD=%s\n' "$fixture_password" "$fixture_password" >> "$GITHUB_ENV"
+          echo "::add-mask::$photo_signing_secret"
+          printf 'APP_BOOTSTRAP_PASSWORD=%s\nE2E_PASSWORD=%s\nAPP_PHOTO_STORAGE_SIGNING_SECRET=%s\n' "$fixture_password" "$fixture_password" "$photo_signing_secret" >> "$GITHUB_ENV"
       - name: Start Spring Boot with Flyway and Hibernate validate
         working-directory: backend
         run: |

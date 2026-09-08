@@ -4,6 +4,10 @@ import { AppShell } from '@/layouts/AppShell';
 import { LoginPage } from '@/pages/LoginPage';
 import { DashboardPage } from '@/pages/DashboardPage';
 import { PlaceholderPage } from '@/pages/PlaceholderPage';
+import { DevicesPage } from '@/pages/DevicesPage';
+import { NewDevicePage } from '@/pages/NewDevicePage';
+import { DeviceDetailPage } from '@/pages/DeviceDetailPage';
+import { CatalogsPage } from '@/pages/CatalogsPage';
 import { ProtectedRoute, PublicRoute } from '@/routes/guards';
 import { useAuth } from '@/features/auth/context';
 
@@ -23,33 +27,11 @@ export function App() {
       <Route element={<ProtectedRoute />}>
         <Route element={<AppShell />}>
           <Route path="/dashboard" element={<DashboardPage />} />
-          <Route
-            path="/devices"
-            element={
-              <PlaceholderPage
-                title="Aparelhos"
-                description="Um lugar para acompanhar cada iPhone da sua operação."
-              />
-            }
-          />
-          <Route
-            path="/devices/new"
-            element={
-              <PlaceholderPage
-                title="Novo aparelho"
-                description="O início de uma nova jornada para cada iPhone."
-              />
-            }
-          />
-          <Route
-            path="/devices/:id"
-            element={
-              <PlaceholderPage
-                title="Detalhes do aparelho"
-                description="Todos os detalhes, em um só lugar."
-              />
-            }
-          />
+          <Route path="/devices" element={<DevicesPage />} />
+          <Route path="/devices/new" element={<NewDevicePage />} />
+          <Route path="/devices/import" element={<NewDevicePage />} />
+          <Route path="/devices/:id" element={<DeviceDetailPage />} />
+          <Route path="/settings/catalogs" element={<CatalogsPage />} />
           <Route
             path="/financial"
             element={

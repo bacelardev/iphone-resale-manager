@@ -6,11 +6,12 @@ import { Button } from '@/components/ui/button';
 import { Drawer, DrawerContent, DrawerTrigger } from '@/components/ui/drawer';
 import { useAuth } from '@/features/auth/context';
 import { navigation } from '@/routes/navigation';
+import { InitializationBanner } from '@/features/devices/InitializationBanner';
 
 function Navigation({ onNavigate }: { onNavigate?: () => void }) {
   return (
     <nav aria-label="Navegação principal">
-      {navigation.map(({ to, label, icon: Icon }) => (
+      {navigation.map(({ to, label, icon: Icon, ready }) => (
         <NavLink
           key={to}
           to={to}
@@ -19,7 +20,7 @@ function Navigation({ onNavigate }: { onNavigate?: () => void }) {
         >
           <Icon size={20} stroke={1.6} aria-hidden />
           <span>{label}</span>
-          {to !== '/dashboard' && <span className="nav-upcoming" aria-label="Em breve" />}
+          {!ready && <span className="nav-upcoming" aria-label="Em breve" />}
         </NavLink>
       ))}
     </nav>
@@ -87,6 +88,7 @@ export function AppShell() {
           </div>
         </header>
         <main id="main-content" className="main-content">
+          <InitializationBanner />
           <Outlet />
         </main>
         <footer className="app-footer">
