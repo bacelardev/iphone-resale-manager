@@ -17,15 +17,17 @@ Fotos ficam em filesystem configurável no backend. Chaves são aleatórias, upl
 
 ## Validação técnica
 
-Head técnico validado: `03e7eb0fd01668de07d58d156486f2b4cb0c3d8f`.
+Head técnico validado: `2c56075a7f0bf5a6cb49552e5f4f1e68106b3d92`.
 
-- Backend workflow `34309109701`: success.
-- Frontend workflow `34309109708`: success.
+- Backend workflow `34389291835`: success.
+- Frontend workflow `34389291371`: success.
 - Backend: 49 testes (24 unitários + 25 de integração), zero falhas/skips.
-- Frontend: 38 testes Vitest em 7 arquivos.
-- E2E: 22/22 Playwright com backend real.
+- Frontend: 41 testes Vitest em 8 arquivos.
+- E2E: 22/22 Playwright com backend real, zero falhas/skips.
 - PostgreSQL 16.15; Flyway V1+V2+V3; Hibernate `ddl-auto=validate`; build Java e frontend.
-- axe/WCAG 2 AA, teclado, reduced motion e larguras 375/430/768/1024/1440.
+- Cobertura de revisão: invariância do `INITIAL_IMPORT`, `expectedVersion` obrigatório, filtros desktop/mobile, edição de catálogos, fotos PNG decodificáveis e cutoff em horário local.
+- axe/WCAG 2 AA com o picker aberto, focus trap, Escape, restauração de foco, teclado, reduced motion e larguras 375/430/768/1024/1440.
+- Screenshots responsivos e detalhe do aparelho com fotos renderizadas publicados no artefato `frontend-responsive-screenshots` do workflow de frontend.
 
 ## Limitações conhecidas
 
