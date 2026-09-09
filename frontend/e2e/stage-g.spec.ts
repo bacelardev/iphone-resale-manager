@@ -120,7 +120,7 @@ test.describe.serial('Etapa G com backend e PostgreSQL reais', () => {
     await authenticated(page, '/devices');
     await page.getByLabel('Buscar aparelhos').fill(operationalCode);
     await expect(page.locator('.device-card')).toHaveCount(1);
-    await expect(page.getByText(modelName, { exact: true })).toBeVisible();
+    await expect(page.locator('.device-card h2')).toHaveText(modelName);
   });
 
   test('expõe conflito otimista e conclui arquivamento terminal após recarga', async ({ page }) => {
