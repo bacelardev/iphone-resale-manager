@@ -50,7 +50,7 @@ async function authenticated(page: Page, path: string) {
 
 async function selectCatalog(page: Page, label: string, name: string) {
   await page.getByRole('button', { name: new RegExp(`Selecionar ${label}`, 'i') }).click();
-  await page.getByRole('textbox', { name: new RegExp(`Buscar ${label}`, 'i') }).fill(name);
+  await page.getByRole('combobox', { name: new RegExp(`Buscar ${label}`, 'i') }).fill(name);
   await page.getByRole('option', { name: new RegExp(name) }).click();
 }
 
