@@ -206,7 +206,7 @@ test.describe.serial('Etapa G com backend e PostgreSQL reais', () => {
   }) => {
     await page.setViewportSize({ width: 375, height: 812 });
     await authenticated(page, '/devices/import');
-    const trigger = page.getByRole('button', { name: /Selecionar modelo/i });
+    const trigger = page.locator('.catalog-picker').first().locator('.picker-trigger');
     await trigger.click();
     const dialog = page.getByRole('dialog', { name: 'Modelo' });
     await expect(dialog).toBeVisible();
