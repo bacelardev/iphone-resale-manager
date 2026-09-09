@@ -1696,3 +1696,7 @@ input[type='checkbox'] {
     min-height: 52px;
   }
 }
+
+.picker-dialog .picker-options small {
+  color: #a1a1a6;
+}
