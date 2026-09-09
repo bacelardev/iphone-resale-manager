@@ -1,7 +1,7 @@
 # Etapa G — Aparelhos, Catálogos e Preparação da Implantação
 
-**Versão:** 1.0 proposta  
-**Status:** aguardando aprovação da Etapa G
+**Versão:** 1.0 aprovada  
+**Status:** Etapa G encerrada
 
 ## Resultado
 
@@ -18,6 +18,7 @@ Fotos ficam em filesystem configurável no backend. Chaves são aleatórias, upl
 ## Validação técnica
 
 Head técnico validado: `2c56075a7f0bf5a6cb49552e5f4f1e68106b3d92`.
+Fechamento aprovado no head `4525b0922f3605f1de0a7999ad0a6ef068bab76f`.
 
 - Backend workflow `34389291835`: success.
 - Frontend workflow `34389291371`: success.
@@ -36,4 +37,4 @@ Head técnico validado: `2c56075a7f0bf5a6cb49552e5f4f1e68106b3d92`.
 - `maintenance.registration_origin` é somente schema/JPA; manutenção funcional pertence à H.
 - Conclusão da implantação, caixa e capital dos sócios pertencem à J.
 
-Nenhum merge automático foi realizado e nenhuma funcionalidade da Etapa H foi iniciada.
+A Etapa G foi aprovada e encerrada formalmente em 09/09/2026. Nenhuma funcionalidade da Etapa H foi iniciada; qualquer avanço exige nova autorização explícita.

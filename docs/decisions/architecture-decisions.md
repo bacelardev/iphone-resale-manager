@@ -267,7 +267,7 @@ A Etapa F está encerrada em versão 1.0 aprovada. As decisões A–E, security 
 migrations permanecem preservadas. Não foi iniciada a Etapa G.
 
 
-## Decisões da Etapa G — versão 1.0 proposta
+## Decisões da Etapa G — versão 1.0 aprovada
 
 - **G-01:** implantação possui lifecycle `PREPARING|COMPLETED`; somente `PREPARING` é usado na G.
 - **G-02:** `cutoffAt` é persistido antes de qualquer importação.
@@ -279,7 +279,7 @@ migrations permanecem preservadas. Não foi iniciada a Etapa G.
 - **G-08:** `maintenance.registration_origin` é schema/JPA-only na G; comportamento pertence à H.
 - **G-09:** `owner_user_id` e `owner_capital_opening` são schema/JPA-only; comportamento pertence à J.
 - **G-10:** modelos e cores são catálogos reais, versionados e sem hard delete.
-- **G-11:** ModelPicker usa catálogo real, combobox no desktop e bottom sheet no mobile.
+- **G-11:** CatalogPicker usa catálogo real e combobox pesquisável dentro de Dialog/BottomSheet acessível, com focus trap, Escape, restauração de foco e teclado.
 - **G-12:** fotos usam storage externo ao banco, chave aleatória e URL HMAC temporária.
 - **G-13:** cada aparelho mantém de 2 a 4 fotos ativas com validação de conteúdo.
 - **G-14:** listagens aplicam paginação, filtros e sort allowlist.
@@ -290,5 +290,10 @@ migrations permanecem preservadas. Não foi iniciada a Etapa G.
 - **G-19:** CI valida PostgreSQL 16, Flyway V1+V2+V3, Hibernate, unitários, integração e navegador real.
 - **G-20:** conclusão da implantação, manutenção funcional, venda e financeiro não são antecipados; a Etapa H exige nova autorização.
 
-**Versão:** 1.0 proposta  
-**Status:** aguardando aprovação da Etapa G
+**Versão:** 1.0 aprovada  
+**Status:** Etapa G encerrada
+
+
+## Registro de aprovação da Etapa G
+
+As decisões G-01 a G-20 são finais. O head técnico `2c56075a` e o fechamento `4525b092` foram aprovados após validação integral. A Etapa G está encerrada em versão 1.0 aprovada em 09/09/2026. `maintenance.registration_origin` permanece somente como preparação de schema/JPA; nenhuma funcionalidade da Etapa H foi iniciada.

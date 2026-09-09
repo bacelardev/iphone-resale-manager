@@ -100,7 +100,7 @@
 A versão 1.1 deverá incorporar as decisões aprovadas durante a modelagem PostgreSQL e contratos iniciais da API.
 
 
-## [Etapa G — 1.0 proposta] — 2026-09-09
+## [Etapa G — 1.0 aprovada] — 2026-09-09
 
 ### Adicionado
 
@@ -117,3 +117,9 @@ A versão 1.1 deverá incorporar as decisões aprovadas durante a modelagem Post
 - migrations V1/V2, decisões A–F e baseline de autenticação;
 - manutenção funcional, venda, conclusão da implantação e financeiro permanecem fora do escopo;
 - Etapa H não iniciada.
+
+### Encerrado
+
+- **Versão: 1.0 aprovada**; **Status: Etapa G encerrada**.
+- Evidências finais preservadas no head técnico `2c56075a` e no fechamento `4525b092`.
+- PR #2 autorizado para revisão final e merge, sem antecipar comportamento da Etapa H.
