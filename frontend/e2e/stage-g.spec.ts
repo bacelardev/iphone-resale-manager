@@ -180,14 +180,16 @@ test.describe.serial('Etapa G com backend e PostgreSQL reais', () => {
   test('administra catálogos reais sem hard delete', async ({ page }) => {
     await authenticated(page, '/settings/catalogs');
     await expect(page.getByText(modelName, { exact: true })).toBeVisible();
-    const modelRow = page.getByRole('listitem').filter({ hasText: modelName });
+    const modelList = page.locator('.catalog-list').first();
+    const modelRow = modelList.getByRole('listitem').filter({ hasText: modelName });
     await modelRow.getByRole('button', { name: `Editar ${modelName}` }).click();
+    const editor = modelList.locator('.catalog-edit-form');
     const updatedModelName = `${modelName} revisado`;
-    await modelRow.getByLabel('Nome de modelo').fill(updatedModelName);
-    await modelRow.getByLabel('Ordem do modelo').fill('7');
-    await modelRow.getByRole('button', { name: 'Salvar' }).click();
-    await expect(modelRow.getByText(updatedModelName, { exact: true })).toBeVisible();
-    await expect(modelRow.getByText(/ordem 7/)).toBeVisible();
+    await editor.getByLabel('Nome de modelo').fill(updatedModelName);
+    await editor.getByLabel('Ordem do modelo').fill('7');
+    await editor.getByRole('button', { name: 'Salvar' }).click();
+    await expect(modelList.getByText(updatedModelName, { exact: true })).toBeVisible();
+    await expect(modelList.getByText(/ordem 7/)).toBeVisible();
     modelName = updatedModelName;
     const code = `COLOR_UI_${suffix}`;
     await page.locator('#color-code').fill(code);
