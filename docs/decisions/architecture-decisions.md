@@ -265,3 +265,30 @@ backend real, autenticação/CORS, axe e as cinco larguras responsivas. O comple
 visual oficial permanece versionado em `docs/design/prototypes/`.
 A Etapa F está encerrada em versão 1.0 aprovada. As decisões A–E, security baseline e
 migrations permanecem preservadas. Não foi iniciada a Etapa G.
+
+
+## Decisões da Etapa G — versão 1.0 proposta
+
+- **G-01:** implantação possui lifecycle `PREPARING|COMPLETED`; somente `PREPARING` é usado na G.
+- **G-02:** `cutoffAt` é persistido antes de qualquer importação.
+- **G-03:** o cutoff fica bloqueado após o primeiro `INITIAL_IMPORT`.
+- **G-04:** importação inicial preserva custo e não cria ledger de compra.
+- **G-05:** cadastro operacional cria `DEVICE_PURCHASE / OUTFLOW` atomicamente.
+- **G-06:** `registrationOrigin` é definido pelo endpoint e imutável.
+- **G-07:** V3 é aditiva; V1 e V2 permanecem byte a byte fora do escopo.
+- **G-08:** `maintenance.registration_origin` é schema/JPA-only na G; comportamento pertence à H.
+- **G-09:** `owner_user_id` e `owner_capital_opening` são schema/JPA-only; comportamento pertence à J.
+- **G-10:** modelos e cores são catálogos reais, versionados e sem hard delete.
+- **G-11:** ModelPicker usa catálogo real, combobox no desktop e bottom sheet no mobile.
+- **G-12:** fotos usam storage externo ao banco, chave aleatória e URL HMAC temporária.
+- **G-13:** cada aparelho mantém de 2 a 4 fotos ativas com validação de conteúdo.
+- **G-14:** listagens aplicam paginação, filtros e sort allowlist.
+- **G-15:** locks, constraints e `expectedVersion` protegem concorrência.
+- **G-16:** operações relevantes geram auditoria legível sem segredos.
+- **G-17:** a UI preserva baseline V2/Mobile-first e funciona de 375 a 1440 px.
+- **G-18:** fluxos de estoque atendem axe/WCAG 2 AA e reduced motion.
+- **G-19:** CI valida PostgreSQL 16, Flyway V1+V2+V3, Hibernate, unitários, integração e navegador real.
+- **G-20:** conclusão da implantação, manutenção funcional, venda e financeiro não são antecipados; a Etapa H exige nova autorização.
+
+**Versão:** 1.0 proposta  
+**Status:** aguardando aprovação da Etapa G

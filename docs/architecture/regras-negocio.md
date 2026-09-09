@@ -106,3 +106,16 @@ Registros de auditoria não devem ser apagados como parte do fluxo normal.
 Preferir exclusão lógica ou bloqueio de exclusão para registros financeiros relevantes.
 
 Vendas concluídas e movimentações financeiras não devem desaparecer por exclusão acidental.
+
+
+## Refinamento da Etapa G — cutover e estoque inicial
+
+- `cutoffAt` é persistido quando a implantação entra em `PREPARING`, antes de qualquer carga inicial.
+- Após o primeiro aparelho `INITIAL_IMPORT`, o cutoff fica imutável.
+- Aparelho `OPERATIONAL` representa compra dentro do período controlado e gera `DEVICE_PURCHASE / OUTFLOW`.
+- Aparelho `INITIAL_IMPORT` já pertencia ao estoque, preserva preço/data/custo e não gera nova saída de caixa.
+- A API de importação lê o cutoff persistido e exige `purchasedAt <= cutoffAt`.
+- `stockCapital` soma compra e manutenções ativas; na G, `maintenanceCapital = 0` no preview porque a importação histórica de manutenção pertence à H.
+- Arquivamento é terminal e torna o aparelho imutável.
+- Fotos ficam fora do PostgreSQL, com 2–4 ativas, remoção lógica, validação de MIME/magic bytes/tamanho e URL assinada.
+- `maintenance.registration_origin`, `financial_transaction.owner_user_id` e `owner_capital_opening` são somente preparação de schema/JPA nesta etapa.

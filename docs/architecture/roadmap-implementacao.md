@@ -110,3 +110,13 @@ Status: concluída na versão inicial.
   **Etapa F encerrada**. Entrega reúne a fundação visual da Fase 3 e a integração web
   da Fase 4. Validação final em `docs/frontend/etapa-f-fundacao-frontend.md`.
 - G e módulos de negócio: não iniciados; exigem nova autorização explícita.
+
+
+## Etapa G em revisão
+
+- Branch: `codex/etapa-g-devices-catalogs`.
+- Entrega: catálogos reais, aparelhos, fotos, estoque, importação inicial e `business_initialization` em `PREPARING`.
+- Migration V3 aditiva; V1/V2 preservadas.
+- `maintenance.registration_origin` e atribuição de sócio existem somente como preparação de schema/JPA.
+- Status: **versão 1.0 proposta, aguardando aprovação da Etapa G**.
+- Etapa H não iniciada; manutenção funcional exige autorização futura.

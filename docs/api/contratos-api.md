@@ -952,3 +952,19 @@ Não existem `POST`, `PATCH` ou `DELETE` para auditoria.
 ## 15. Registro de encerramento
 
 Este contrato e os casos de uso correspondentes foram aprovados como Etapa D versão 1.0. A Etapa D está encerrada, a migration V1 permanece inalterada e nenhuma implementação da Etapa E foi iniciada.
+
+
+---
+
+## 16. Refinamento da Etapa G — catálogos, aparelhos e implantação em preparação
+
+A Etapa G implementa os contratos autenticados em `/api/v1` para:
+
+- `/models` e `/colors`: listar, criar, consultar, editar, ativar e desativar, com paginação, busca, sort allowlist e `expectedVersion`;
+- `/business-initialization`: consultar, iniciar `PREPARING`, alterar o `cutoffAt` antes da primeira importação e consultar o preview;
+- `/devices`: cadastrar compra operacional multipart, listar, filtrar, consultar, editar, alterar status e arquivar;
+- `/devices/initial-import`: importar estoque existente usando o `cutoffAt` persistido, sem criar `DEVICE_PURCHASE`;
+- `/devices/{id}/photos`: listar, adicionar e remover logicamente fotos, preservando 2–4 ativas;
+- `/device-photos/content/{id}`: servir mídia somente mediante URL temporária assinada.
+
+O JSON do aparelho nunca aceita `registrationOrigin`, `internalCode`, autoria ou arquivamento. A origem é definida pelo endpoint e permanece imutável. `PATCH` e comandos mutáveis exigem `expectedVersion`. A conclusão da implantação, manutenção, venda e financeiro completo continuam fora do contrato executável desta etapa.

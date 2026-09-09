@@ -98,3 +98,22 @@
 ### Próxima versão
 
 A versão 1.1 deverá incorporar as decisões aprovadas durante a modelagem PostgreSQL e contratos iniciais da API.
+
+
+## [Etapa G — 1.0 proposta] — 2026-09-09
+
+### Adicionado
+
+- migration V3 para preparação da implantação, origem de registros e atribuição futura de capital;
+- CRUD real de modelos e cores;
+- aparelhos operacionais e importação inicial sem saída financeira duplicada;
+- listagem, filtros, detalhe, edição, status e arquivamento terminal;
+- storage local configurável, fotos validadas e URLs temporárias assinadas;
+- frontend responsivo V2/Mobile-first com model picker e lightbox;
+- cobertura unitária, integração PostgreSQL e E2E real.
+
+### Preservado
+
+- migrations V1/V2, decisões A–F e baseline de autenticação;
+- manutenção funcional, venda, conclusão da implantação e financeiro permanecem fora do escopo;
+- Etapa H não iniciada.
