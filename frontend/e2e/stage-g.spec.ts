@@ -109,7 +109,7 @@ test.describe.serial('Etapa G com backend e PostgreSQL reais', () => {
   }) => {
     await authenticated(page, '/devices/import');
     await expect(page.getByText(/não será criada uma nova saída de caixa/i)).toBeVisible();
-    await expect(page.getByText(/Data de corte:/)).toBeVisible();
+    await expect(page.locator('.import-notice strong')).toContainText('Data de corte:');
     await fillDevice(page, new Date(cutoff.getTime() - 86_400_000));
     await page.getByRole('button', { name: 'Importar aparelho existente' }).click();
     await expect(page).toHaveURL(/\/devices\/[0-9a-f-]+$/);
