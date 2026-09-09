@@ -5,14 +5,14 @@ import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Digits;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.PositiveOrZero;
+import jakarta.validation.constraints.NotNull;
 
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.UUID;
 
 public record UpdateDeviceRequest(
-        @PositiveOrZero long expectedVersion,
+        @NotNull @Min(0) Long expectedVersion,
         UUID modelId,
         UUID colorId,
         @Min(1) Integer storageGb,

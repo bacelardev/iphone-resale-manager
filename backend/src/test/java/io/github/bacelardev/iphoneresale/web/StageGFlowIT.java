@@ -107,6 +107,49 @@ class StageGFlowIT extends PostgresIntegrationTest {
         assertThat(activePurchaseCount(importedId)).isZero();
         assertThat(imported.path("registrationOrigin").asText()).isEqualTo("INITIAL_IMPORT");
 
+        Instant validImportedPurchaseDate = cutoff.minusSeconds(1800);
+        JsonNode updatedImported = json(mockMvc.perform(patch("/api/v1/devices/{id}", importedId)
+                        .header(HttpHeaders.AUTHORIZATION, bearer(token))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(Map.of(
+                                "expectedVersion", imported.path("version").asLong(),
+                                "purchasedAt", validImportedPurchaseDate))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.purchasedAt").value(validImportedPurchaseDate.toString()))
+                .andReturn());
+
+        mockMvc.perform(patch("/api/v1/devices/{id}", importedId)
+                        .header(HttpHeaders.AUTHORIZATION, bearer(token))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(Map.of(
+                                "expectedVersion", updatedImported.path("version").asLong(),
+                                "purchasedAt", cutoff.plusSeconds(1)))))
+                .andExpect(status().isUnprocessableEntity())
+                .andExpect(jsonPath("$.code").value("INITIAL_IMPORT_INVALID_DATE"));
+
+        mockMvc.perform(patch("/api/v1/devices/{id}", importedId)
+                        .header(HttpHeaders.AUTHORIZATION, bearer(token))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(Map.of("purchasePrice", 2550.00))))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("VALIDATION_ERROR"));
+
+        mockMvc.perform(post("/api/v1/devices/{id}/archive", importedId)
+                        .header(HttpHeaders.AUTHORIZATION, bearer(token))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(Map.of(
+                                "reason", "Versão obrigatória ausente."))))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("VALIDATION_ERROR"));
+
+        mockMvc.perform(patch("/api/v1/business-initialization")
+                        .header(HttpHeaders.AUTHORIZATION, bearer(token))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(Map.of(
+                                "cutoffAt", cutoff.minusSeconds(10)))))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("VALIDATION_ERROR"));
+
         mockMvc.perform(patch("/api/v1/business-initialization")
                         .header(HttpHeaders.AUTHORIZATION, bearer(token))
                         .contentType(MediaType.APPLICATION_JSON)

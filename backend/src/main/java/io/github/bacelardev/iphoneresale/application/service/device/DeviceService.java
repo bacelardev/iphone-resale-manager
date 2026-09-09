@@ -173,6 +173,10 @@ public class DeviceService {
 
     @Transactional
     public DeviceDetailResponse update(UUID id, UpdateDeviceRequest request) {
+        Device snapshot = device(id);
+        BusinessInitialization initialization =
+                snapshot.getRegistrationOrigin() == RegistrationOrigin.INITIAL_IMPORT
+                        ? initializationService.requiredForUpdate() : null;
         Device device = mutableDevice(id);
         VersionGuard.require(device.getVersion(), request.expectedVersion());
         IphoneModel model = request.modelId() == null ? device.getModel() : activeModel(request.modelId());
@@ -182,6 +186,10 @@ public class DeviceService {
         BigDecimal purchasePrice = request.purchasePrice() == null
                 ? device.getPurchasePrice() : request.purchasePrice();
         Instant purchasedAt = request.purchasedAt() == null ? device.getPurchasedAt() : request.purchasedAt();
+        if (initialization != null && purchasedAt.isAfter(initialization.getCutoffAt())) {
+            throw BusinessException.unprocessable("INITIAL_IMPORT_INVALID_DATE",
+                    "A compra deve ser anterior ou igual à data de corte persistida.");
+        }
         boolean purchaseChanged = purchasePrice.compareTo(device.getPurchasePrice()) != 0
                 || !purchasedAt.equals(device.getPurchasedAt());
         if (purchaseChanged && device.getStatus() == DeviceStatus.VENDIDO) {
