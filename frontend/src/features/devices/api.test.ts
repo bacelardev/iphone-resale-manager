@@ -6,28 +6,24 @@ import { listDevices, registerDevice } from './api';
 describe('Stage G API client', () => {
   it('builds allowlisted device filters without putting credentials in the URL', async () => {
     AuthTokenStore.set('irs_stage-g-test-token');
-    const fetchMock = vi
-      .fn()
-      .mockResolvedValue(
-        json({
-          content: [],
-          page: 0,
-          size: 24,
-          totalElements: 0,
-          totalPages: 0,
-          first: true,
-          last: true,
-        }),
-      );
+    const fetchMock = vi.fn().mockResolvedValue(
+      json({
+        content: [],
+        page: 0,
+        size: 24,
+        totalElements: 0,
+        totalPages: 0,
+        first: true,
+        last: true,
+      }),
+    );
     vi.stubGlobal('fetch', fetchMock);
     await listDevices({ search: 'IPH-000001', archived: false });
     const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit];
     expect(url).toContain('/api/v1/devices?');
     expect(url).toContain('search=IPH-000001');
     expect(url).not.toContain('irs_stage-g-test-token');
-    expect(new Headers(init.headers).get('Authorization')).toBe(
-      'Bearer irs_stage-g-test-token',
-    );
+    expect(new Headers(init.headers).get('Authorization')).toBe('Bearer irs_stage-g-test-token');
   });
 
   it('sends JSON metadata and ordered photos as multipart data', async () => {
@@ -66,8 +62,6 @@ describe('Stage G API client', () => {
     expect(apiAssetUrl('/api/v1/device-photos/content/id?expires=1&signature=x')).toBe(
       'http://localhost:8080/api/v1/device-photos/content/id?expires=1&signature=x',
     );
-    expect(() => apiAssetUrl('https://evil.example/photo')).toThrow(
-      'Caminho de mídia inválido',
-    );
+    expect(() => apiAssetUrl('https://evil.example/photo')).toThrow('Caminho de mídia inválido');
   });
 });
