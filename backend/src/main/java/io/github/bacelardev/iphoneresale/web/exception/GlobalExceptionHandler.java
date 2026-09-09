@@ -2,6 +2,7 @@ package io.github.bacelardev.iphoneresale.web.exception;
 
 import io.github.bacelardev.iphoneresale.application.service.auth.AuthenticationFailedException;
 import io.github.bacelardev.iphoneresale.application.service.auth.UnauthenticatedException;
+import io.github.bacelardev.iphoneresale.application.service.BusinessException;
 import io.github.bacelardev.iphoneresale.web.dto.error.ApiErrorResponse;
 import io.github.bacelardev.iphoneresale.web.dto.error.FieldErrorResponse;
 import io.github.bacelardev.iphoneresale.web.filter.RequestIdFilter;
@@ -13,8 +14,14 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.dao.OptimisticLockingFailureException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
+import org.springframework.web.multipart.support.MissingServletRequestPartException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
@@ -32,6 +39,20 @@ public class GlobalExceptionHandler {
 
     public GlobalExceptionHandler(Clock clock) {
         this.clock = clock;
+    }
+
+    @ExceptionHandler(BusinessException.class)
+    ResponseEntity<ApiErrorResponse> business(
+            BusinessException exception,
+            HttpServletRequest request
+    ) {
+        return ResponseEntity.status(exception.getStatus()).body(error(
+                request,
+                exception.getStatus().value(),
+                exception.getCode(),
+                exception.getMessage(),
+                List.of()
+        ));
     }
 
     @ExceptionHandler(AuthenticationFailedException.class)
@@ -102,6 +123,50 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.UNSUPPORTED_MEDIA_TYPE)
                 .body(error(request, 415, "UNSUPPORTED_MEDIA_TYPE",
                         "O tipo de mídia enviado não é aceito.", List.of()));
+    }
+
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    ResponseEntity<ApiErrorResponse> uploadTooLarge(
+            MaxUploadSizeExceededException exception,
+            HttpServletRequest request
+    ) {
+        return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE)
+                .body(error(request, 413, "FILE_TOO_LARGE",
+                        "Cada imagem deve possuir no máximo 10 MiB.", List.of()));
+    }
+
+    @ExceptionHandler({MethodArgumentTypeMismatchException.class,
+            MissingServletRequestParameterException.class,
+            MissingServletRequestPartException.class})
+    ResponseEntity<ApiErrorResponse> invalidParameter(
+            Exception exception,
+            HttpServletRequest request
+    ) {
+        return ResponseEntity.badRequest().body(error(request, 400, "VALIDATION_ERROR",
+                "Existem parâmetros inválidos.", List.of()));
+    }
+
+    @ExceptionHandler(OptimisticLockingFailureException.class)
+    ResponseEntity<ApiErrorResponse> concurrentModification(
+            OptimisticLockingFailureException exception,
+            HttpServletRequest request
+    ) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(error(
+                request, 409, "CONCURRENT_MODIFICATION",
+                "O registro foi alterado por outra operação. Atualize os dados e tente novamente.",
+                List.of()
+        ));
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    ResponseEntity<ApiErrorResponse> integrityConflict(
+            DataIntegrityViolationException exception,
+            HttpServletRequest request
+    ) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(error(
+                request, 409, "DATA_CONFLICT",
+                "A operação conflita com o estado atual dos dados.", List.of()
+        ));
     }
 
     @ExceptionHandler(NoResourceFoundException.class)

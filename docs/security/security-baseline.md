@@ -117,3 +117,15 @@ Apagar apenas o arquivo ou o commit mais recente não invalida a credencial vaza
   Falha de rede na restauração preserva token e permite retry, sem liberar conteúdo.
 - Logout com rede indisponível limpa a aba, mas não promete revogação no servidor.
   Respostas atrasadas nunca podem restabelecer sessão encerrada ou invalidar login novo.
+
+
+## Extensão permanente da baseline — Etapa G
+
+- Todos os endpoints de G exigem Bearer autenticado com papel `SOCIO`.
+- Upload aceita somente JPEG/PNG/WebP, até 10 MiB, validando MIME declarado e magic bytes.
+- Binários permanecem fora do PostgreSQL; storage keys são aleatórias e nunca aparecem em responses.
+- URLs de mídia são temporárias e assinadas; o cliente só resolve caminhos dentro de `/api/v1/device-photos/content/`.
+- Falhas SQL após upload executam compensação; remoção é lógica e respeita o mínimo de duas fotos.
+- Filtros e ordenação usam allowlists; DTOs rejeitam campos desconhecidos e não expõem entidades.
+- `expectedVersion`, locks transacionais, constraints e advisory lock protegem mudanças concorrentes.
+- Segredo de assinatura vem de variável server-side `APP_PHOTO_STORAGE_SIGNING_SECRET`, nunca de `VITE_*`, logs ou respostas.

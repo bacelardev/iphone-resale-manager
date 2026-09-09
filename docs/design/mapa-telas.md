@@ -176,3 +176,15 @@ lightbox ou estado da própria tela.
 Na Etapa F somente Login, App Shell, dashboard estrutural, navegação, autenticação,
 estados globais e placeholders protegidos são implementados. As demais interfaces
 permanecem mapeadas para etapas futuras, sem antecipar regras de negócio.
+
+
+## Telas implementadas na Etapa G
+
+- `/devices`: estoque real, busca, filtros, paginação, cards responsivos e drawer mobile.
+- `/devices/new`: cadastro operacional com impacto financeiro explícito.
+- `/devices/import`: importação inicial separada, cutoff visível e aviso de ausência de nova saída.
+- `/devices/:id`: detalhe, lightbox, edição, status, fotos e arquivamento terminal.
+- `/settings/catalogs`: administração real de modelos e cores.
+- estado de preparação: CTA quando `NOT_STARTED` e banner discreto quando `PREPARING`.
+
+O seletor de modelo é combobox pesquisável no desktop e bottom sheet no mobile. Caixa/capital, manutenção, venda e dashboard financeiro continuam reservados às etapas seguintes.

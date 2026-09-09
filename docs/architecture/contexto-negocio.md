@@ -53,3 +53,16 @@ Não é objetivo do MVP criar um SaaS multiempresa, um ERP genérico ou um siste
 A primeira versão será web.
 
 No futuro, poderá existir um aplicativo iOS consumindo a mesma API do backend.
+
+
+## Implantação de um negócio já existente
+
+A operação antecede o sistema. A implantação separa caixa real de capital em estoque para não fabricar movimentos financeiros:
+
+- `cutoffAt` marca o início do controle;
+- estoque existente entra como `INITIAL_IMPORT`;
+- custos reais de aquisição permanecem no aparelho;
+- compras anteriores não são reexecutadas no ledger;
+- caixa inicial, manutenções históricas e capital reconhecido por sócio serão completados nas etapas H/J.
+
+Na Etapa G o negócio pode permanecer em `PREPARING`, permitindo importar aparelhos existentes sem encerrar o processo.

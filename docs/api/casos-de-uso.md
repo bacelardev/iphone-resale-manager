@@ -491,3 +491,30 @@ Não existem casos de criar, editar ou remover auditoria pela API. Eventos nasce
 ## 15. Registro de encerramento
 
 Os fluxos, entradas, erros, transações, ledger, auditoria e regras de concorrência deste artefato foram aprovados em conjunto com `contratos-api.md` e com as decisões finais D-01 a D-15. A Etapa D versão 1.0 está encerrada. Nenhuma implementação da Etapa E foi iniciada.
+
+
+---
+
+## 16. Refinamento da Etapa G — fluxos executáveis
+
+### UC-G-01 — Iniciar preparação
+
+O sócio informa `cutoffAt`; a aplicação adquire proteção transacional, garante o singleton e persiste `PREPARING`. Duas inicializações não podem coexistir.
+
+### UC-G-02 — Cadastrar aparelho operacional
+
+Valida catálogo ativo, capacidade, preço, data, características e 2–4 fotos. Aparelho, fotos, auditoria e `DEVICE_PURCHASE / OUTFLOW` são confirmados atomicamente. Falha posterior ao upload aciona compensação do storage.
+
+### UC-G-03 — Importar aparelho existente
+
+Exige `PREPARING`, bloqueia a inicialização, lê o `cutoffAt` persistido e aceita somente `purchasedAt <= cutoffAt` e status `PENDENTE_MANUTENCAO` ou `DISPONIVEL_VENDA`. Preserva custo e fotos, registra auditoria e não cria lançamento financeiro.
+
+### UC-G-04 — Administrar estoque
+
+Listagem, filtros, detalhe, edição permitida, transições manuais, arquivamento terminal e fotos usam DTOs, `expectedVersion`, locks/constraints e códigos de erro estáveis. Aparelho arquivado é imutável e não existe reativação no MVP.
+
+### UC-G-05 — Alterar cutoff
+
+Permitido somente em `PREPARING` e antes do primeiro `INITIAL_IMPORT`. PATCH concorrente com a primeira importação é serializado; após ela, retorna `INITIALIZATION_CUTOFF_LOCKED`.
+
+A transição para `COMPLETED`, manutenções históricas e capital/caixa inicial não são casos de uso da Etapa G.

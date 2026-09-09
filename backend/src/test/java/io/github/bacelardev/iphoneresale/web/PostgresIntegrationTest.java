@@ -42,5 +42,9 @@ abstract class PostgresIntegrationTest {
         registry.add("app.bootstrap.username", () -> TEST_USERNAME);
         registry.add("app.bootstrap.password", () -> TEST_PASSWORD);
         registry.add("app.cors.allowed-origins", () -> "https://app.example.test");
+        registry.add("app.photo-storage.root", () ->
+                System.getProperty("java.io.tmpdir") + "/iphone-resale-test-photos");
+        registry.add("app.photo-storage.signing-secret", () ->
+                "integration-test-photo-signing-secret-32-chars");
     }
 }

@@ -1,6 +1,7 @@
 package io.github.bacelardev.iphoneresale.domain.model;
 
 import io.github.bacelardev.iphoneresale.domain.enums.MaintenanceStatus;
+import io.github.bacelardev.iphoneresale.domain.enums.RegistrationOrigin;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -47,6 +48,10 @@ public class Maintenance extends AuditableEntity {
     @Column(name = "cancellation_reason", length = 500)
     private String cancellationReason;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "registration_origin", nullable = false, updatable = false, length = 24)
+    private RegistrationOrigin registrationOrigin;
+
     @OneToMany(mappedBy = "maintenance", cascade = CascadeType.PERSIST, orphanRemoval = false)
     @OrderBy("position ASC")
     private List<MaintenanceItem> items = new ArrayList<>();
@@ -80,6 +85,10 @@ public class Maintenance extends AuditableEntity {
 
     public String getCancellationReason() {
         return cancellationReason;
+    }
+
+    public RegistrationOrigin getRegistrationOrigin() {
+        return registrationOrigin;
     }
 
     public List<MaintenanceItem> getItems() {

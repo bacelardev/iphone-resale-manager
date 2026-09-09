@@ -36,6 +36,24 @@ export function errorMessage(error: unknown): string {
         return 'Confira os campos informados e tente novamente.';
       case 'UNAUTHORIZED':
         return 'Sua sessão terminou. Entre novamente.';
+      case 'CONCURRENT_MODIFICATION':
+        return 'Este registro mudou em outra operação. Atualize a página e tente novamente.';
+      case 'INITIAL_IMPORT_INVALID_DATE':
+        return 'A compra deve ser anterior ou igual à data de corte da implantação.';
+      case 'INITIALIZATION_CUTOFF_LOCKED':
+        return 'A data de corte não pode mudar depois da primeira importação.';
+      case 'BUSINESS_INITIALIZATION_NOT_STARTED':
+        return 'Inicie a preparação da implantação antes de importar o estoque.';
+      case 'BUSINESS_INITIALIZATION_ALREADY_STARTED':
+        return 'A preparação da implantação já foi iniciada.';
+      case 'PHOTO_MINIMUM_VIOLATION':
+        return 'O aparelho deve manter ao menos duas fotos.';
+      case 'PHOTO_LIMIT_EXCEEDED':
+        return 'O aparelho pode ter no máximo quatro fotos.';
+      case 'UNSUPPORTED_IMAGE_TYPE':
+        return 'Envie uma foto JPEG, PNG ou WebP válida.';
+      case 'FILE_TOO_LARGE':
+        return 'Cada foto deve ter no máximo 10 MiB.';
       case 'FORBIDDEN':
       case 'CORS_ORIGIN_DENIED':
         return 'O acesso não foi permitido. Contate o responsável pelo sistema.';

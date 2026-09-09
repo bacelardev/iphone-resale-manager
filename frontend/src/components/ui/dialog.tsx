@@ -16,6 +16,7 @@ export type DialogContentProps = {
   description: string;
   children: ReactNode;
   placement?: 'center' | 'drawer' | 'bottom-sheet';
+  className?: string;
 };
 
 export function DialogContent({
@@ -23,6 +24,7 @@ export function DialogContent({
   description,
   children,
   placement = 'center',
+  className,
 }: DialogContentProps) {
   return (
     <Primitive.Portal>
@@ -32,6 +34,7 @@ export function DialogContent({
           'dialog-content',
           placement === 'drawer' && 'dialog-drawer',
           placement === 'bottom-sheet' && 'dialog-sheet',
+          className,
         )}
         data-placement={placement}
       >

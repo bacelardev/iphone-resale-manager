@@ -20,6 +20,28 @@ public class DeviceColor extends AuditableEntity {
     protected DeviceColor() {
     }
 
+    public DeviceColor(String code, String name) {
+        this.code = code;
+        this.name = name;
+        this.active = true;
+    }
+
+    public void rename(String name) {
+        this.name = name;
+    }
+
+    public boolean activate() {
+        boolean changed = !active;
+        active = true;
+        return changed;
+    }
+
+    public boolean deactivate() {
+        boolean changed = active;
+        active = false;
+        return changed;
+    }
+
     public String getCode() {
         return code;
     }
