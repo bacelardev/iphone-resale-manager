@@ -1639,3 +1639,60 @@ input[type='checkbox'] {
     scroll-behavior: auto !important;
   }
 }
+
+.device-filter-field {
+  display: grid;
+  min-width: 180px;
+  gap: 7px;
+  color: #d4d4d8;
+  font-size: 11px;
+}
+.catalog-edit-form {
+  display: grid;
+  grid-column: 1 / -1;
+  gap: 12px;
+  padding: 8px 4px;
+}
+.catalog-edit-form label {
+  display: grid;
+  gap: 7px;
+  color: #d4d4d8;
+  font-size: 11px;
+}
+.catalog-edit-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.picker-dialog {
+  width: min(100%, 620px);
+}
+.picker-dialog .dialog-description {
+  margin-bottom: 18px;
+}
+.picker-options > button[data-active='true'] {
+  border-color: #555;
+  background: #202020;
+  outline: 2px solid #777;
+  outline-offset: -2px;
+}
+@media (min-width: 700px) {
+  .catalog-edit-form {
+    grid-template-columns: minmax(0, 1fr) 120px auto;
+    align-items: end;
+  }
+}
+@media (min-width: 1024px) {
+  .device-toolbar {
+    flex-wrap: wrap;
+  }
+  .desktop-device-filters {
+    display: grid;
+    width: 100%;
+    grid-template-columns: repeat(4, minmax(150px, 1fr));
+    align-items: end;
+  }
+  .desktop-device-filters .archived-toggle {
+    min-height: 52px;
+  }
+}

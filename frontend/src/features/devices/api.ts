@@ -17,6 +17,8 @@ export type DeviceFilters = {
   modelId?: string;
   colorId?: string;
   storageGb?: number;
+  purchasedFrom?: string;
+  purchasedTo?: string;
   archived?: boolean;
   page?: number;
 };
@@ -70,6 +72,21 @@ export function createModel(input: { code: string; name: string; displayOrder: n
 
 export function createColor(input: { code: string; name: string }) {
   return apiRequest<CatalogItem>('/api/v1/colors', { method: 'POST', body: input });
+}
+
+export function updateCatalog(
+  kind: 'models' | 'colors',
+  item: CatalogItem,
+  input: { name: string; displayOrder?: number },
+) {
+  return apiRequest<CatalogItem>(`/api/v1/${kind}/${item.id}`, {
+    method: 'PATCH',
+    body: {
+      expectedVersion: item.version,
+      name: input.name,
+      ...(kind === 'models' ? { displayOrder: input.displayOrder } : {}),
+    },
+  });
 }
 
 export function setCatalogActive(kind: 'models' | 'colors', item: CatalogItem, active: boolean) {

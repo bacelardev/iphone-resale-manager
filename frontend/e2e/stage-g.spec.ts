@@ -11,9 +11,21 @@ const suffix = createHash('sha256')
   .digest('hex')
   .slice(0, 8)
   .toUpperCase();
-const modelName = `iPhone E2E ${suffix}`;
+let modelName = `iPhone E2E ${suffix}`;
 const colorName = `Titânio E2E ${suffix}`;
 const cutoff = new Date(Date.now() - 120_000);
+const frontPng = Buffer.from(
+  'iVBORw0KGgoAAAANSUhEUgAAAEAAAABAEAIAAAB1mzrKAAAAIGNIUk0AAHomAACAhAAA+gAAAIDoAAB1MAAA6mAAADqYAAAXcJy6UTwAAAAGYktHRP///////wlY99wAAAAHdElNRQfqCQkRHB99iCZQAAABH0lEQVR42u3cQQ3DQAxE0YxlArv3qkDKISASDCXREgyEwuhhQfxD/kMQaeW1PWmax2Pfr2sTpDNy5ks/xn11Zp3bh36M+7ICYB4AzCsI1hk5rABOZ9S5eQCYzrQHkDoj9gBQZ5QVAFoV4AFgVg/wCsI4BcG63IRRbsIwN2GYYRxsXUEeAGZVgD0A4xgKM4yDGcbBDONgnWkYR3IKgjkFwTrTKIKUV72fv6Yf474cQ2EuYjCbMMwxFGYFwOwBMKcgmGEcrDNz2AM4vpSHrSnIHoBxCoLZhGGOobAuryCUQTMMA7mb0NhLmKwzjCKIHVm2QNAfqYKcxOG+Z0wzCsI5hUEM4yD+T4AZhgH6/JLeZT/FQEzjIO5B8AM42BWAOwPfT1DsjWEGX0AAAAASUVORK5CYII=',
+  'base64',
+);
+const backPng = Buffer.from(
+  'iVBORw0KGgoAAAANSUhEUgAAAEAAAABAEAIAAAB1mzrKAAAAIGNIUk0AAHomAACAhAAA+gAAAIDoAAB1MAAA6mAAADqYAAAXcJy6UTwAAAAGYktHRP///////wlY99wAAAAHdElNRQfqCQkRHB99iCZQAAABDElEQVR42u3cwQ2DMBQEUdbaFuwuQgFISWW0TA85uIg5MK8CJGTW+y2T+76u5zkEaWbOfOnHeK9m5Tx8AZhm5jx+9GO8V7PycQVwmjnMAND+BPkCMB2GMMoQhjXLHkBq5vATBDKEYfYAmLMg2J4FuQvCmAEwd0Ewx9EwQxi2Z0GGMKaZ9gCSuyBYszyQIbkCYDZhmCsAZg+ANctRBMkeADOEYWYArMNdEMpxNMwDGZgZAHMXBLMHwAxhmBc0YE5DYYYwzBUAM4RhHRYxVDOHPQBkCMMMYZi3JGGuAJjnATBDGOaBDMx7wjBDGOYLgHV4QQPl/4JgjqNhZgDMHgCzB8D2LMgQxhjCMEMY9gcPUCR+86A+xQAAAABJRU5ErkJggg==',
+  'base64',
+);
+function localDateTime(date: Date) {
+  const pad = (value: number) => String(value).padStart(2, '0');
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+}
 let operationalId = '';
 let operationalCode = '';
 
@@ -46,12 +58,11 @@ async function fillDevice(page: Page, purchasedAt: Date) {
   await selectCatalog(page, 'modelo', modelName);
   await selectCatalog(page, 'cor', colorName);
   await page.getByLabel('Preço de compra (R$)').fill('2500.00');
-  await page.getByLabel('Data e hora da compra').fill(purchasedAt.toISOString().slice(0, 16));
+  await page.getByLabel('Data e hora da compra').fill(localDateTime(purchasedAt));
   await page.getByLabel('Saúde da bateria').fill('88');
-  const png = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 1, 2, 3]);
   await page.locator('#device-photos').setInputFiles([
-    { name: 'frente.png', mimeType: 'image/png', buffer: png },
-    { name: 'traseira.png', mimeType: 'image/png', buffer: png },
+    { name: 'frente.png', mimeType: 'image/png', buffer: frontPng },
+    { name: 'traseira.png', mimeType: 'image/png', buffer: backPng },
   ]);
 }
 
@@ -92,11 +103,18 @@ test.describe.serial('Etapa G com backend e PostgreSQL reais', () => {
     await page.getByRole('button', { name: 'Marcar disponível' }).click();
     await expect(page.getByText('Disponível para venda', { exact: true })).toBeVisible();
 
-    const png = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 4, 5, 6]);
+    await expect
+      .poll(() =>
+        page
+          .locator('.photo-grid img')
+          .first()
+          .evaluate((image: HTMLImageElement) => image.naturalWidth),
+      )
+      .toBeGreaterThan(0);
     await page.locator('#add-device-photo').setInputFiles({
       name: 'lateral.png',
       mimeType: 'image/png',
-      buffer: png,
+      buffer: backPng,
     });
     await expect(page.locator('.photo-grid figure')).toHaveCount(3);
     await page.getByRole('button', { name: 'Remover foto 3' }).click();
@@ -116,11 +134,24 @@ test.describe.serial('Etapa G com backend e PostgreSQL reais', () => {
     await expect(page.getByText('Estoque inicial', { exact: true })).toBeVisible();
   });
 
-  test('lista e filtra dados reais em cards responsivos', async ({ page }) => {
+  test('lista e filtra capacidade e período no desktop e drawer mobile', async ({ page }) => {
     await authenticated(page, '/devices');
     await page.getByLabel('Buscar aparelhos').fill(operationalCode);
+    await page.getByLabel('Filtrar por capacidade').selectOption('128');
+    await page
+      .getByLabel('Filtrar compra a partir de')
+      .fill(localDateTime(new Date(Date.now() - 3_600_000)));
+    await page
+      .getByLabel('Filtrar compra até')
+      .fill(localDateTime(new Date(Date.now() + 3_600_000)));
     await expect(page.locator('.device-card')).toHaveCount(1);
     await expect(page.locator('.device-card h2')).toHaveText(modelName);
+    await page.setViewportSize({ width: 375, height: 812 });
+    await page.getByRole('button', { name: 'Filtros' }).click();
+    const drawer = page.getByRole('dialog', { name: 'Filtrar aparelhos' });
+    await expect(drawer.getByLabel('Filtrar por capacidade')).toHaveValue('128');
+    await expect(drawer.getByLabel('Filtrar compra a partir de')).toBeVisible();
+    await expect(drawer.getByLabel('Filtrar compra até')).toBeVisible();
   });
 
   test('expõe conflito otimista e conclui arquivamento terminal após recarga', async ({ page }) => {
@@ -149,6 +180,15 @@ test.describe.serial('Etapa G com backend e PostgreSQL reais', () => {
   test('administra catálogos reais sem hard delete', async ({ page }) => {
     await authenticated(page, '/settings/catalogs');
     await expect(page.getByText(modelName, { exact: true })).toBeVisible();
+    const modelRow = page.getByRole('listitem').filter({ hasText: modelName });
+    await modelRow.getByRole('button', { name: `Editar ${modelName}` }).click();
+    const updatedModelName = `${modelName} revisado`;
+    await modelRow.getByLabel('Nome de modelo').fill(updatedModelName);
+    await modelRow.getByLabel('Ordem do modelo').fill('7');
+    await modelRow.getByRole('button', { name: 'Salvar' }).click();
+    await expect(modelRow.getByText(updatedModelName, { exact: true })).toBeVisible();
+    await expect(modelRow.getByText(/ordem 7/)).toBeVisible();
+    modelName = updatedModelName;
     const code = `COLOR_UI_${suffix}`;
     await page.locator('#color-code').fill(code);
     await page.locator('#color-name').fill(`Cor UI ${suffix}`);
@@ -164,15 +204,32 @@ test.describe.serial('Etapa G com backend e PostgreSQL reais', () => {
   }) => {
     await page.setViewportSize({ width: 375, height: 812 });
     await authenticated(page, '/devices/import');
-    await page.getByRole('button', { name: /Selecionar modelo/i }).click();
-    const panel = page.locator('.picker-panel');
-    await expect(panel).toHaveCSS('position', 'fixed');
-    await expect(panel).toHaveCSS('bottom', '0px');
+    const trigger = page.getByRole('button', { name: /Selecionar modelo/i });
+    await trigger.click();
+    const dialog = page.getByRole('dialog', { name: 'Modelo' });
+    await expect(dialog).toBeVisible();
+    await expect(dialog).toHaveCSS('position', 'fixed');
+    expect(
+      (await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21aa']).analyze())
+        .violations,
+    ).toEqual([]);
+    for (let index = 0; index < 4; index += 1) {
+      await page.keyboard.press('Tab');
+      await expect
+        .poll(() => dialog.evaluate((element) => element.contains(document.activeElement)))
+        .toBe(true);
+    }
     await page.keyboard.press('Escape');
+    await expect(dialog).not.toBeVisible();
+    await expect(trigger).toBeFocused();
     await page.setViewportSize({ width: 1024, height: 800 });
-    await page.getByRole('button', { name: /Selecionar modelo/i }).click();
-    await expect(panel).toHaveCSS('position', 'absolute');
-    await expect(page.getByRole('textbox', { name: 'Buscar modelo' })).toBeVisible();
+    await trigger.click();
+    const combobox = page.getByRole('combobox', { name: 'Buscar modelo' });
+    await combobox.fill(modelName);
+    await page.keyboard.press('Home');
+    await page.keyboard.press('Enter');
+    await expect(dialog).not.toBeVisible();
+    await expect(trigger).toContainText(modelName);
   });
 
   for (const width of [375, 430, 768, 1024, 1440]) {

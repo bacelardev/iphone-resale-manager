@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react';
+import { useEffect, useState, type FormEvent } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { IconPalette, IconPlus, IconToggleLeft, IconToggleRight } from '@tabler/icons-react';
 import { Badge } from '@/components/ui/badge';
@@ -14,6 +14,7 @@ import {
   listColors,
   listModels,
   setCatalogActive,
+  updateCatalog,
 } from '@/features/devices/api';
 import type { CatalogItem } from '@/types/stage-g';
 
@@ -53,7 +54,6 @@ export function CatalogsPage() {
     </div>
   );
 }
-
 function CatalogSection({
   title,
   description,
@@ -155,7 +155,6 @@ function CatalogSection({
     </Card>
   );
 }
-
 function CatalogRow({
   kind,
   item,
@@ -165,30 +164,109 @@ function CatalogRow({
   item: CatalogItem;
   invalidate: () => Promise<unknown>;
 }) {
+  const [editing, setEditing] = useState(false);
+  const [name, setName] = useState(item.name);
+  const [order, setOrder] = useState(String(item.displayOrder ?? 0));
+  useEffect(() => {
+    setName(item.name);
+    setOrder(String(item.displayOrder ?? 0));
+  }, [item]);
+  const update = useMutation({
+    mutationFn: () =>
+      updateCatalog(kind, item, {
+        name,
+        ...(kind === 'models' ? { displayOrder: Number(order) } : {}),
+      }),
+    onSuccess: async () => {
+      setEditing(false);
+      await invalidate();
+    },
+  });
   const toggle = useMutation({
     mutationFn: () => setCatalogActive(kind, item, !item.active),
     onSuccess: async () => invalidate(),
   });
   return (
     <li>
-      <span>
-        <strong>{item.name}</strong>
-        <small>{item.code}</small>
-      </span>
-      <Badge positive={item.active}>{item.active ? 'Ativo' : 'Inativo'}</Badge>
-      <Button
-        variant="ghost"
-        size="icon"
-        disabled={toggle.isPending}
-        onClick={() => toggle.mutate()}
-        aria-label={`${item.active ? 'Desativar' : 'Ativar'} ${item.name}`}
-      >
-        {item.active ? (
-          <IconToggleRight size={22} aria-hidden />
-        ) : (
-          <IconToggleLeft size={22} aria-hidden />
-        )}
-      </Button>
+      {editing ? (
+        <form
+          className="catalog-edit-form"
+          onSubmit={(event) => {
+            event.preventDefault();
+            update.mutate();
+          }}
+        >
+          <label>
+            <span>Nome de {kind === 'models' ? 'modelo' : 'cor'}</span>
+            <Input
+              value={name}
+              onChange={(event) => setName(event.target.value)}
+              maxLength={kind === 'models' ? 100 : 80}
+              required
+            />
+          </label>
+          {kind === 'models' && (
+            <label>
+              <span>Ordem do modelo</span>
+              <Input
+                type="number"
+                min="0"
+                value={order}
+                onChange={(event) => setOrder(event.target.value)}
+                required
+              />
+            </label>
+          )}
+          <div className="catalog-edit-actions">
+            <Button type="submit" disabled={update.isPending}>
+              Salvar
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={() => {
+                setEditing(false);
+                setName(item.name);
+                setOrder(String(item.displayOrder ?? 0));
+              }}
+            >
+              Cancelar
+            </Button>
+          </div>
+          {update.error && <ErrorState error={update.error} />}
+        </form>
+      ) : (
+        <>
+          <span>
+            <strong>{item.name}</strong>
+            <small>
+              {item.code}
+              {kind === 'models' ? ` · ordem ${item.displayOrder ?? 0}` : ''}
+            </small>
+          </span>
+          <Badge positive={item.active}>{item.active ? 'Ativo' : 'Inativo'}</Badge>
+          <Button
+            variant="ghost"
+            onClick={() => setEditing(true)}
+            aria-label={`Editar ${item.name}`}
+          >
+            Editar
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            disabled={toggle.isPending}
+            onClick={() => toggle.mutate()}
+            aria-label={`${item.active ? 'Desativar' : 'Ativar'} ${item.name}`}
+          >
+            {item.active ? (
+              <IconToggleRight size={22} aria-hidden />
+            ) : (
+              <IconToggleLeft size={22} aria-hidden />
+            )}
+          </Button>
+        </>
+      )}
     </li>
   );
 }

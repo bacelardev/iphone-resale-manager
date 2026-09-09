@@ -26,6 +26,7 @@ import {
   type DeviceFilters,
 } from '@/features/devices/api';
 import { apiAssetUrl } from '@/lib/api/client';
+import { nowAsLocalDateTimeValue, toLocalDateTimeValue } from '@/lib/date/local-datetime';
 import type { CatalogItem, DeviceStatus, DeviceSummary } from '@/types/stage-g';
 
 const money = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
@@ -103,7 +104,7 @@ export function DevicesPage() {
             <Input
               id="cutoff"
               type="datetime-local"
-              max={new Date().toISOString().slice(0, 16)}
+              max={nowAsLocalDateTimeValue()}
               value={cutoff}
               onChange={(event) => setCutoff(event.target.value)}
               required
@@ -262,6 +263,58 @@ function FilterFields({
           </option>
         ))}
       </Select>
+      <Select
+        aria-label="Filtrar por capacidade"
+        value={filters.storageGb ?? ''}
+        onChange={(event) =>
+          onChange({
+            ...filters,
+            storageGb: event.target.value ? Number(event.target.value) : undefined,
+            page: 0,
+          })
+        }
+      >
+        <option value="">Todas as capacidades</option>
+        {[64, 128, 256, 512, 1024, 2048].map((value) => (
+          <option key={value} value={value}>
+            {value >= 1024 ? `${value / 1024} TB` : `${value} GB`}
+          </option>
+        ))}
+      </Select>
+      <label className="device-filter-field">
+        <span>Compra a partir de</span>
+        <Input
+          type="datetime-local"
+          aria-label="Filtrar compra a partir de"
+          value={filters.purchasedFrom ? toLocalDateTimeValue(new Date(filters.purchasedFrom)) : ''}
+          onChange={(event) =>
+            onChange({
+              ...filters,
+              purchasedFrom: event.target.value
+                ? new Date(event.target.value).toISOString()
+                : undefined,
+              page: 0,
+            })
+          }
+        />
+      </label>
+      <label className="device-filter-field">
+        <span>Compra até</span>
+        <Input
+          type="datetime-local"
+          aria-label="Filtrar compra até"
+          value={filters.purchasedTo ? toLocalDateTimeValue(new Date(filters.purchasedTo)) : ''}
+          onChange={(event) =>
+            onChange({
+              ...filters,
+              purchasedTo: event.target.value
+                ? new Date(event.target.value).toISOString()
+                : undefined,
+              page: 0,
+            })
+          }
+        />
+      </label>
       <label className="archived-toggle">
         <input
           type="checkbox"
