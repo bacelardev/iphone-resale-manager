@@ -192,7 +192,9 @@ test.describe.serial('Etapa H com backend e PostgreSQL reais', () => {
     importedDeviceId = page.url().split('/').pop()!;
     await page.getByRole('link', { name: /Importar histórica/ }).click();
     await expect(page.getByText(/não será criada uma nova saída de caixa/i)).toBeVisible();
-    await expect(page.getByText('Data de corte')).toBeVisible();
+    await expect(
+      page.locator('.historical-warning').getByText('Data de corte', { exact: true }),
+    ).toBeVisible();
     await page
       .getByLabel('Data da manutenção')
       .fill(localDateTime(new Date(cutoff.getTime() - 3_600_000)));
