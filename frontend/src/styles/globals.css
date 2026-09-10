@@ -63,7 +63,7 @@
 .maintenance-list small,
 .maintenance-detail-items small,
 .maintenance-total-preview small {
-  color: var(--color-muted);
+  color: var(--color-secondary);
 }
 
 .maintenance-empty {
@@ -71,7 +71,7 @@
   place-items: center;
   gap: 10px;
   min-height: 150px;
-  color: var(--color-muted);
+  color: var(--color-secondary);
   text-align: center;
 }
 
@@ -101,7 +101,7 @@
 }
 
 .historical-warning dt {
-  color: var(--color-text-muted);
+  color: var(--color-secondary);
   font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.04em;
@@ -113,7 +113,7 @@
 }
 
 .catalog-search-empty {
-  color: var(--color-text-muted);
+  color: var(--color-secondary);
   margin: 0.5rem 0 0;
 }
 
