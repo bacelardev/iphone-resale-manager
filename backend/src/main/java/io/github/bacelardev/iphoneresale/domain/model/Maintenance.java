@@ -15,6 +15,7 @@ import jakarta.persistence.OrderBy;
 import jakarta.persistence.Table;
 
 import java.time.Instant;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -57,6 +58,36 @@ public class Maintenance extends AuditableEntity {
     private List<MaintenanceItem> items = new ArrayList<>();
 
     protected Maintenance() {
+    }
+
+    public Maintenance(
+            Device device,
+            Instant performedAt,
+            AppUser responsibleUser,
+            RegistrationOrigin registrationOrigin
+    ) {
+        this.device = device;
+        this.performedAt = performedAt;
+        this.responsibleUser = responsibleUser;
+        this.status = MaintenanceStatus.ACTIVE;
+        this.registrationOrigin = registrationOrigin;
+    }
+
+    public void addItem(PartCatalog part, String details, BigDecimal cost, int position) {
+        items.add(new MaintenanceItem(this, part, details, cost, position));
+    }
+
+    public BigDecimal total() {
+        return items.stream()
+                .map(MaintenanceItem::getCost)
+                .reduce(BigDecimal.ZERO.setScale(2), BigDecimal::add);
+    }
+
+    public void cancel(Instant at, AppUser actor, String reason) {
+        this.status = MaintenanceStatus.CANCELLED;
+        this.cancelledAt = at;
+        this.cancelledBy = actor;
+        this.cancellationReason = reason;
     }
 
     public Device getDevice() {

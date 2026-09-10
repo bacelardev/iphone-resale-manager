@@ -11,8 +11,10 @@ import { PageHeader } from '@/components/ui/page-header';
 import {
   createColor,
   createModel,
+  createPart,
   listColors,
   listModels,
+  listParts,
   setCatalogActive,
   updateCatalog,
 } from '@/features/devices/api';
@@ -22,12 +24,13 @@ export function CatalogsPage() {
   const client = useQueryClient();
   const models = useQuery({ queryKey: ['models', 'all'], queryFn: () => listModels() });
   const colors = useQuery({ queryKey: ['colors', 'all'], queryFn: () => listColors() });
+  const parts = useQuery({ queryKey: ['parts', 'all'], queryFn: () => listParts() });
   return (
     <div className="catalogs-page">
       <PageHeader
         eyebrow="CONFIGURAÇÕES"
         title="Catálogos de aparelhos"
-        description="Modelos e cores reais usados no cadastro, sem exclusão de histórico."
+        description="Modelos, cores e peças reais, preservando todo o histórico."
       />
       <div className="catalog-layout">
         <CatalogSection
@@ -50,6 +53,16 @@ export function CatalogsPage() {
           create={createColor}
           invalidate={() => client.invalidateQueries({ queryKey: ['colors'] })}
         />
+        <CatalogSection
+          title="Peças"
+          description="Itens usados nas manutenções; códigos permanecem imutáveis."
+          items={parts.data?.content ?? []}
+          loading={parts.isLoading}
+          error={parts.error}
+          fields="part"
+          create={createPart}
+          invalidate={() => client.invalidateQueries({ queryKey: ['parts'] })}
+        />
       </div>
     </div>
   );
@@ -69,13 +82,19 @@ function CatalogSection({
   items: CatalogItem[];
   loading: boolean;
   error: unknown;
-  fields: 'model' | 'color';
+  fields: 'model' | 'color' | 'part';
   create: (input: { code: string; name: string; displayOrder?: number }) => Promise<CatalogItem>;
   invalidate: () => Promise<unknown>;
 }) {
   const [code, setCode] = useState('');
   const [name, setName] = useState('');
   const [order, setOrder] = useState('0');
+  const [search, setSearch] = useState('');
+  const visibleItems = items.filter((item) =>
+    `${item.name} ${item.code}`
+      .toLocaleLowerCase('pt-BR')
+      .includes(search.trim().toLocaleLowerCase('pt-BR')),
+  );
   const creation = useMutation({
     mutationFn: () =>
       fields === 'model'
@@ -119,7 +138,7 @@ function CatalogSection({
             id={`${fields}-name`}
             value={name}
             onChange={(event) => setName(event.target.value)}
-            maxLength={fields === 'model' ? 100 : 80}
+            maxLength={fields === 'color' ? 80 : 100}
             required
           />
         </FormField>
@@ -142,16 +161,28 @@ function CatalogSection({
       {creation.error && <ErrorState error={creation.error} />}
       {error != null && <ErrorState error={error} />}
       {loading && <p className="loading-copy">Carregando catálogo…</p>}
+      <FormField id={`${fields}-search`} label={`Buscar em ${title.toLowerCase()}`}>
+        <Input
+          id={`${fields}-search`}
+          type="search"
+          value={search}
+          onChange={(event) => setSearch(event.target.value)}
+          placeholder="Nome ou código"
+        />
+      </FormField>
       <ul className="catalog-list">
-        {items.map((item) => (
+        {visibleItems.map((item) => (
           <CatalogRow
             key={item.id}
-            kind={fields === 'model' ? 'models' : 'colors'}
+            kind={fields === 'model' ? 'models' : fields === 'color' ? 'colors' : 'parts'}
             item={item}
             invalidate={invalidate}
           />
         ))}
       </ul>
+      {!loading && items.length > 0 && visibleItems.length === 0 && (
+        <p className="catalog-search-empty">Nenhum item encontrado.</p>
+      )}
     </Card>
   );
 }
@@ -160,7 +191,7 @@ function CatalogRow({
   item,
   invalidate,
 }: {
-  kind: 'models' | 'colors';
+  kind: 'models' | 'colors' | 'parts';
   item: CatalogItem;
   invalidate: () => Promise<unknown>;
 }) {
@@ -197,11 +228,11 @@ function CatalogRow({
           }}
         >
           <label>
-            <span>Nome de {kind === 'models' ? 'modelo' : 'cor'}</span>
+            <span>Nome de {kind === 'models' ? 'modelo' : kind === 'colors' ? 'cor' : 'peça'}</span>
             <Input
               value={name}
               onChange={(event) => setName(event.target.value)}
-              maxLength={kind === 'models' ? 100 : 80}
+              maxLength={kind === 'colors' ? 80 : 100}
               required
             />
           </label>

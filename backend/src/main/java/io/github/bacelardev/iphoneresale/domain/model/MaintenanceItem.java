@@ -35,6 +35,20 @@ public class MaintenanceItem extends BaseUuidEntity {
     protected MaintenanceItem() {
     }
 
+    MaintenanceItem(
+            Maintenance maintenance,
+            PartCatalog part,
+            String details,
+            BigDecimal cost,
+            int position
+    ) {
+        this.maintenance = maintenance;
+        this.part = part;
+        this.details = details;
+        this.cost = cost;
+        this.position = position;
+    }
+
     public Maintenance getMaintenance() {
         return maintenance;
     }

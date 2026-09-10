@@ -123,3 +123,25 @@ A versão 1.1 deverá incorporar as decisões aprovadas durante a modelagem Post
 - **Versão: 1.0 aprovada**; **Status: Etapa G encerrada**.
 - Evidências finais preservadas no head técnico `2c56075a` e no fechamento `4525b092`.
 - PR #2 autorizado para revisão final e merge, sem antecipar comportamento da Etapa H.
+
+## [Etapa H — 1.0 aprovada] — 2026-09-10
+
+### Adicionado
+
+- catálogo real de peças, sem seed silencioso ou hard delete;
+- manutenção operacional e importação histórica com itens e total no backend;
+- migration V4 aditiva para integridade de origem e cutoff;
+- ledger operacional, custo zero, cancelamento e reversão;
+- preview histórico, investimento do aparelho e arquivamento integrado;
+- frontend V2/Mobile-first com PartPicker acessível, formulários, histórico e detalhe;
+- testes unitários, integração PostgreSQL e E2E real.
+
+### Preservado
+
+- migrations V1/V2/V3, decisões A–G, security baseline e protótipos oficiais;
+- venda, conclusão da implantação, financeiro completo e Etapa I fora do escopo;
+- PR #3 aprovado para merge após os gates finais, sem antecipar a Etapa I.
+
+### Status
+
+- **Versão: 1.0 aprovada**; **Status: Etapa H encerrada**.

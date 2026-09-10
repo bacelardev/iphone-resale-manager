@@ -119,3 +119,23 @@ Vendas concluídas e movimentações financeiras não devem desaparecer por excl
 - Arquivamento é terminal e torna o aparelho imutável.
 - Fotos ficam fora do PostgreSQL, com 2–4 ativas, remoção lógica, validação de MIME/magic bytes/tamanho e URL assinada.
 - `maintenance.registration_origin`, `financial_transaction.owner_user_id` e `owner_capital_opening` são somente preparação de schema/JPA nesta etapa.
+
+## Refinamento da Etapa H — manutenção e peças
+
+- Manutenção tem ao menos um item, responsável autenticado, origem imutável e total
+  sempre recalculado no backend com `BigDecimal`/`numeric(14,2)`.
+- `OPERATIONAL` exige período controlado: após o cutoff quando houver implantação, ou
+  não antes da compra quando ainda não houver. Total positivo gera saída; zero não gera.
+- `INITIAL_IMPORT` exige implantação `PREPARING`, aparelho importado e intervalo entre
+  compra e cutoff, inclusive. Preserva custo histórico e nunca gera saída de caixa.
+- Peças são catálogo real, sem seed silencioso e sem hard delete. `OTHER` exige detalhes
+  com 1–255 caracteres após trim.
+- Manutenção confirmada é imutável. Correção ocorre por cancelamento e novo registro.
+- Cancelamento operacional positivo cria estorno; operacional zero e histórico não.
+- Manutenções canceladas permanecem consultáveis e deixam de compor o investimento.
+- Arquivamento cancela todas as manutenções ativas e seus efeitos necessários em commit
+  único. Ordem canônica de locks: aparelho, implantação quando aplicável e manutenções
+  por UUID.
+- V4 protege no PostgreSQL a fronteira temporal e alterações conflitantes do cutoff;
+  V1, V2 e V3 permanecem imutáveis.
+- Venda, conclusão da implantação e Etapa I continuam fora do escopo.

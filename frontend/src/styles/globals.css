@@ -15,6 +15,199 @@
   --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
 
+/* Etapa H — manutenção */
+.maintenances-card,
+.maintenance-meta-card,
+.maintenance-item-card,
+.maintenance-detail-items {
+  padding: 24px;
+}
+
+.maintenances-card {
+  margin-top: 24px;
+}
+
+.maintenance-list,
+.maintenance-detail-items ul {
+  display: grid;
+  gap: 10px;
+  margin: 20px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.maintenance-list a,
+.maintenance-detail-items li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 16px;
+  border: 1px solid var(--color-border);
+  border-radius: 16px;
+  background: var(--color-card);
+  color: inherit;
+  text-decoration: none;
+}
+
+.maintenance-list a:hover {
+  border-color: var(--color-muted);
+}
+
+.maintenance-list span,
+.maintenance-detail-items span {
+  display: grid;
+  gap: 4px;
+}
+
+.maintenance-list small,
+.maintenance-detail-items small,
+.maintenance-total-preview small {
+  color: var(--color-secondary);
+}
+
+.maintenance-empty {
+  display: grid;
+  place-items: center;
+  gap: 10px;
+  min-height: 150px;
+  color: var(--color-secondary);
+  text-align: center;
+}
+
+.historical-warning {
+  margin-bottom: 20px;
+  padding: 14px 18px;
+  border: 1px solid color-mix(in srgb, var(--color-warning) 48%, transparent);
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--color-warning) 10%, transparent);
+  color: var(--color-foreground);
+}
+
+.historical-warning strong,
+.historical-warning p {
+  display: block;
+}
+
+.historical-warning p {
+  margin: 0.45rem 0 0.75rem;
+}
+
+.historical-warning dl {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.5rem;
+  margin: 0;
+}
+
+.historical-warning dt {
+  color: var(--color-secondary);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.historical-warning dd {
+  margin: 0.15rem 0 0;
+}
+
+.catalog-search-empty {
+  color: var(--color-secondary);
+  margin: 0.5rem 0 0;
+}
+
+.maintenance-form,
+.maintenance-items {
+  display: grid;
+  gap: 18px;
+}
+
+.maintenance-meta-card {
+  display: grid;
+  grid-template-columns: minmax(240px, 1fr) minmax(220px, 0.6fr);
+  gap: 28px;
+  align-items: end;
+}
+
+.maintenance-total-preview {
+  display: grid;
+  gap: 5px;
+}
+
+.maintenance-total-preview strong {
+  font-size: clamp(1.55rem, 3vw, 2.15rem);
+}
+
+.maintenance-item-heading,
+.maintenance-form-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.maintenance-item-heading {
+  margin-bottom: 18px;
+}
+
+.maintenance-item-heading h2 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.maintenance-form-actions {
+  justify-content: flex-end;
+}
+
+.maintenance-detail-layout {
+  display: grid;
+  grid-template-columns: minmax(260px, 0.7fr) minmax(0, 1.3fr);
+  gap: 20px;
+}
+
+.maintenance-detail-items li {
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.catalog-empty-cta {
+  padding: 30px;
+}
+
+@media (max-width: 767px) {
+  .maintenances-card,
+  .maintenance-meta-card,
+  .maintenance-item-card,
+  .maintenance-detail-items {
+    padding: 18px;
+  }
+
+  .detail-section-heading,
+  .maintenance-form-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .detail-section-heading .page-actions,
+  .maintenance-form-actions > * {
+    width: 100%;
+  }
+
+  .maintenance-meta-card,
+  .maintenance-detail-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .maintenance-list a {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .maintenance-list a .badge {
+    grid-column: 1 / -1;
+    justify-self: start;
+  }
+}
+
 :root {
   color-scheme: dark;
   font-family: var(--font-sans);

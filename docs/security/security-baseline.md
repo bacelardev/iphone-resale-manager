@@ -129,3 +129,18 @@ Apagar apenas o arquivo ou o commit mais recente não invalida a credencial vaza
 - Filtros e ordenação usam allowlists; DTOs rejeitam campos desconhecidos e não expõem entidades.
 - `expectedVersion`, locks transacionais, constraints e advisory lock protegem mudanças concorrentes.
 - Segredo de assinatura vem de variável server-side `APP_PHOTO_STORAGE_SIGNING_SECRET`, nunca de `VITE_*`, logs ou respostas.
+
+## Extensão permanente da baseline — proposta da Etapa H
+
+- Endpoints de peças e manutenções permanecem default-deny e exigem Bearer `SOCIO`.
+- Requests fechados não aceitam total, status, origem, responsável, posição ou IDs de
+  ledger; responses usam DTOs e não expõem entidades ou transações internas.
+- Peças, UUIDs, custos, detalhes, intervalos e sort passam por Bean Validation, queries
+  parametrizadas e allowlists; `OTHER` exige texto simples limitado após trim.
+- `expectedVersion`, locks pessimistas e ordem canônica protegem cancelamento,
+  arquivamento e futuras disputas com venda.
+- V4 duplica no PostgreSQL as invariantes críticas de origem/cutoff sem alterar V1–V3.
+- Ledger e auditoria permanecem append-only; reversões referenciam o original e nenhum
+  evento inclui token, segredo, chave de storage ou detalhe SQL.
+- PartPicker mantém trap/restauração de foco, Escape, teclado e axe; não introduz HTML
+  armazenado nem dependência visual externa.

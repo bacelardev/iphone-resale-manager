@@ -518,3 +518,56 @@ Listagem, filtros, detalhe, edição permitida, transições manuais, arquivamen
 Permitido somente em `PREPARING` e antes do primeiro `INITIAL_IMPORT`. PATCH concorrente com a primeira importação é serializado; após ela, retorna `INITIALIZATION_CUTOFF_LOCKED`.
 
 A transição para `COMPLETED`, manutenções históricas e capital/caixa inicial não são casos de uso da Etapa G.
+
+## 17. Refinamento da Etapa H — manutenções executáveis
+
+### UC-H-01 — Administrar catálogo de peças
+
+Cria, lista, consulta, renomeia, ativa e desativa peças sem hard delete. `code` é
+normalizado em maiúsculas e permanece imutável; nome é único sem diferenciar caixa.
+Mutações versionadas exigem `expectedVersion`.
+
+### UC-H-02 — Registrar manutenção operacional
+
+Bloqueia o aparelho, garante que não esteja vendido ou arquivado e aceita um ou mais
+itens ordenados. O backend deriva responsável, origem `OPERATIONAL`, posições e total.
+Quando existe implantação, exige `performedAt > cutoffAt`; sem implantação, exige
+`performedAt >= purchasedAt`. Total positivo cria `MAINTENANCE/OUTFLOW` na mesma
+transação; total zero não cria ledger.
+
+### UC-H-03 — Importar manutenção histórica
+
+Exige implantação `PREPARING`, aparelho `INITIAL_IMPORT` e
+`purchasedAt <= performedAt <= cutoffAt`. A origem é `INITIAL_IMPORT`, o custo entra no
+investimento e no preview de capital histórico, mas nunca cria saída financeira.
+
+### UC-H-04 — Consultar histórico e detalhe
+
+Lista por aparelho com `status`, intervalo `[from,to)`, paginação e sort allowlist.
+Detalhe exige vínculo com o aparelho e continua disponível após cancelamento ou
+arquivamento. O `financialImpact` distingue saída criada, saída estornada, ausência de
+custo financeiro e custo histórico.
+
+### UC-H-05 — Cancelar manutenção
+
+Bloqueia aparelho e manutenção, exige versão e motivo, preserva todos os dados e marca
+`CANCELLED`. Manutenção operacional positiva cria `MAINTENANCE_REVERSAL/INFLOW`;
+operacional zero e histórica não criam reversão. Depois da reversão, o detalhe operacional
+positivo retorna `financialImpact=OUTFLOW_REVERSED`. Cancelamento repetido é conflito.
+
+### UC-H-06 — Arquivar aparelho com manutenções ativas
+
+Em uma única transação, bloqueia o aparelho, cancela manutenções ativas em ordem
+determinística, cria somente as reversões necessárias, estorna a compra operacional e
+arquiva. A auditoria principal do aparelho resume os cancelamentos automáticos, sem um
+evento ruidoso por manutenção.
+
+### UC-H-07 — Calcular investimento e preview
+
+`maintenanceTotal` soma itens de manutenções `ACTIVE`, independentemente da origem;
+`investmentTotal = purchasePrice + maintenanceTotal`. O detalhe do aparelho mostra esse
+total ativo, a quantidade robusta via `totalElements` filtrado por `ACTIVE` e o responsável
+de cada registro. O preview soma apenas manutenções `ACTIVE/INITIAL_IMPORT` em
+`maintenanceCapital` e deriva `stockCapital`.
+
+A venda e a Etapa I permanecem fora deste refinamento.
