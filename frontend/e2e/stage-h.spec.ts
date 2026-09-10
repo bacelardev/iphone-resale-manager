@@ -265,6 +265,7 @@ test.describe.serial('Etapa H com backend e PostgreSQL reais', () => {
     await page.getByLabel('Motivo').fill('Encerramento do aparelho com manutenção ativa.');
     await page.getByRole('button', { name: 'Confirmar arquivamento' }).click();
     await expect(page.getByText(/permanece imutável/i)).toBeVisible();
-    await expect(page.getByText('R$ 0,00', { exact: true })).toBeVisible();
+    const investment = page.locator('.detail-card').filter({ hasText: 'INVESTIMENTO' });
+    await expect(investment.getByText('R$ 0,00', { exact: true })).toBeVisible();
   });
 });
