@@ -29,9 +29,16 @@ public record MaintenanceDetailResponse(
 ) {
     public static MaintenanceDetailResponse from(Maintenance maintenance) {
         BigDecimal total = maintenance.total();
-        String impact = maintenance.getRegistrationOrigin() == RegistrationOrigin.INITIAL_IMPORT
-                ? "HISTORICAL_COST_ONLY"
-                : total.signum() > 0 ? "OUTFLOW_CREATED" : "NO_FINANCIAL_COST";
+        String impact;
+        if (maintenance.getRegistrationOrigin() == RegistrationOrigin.INITIAL_IMPORT) {
+            impact = "HISTORICAL_COST_ONLY";
+        } else if (total.signum() == 0) {
+            impact = "NO_FINANCIAL_COST";
+        } else if (maintenance.getStatus() == MaintenanceStatus.CANCELLED) {
+            impact = "OUTFLOW_REVERSED";
+        } else {
+            impact = "OUTFLOW_CREATED";
+        }
         return new MaintenanceDetailResponse(
                 maintenance.getId(), maintenance.getDevice().getId(),
                 maintenance.getDevice().getInternalCode(), maintenance.getPerformedAt(),

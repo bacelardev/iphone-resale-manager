@@ -545,13 +545,15 @@ investimento e no preview de capital histórico, mas nunca cria saída financeir
 
 Lista por aparelho com `status`, intervalo `[from,to)`, paginação e sort allowlist.
 Detalhe exige vínculo com o aparelho e continua disponível após cancelamento ou
-arquivamento.
+arquivamento. O `financialImpact` distingue saída criada, saída estornada, ausência de
+custo financeiro e custo histórico.
 
 ### UC-H-05 — Cancelar manutenção
 
 Bloqueia aparelho e manutenção, exige versão e motivo, preserva todos os dados e marca
 `CANCELLED`. Manutenção operacional positiva cria `MAINTENANCE_REVERSAL/INFLOW`;
-operacional zero e histórica não criam reversão. Cancelamento repetido é conflito.
+operacional zero e histórica não criam reversão. Depois da reversão, o detalhe operacional
+positivo retorna `financialImpact=OUTFLOW_REVERSED`. Cancelamento repetido é conflito.
 
 ### UC-H-06 — Arquivar aparelho com manutenções ativas
 
@@ -563,7 +565,9 @@ evento ruidoso por manutenção.
 ### UC-H-07 — Calcular investimento e preview
 
 `maintenanceTotal` soma itens de manutenções `ACTIVE`, independentemente da origem;
-`investmentTotal = purchasePrice + maintenanceTotal`. O preview soma apenas
-manutenções `ACTIVE/INITIAL_IMPORT` em `maintenanceCapital` e deriva `stockCapital`.
+`investmentTotal = purchasePrice + maintenanceTotal`. O detalhe do aparelho mostra esse
+total ativo, a quantidade robusta via `totalElements` filtrado por `ACTIVE` e o responsável
+de cada registro. O preview soma apenas manutenções `ACTIVE/INITIAL_IMPORT` em
+`maintenanceCapital` e deriva `stockCapital`.
 
 A venda e a Etapa I permanecem fora deste refinamento.

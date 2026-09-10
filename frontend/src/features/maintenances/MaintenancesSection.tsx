@@ -17,6 +17,10 @@ export function MaintenancesSection({ device }: { device: DeviceDetail }) {
     queryKey: ['maintenances', device.id],
     queryFn: () => listMaintenances(device.id),
   });
+  const activeSummary = useQuery({
+    queryKey: ['maintenances', device.id, 'active-summary'],
+    queryFn: () => listMaintenances(device.id, { status: 'ACTIVE', size: 1 }),
+  });
   const initialization = useQuery({
     queryKey: ['business-initialization'],
     queryFn: getInitialization,
@@ -26,12 +30,22 @@ export function MaintenancesSection({ device }: { device: DeviceDetail }) {
     canRegister &&
     device.registrationOrigin === 'INITIAL_IMPORT' &&
     initialization.data?.status === 'PREPARING';
+  const activeCount = activeSummary.data?.totalElements;
+  const activeLabel =
+    activeCount === undefined
+      ? 'Contando manutenções ativas…'
+      : activeCount === 1
+        ? '1 manutenção ativa'
+        : `${activeCount} manutenções ativas`;
   return (
     <Card className="maintenances-card">
       <div className="detail-section-heading">
         <div>
           <p className="eyebrow">MANUTENÇÕES</p>
           <h2>Histórico técnico</h2>
+          <p className="page-description">
+            {activeLabel} · Total ativo: {money.format(device.maintenanceTotal)}
+          </p>
         </div>
         {canRegister && (
           <div className="page-actions">
@@ -69,6 +83,7 @@ export function MaintenancesSection({ device }: { device: DeviceDetail }) {
                     ? 'Custo histórico'
                     : 'Manutenção operacional'}
                 </small>
+                <small>Responsável: {maintenance.responsibleUser.name}</small>
               </span>
               <strong>{money.format(maintenance.total)}</strong>
               <Badge positive={maintenance.status === 'ACTIVE'}>

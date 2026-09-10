@@ -11,6 +11,7 @@ import { FormField } from '@/components/ui/form-field';
 import { Input } from '@/components/ui/input';
 import { PageHeader } from '@/components/ui/page-header';
 import { cancelMaintenance, getMaintenance } from '@/features/maintenances/api';
+import { maintenanceFinancialImpactLabel } from '@/features/maintenances/financial-impact';
 
 const money = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
 const date = new Intl.DateTimeFormat('pt-BR', { dateStyle: 'long', timeStyle: 'short' });
@@ -41,12 +42,7 @@ export function MaintenanceDetailPage() {
   if (query.error) return <ErrorState error={query.error} retry={() => void query.refetch()} />;
   if (!query.data) return null;
   const maintenance = query.data;
-  const impact =
-    maintenance.financialImpact === 'OUTFLOW_CREATED'
-      ? 'Saída financeira gerada'
-      : maintenance.financialImpact === 'HISTORICAL_COST_ONLY'
-        ? 'Custo histórico — sem nova saída de caixa'
-        : 'Manutenção sem custo financeiro';
+  const impact = maintenanceFinancialImpactLabel(maintenance.financialImpact);
 
   function submit(event: FormEvent) {
     event.preventDefault();

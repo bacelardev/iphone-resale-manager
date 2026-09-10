@@ -171,6 +171,12 @@ test.describe.serial('Etapa H com backend e PostgreSQL reais', () => {
     const investment = page.locator('.detail-card').filter({ hasText: 'INVESTIMENTO' });
     await expect(investment.getByText('R$ 250,00', { exact: true })).toBeVisible();
     await expect(investment.getByText('R$ 2.250,00', { exact: true })).toBeVisible();
+    await expect(page.getByText('1 manutenção ativa', { exact: false })).toBeVisible();
+    await expect(page.getByText(/Total ativo:\s*R\$\s*250,00/)).toBeVisible();
+    const activeMaintenance = page.locator('.maintenance-list li').filter({ hasText: 'R$ 250,00' });
+    await expect(
+      activeMaintenance.getByText('Responsável: Sócio CI', { exact: true }),
+    ).toBeVisible();
   });
 
   test('registra custo zero sem saída financeira', async ({ page }) => {
@@ -215,6 +221,7 @@ test.describe.serial('Etapa H com backend e PostgreSQL reais', () => {
     await page.getByLabel('Motivo').fill('Correção operacional E2E.');
     await page.getByRole('button', { name: 'Confirmar cancelamento' }).click();
     await expect(page.getByText('Cancelada', { exact: true })).toBeVisible();
+    await expect(page.getByText('Saída financeira estornada', { exact: true })).toBeVisible();
     await authenticated(page, `/devices/${operationalDeviceId}`);
     const investment = page.locator('.detail-card').filter({ hasText: 'INVESTIMENTO' });
     await expect(investment.getByText('R$ 0,00', { exact: true })).toBeVisible();

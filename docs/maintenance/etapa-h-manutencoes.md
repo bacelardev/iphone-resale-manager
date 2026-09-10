@@ -30,6 +30,19 @@ Origem, data, itens, custos e responsável são imutáveis. Correção ocorre so
 cancelamento e novo registro. Manutenção cancelada continua consultável e sai do total
 ativo.
 
+O contrato `financialImpact` representa o efeito líquido atual:
+
+| Estado | Valor |
+| --- | --- |
+| `ACTIVE + OPERATIONAL + total > 0` | `OUTFLOW_CREATED` |
+| `CANCELLED + OPERATIONAL + total > 0` | `OUTFLOW_REVERSED` |
+| `OPERATIONAL + total = 0` | `NO_FINANCIAL_COST` |
+| `INITIAL_IMPORT` | `HISTORICAL_COST_ONLY` |
+
+No detalhe do aparelho, a seção de manutenções exibe quantidade ativa por
+`totalElements` filtrado, `maintenanceTotal` calculado pelo backend e o responsável de
+cada registro.
+
 ## Concorrência e atomicidade
 
 A ordem canônica é aparelho → implantação, quando aplicável → manutenções em UUID.

@@ -1001,6 +1001,17 @@ O cliente não envia total, posição, status, origem nem responsável. O backen
 `registrationOrigin`, itens ordenados, total calculado e `financialImpact`, sem expor ID
 interno do ledger ou entidade JPA.
 
+| Estado | `financialImpact` |
+| --- | --- |
+| `ACTIVE + OPERATIONAL + total > 0` | `OUTFLOW_CREATED` |
+| `CANCELLED + OPERATIONAL + total > 0` | `OUTFLOW_REVERSED` |
+| `OPERATIONAL + total = 0` | `NO_FINANCIAL_COST` |
+| `INITIAL_IMPORT` | `HISTORICAL_COST_ONLY` |
+
+No detalhe do aparelho, `maintenanceTotal` é o total das manutenções `ACTIVE`.
+A quantidade ativa é obtida por `GET /maintenances?status=ACTIVE&size=1` usando
+`totalElements`; cada item da lista inclui `responsibleUser`.
+
 `GET /devices/{deviceId}/maintenances` aceita `status`, `from`, `to`, `page`, `size` e
 sort allowlist `performedAt|createdAt|status`; padrão `performedAt,desc`.
 `GET /devices/{deviceId}/maintenances/{maintenanceId}` exige vínculo com o aparelho.

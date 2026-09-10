@@ -87,11 +87,13 @@ class StageHFlowIT extends PostgresIntegrationTest {
                 item(part, null, 250.00), item(part, "Limpeza técnica", 0.00)), false);
         UUID id = UUID.fromString(maintenance.path("id").asText());
         assertThat(maintenance.path("total").decimalValue()).isEqualByComparingTo("250.00");
+        assertThat(maintenance.path("financialImpact").asText()).isEqualTo("OUTFLOW_CREATED");
         assertThat(activeLedger(id, "MAINTENANCE")).isEqualTo(1);
 
         JsonNode zeroCost = register(token, device, cutoff.plusSeconds(3),
                 List.of(item(part, "Diagnóstico", 0.00)), false);
         UUID zeroCostId = UUID.fromString(zeroCost.path("id").asText());
+        assertThat(zeroCost.path("financialImpact").asText()).isEqualTo("NO_FINANCIAL_COST");
         assertThat(transactionCount(zeroCostId, "MAINTENANCE")).isZero();
 
         mockMvc.perform(post("/api/v1/devices/{deviceId}/maintenances/{id}/cancel",
@@ -109,7 +111,8 @@ class StageHFlowIT extends PostgresIntegrationTest {
                         .content(json(Map.of("expectedVersion", maintenance.path("version").asLong(),
                                 "reason", "Lançamento duplicado."))))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status").value("CANCELLED"));
+                .andExpect(jsonPath("$.status").value("CANCELLED"))
+                .andExpect(jsonPath("$.financialImpact").value("OUTFLOW_REVERSED"));
         assertThat(activeLedger(id, "MAINTENANCE")).isZero();
         assertThat(transactionCount(id, "MAINTENANCE_REVERSAL")).isEqualTo(1);
 
@@ -134,6 +137,7 @@ class StageHFlowIT extends PostgresIntegrationTest {
         JsonNode historical = register(token, imported, cutoff.minusSeconds(30),
                 List.of(item(part, null, 175.50)), true);
         UUID id = UUID.fromString(historical.path("id").asText());
+        assertThat(historical.path("financialImpact").asText()).isEqualTo("HISTORICAL_COST_ONLY");
         assertThat(transactionCount(id, "MAINTENANCE")).isZero();
 
         mockMvc.perform(get("/api/v1/business-initialization/preview")
@@ -170,7 +174,8 @@ class StageHFlowIT extends PostgresIntegrationTest {
                         .content(json(Map.of("expectedVersion", historical.path("version").asLong(),
                                 "reason", "Correção do custo histórico."))))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status").value("CANCELLED"));
+                .andExpect(jsonPath("$.status").value("CANCELLED"))
+                .andExpect(jsonPath("$.financialImpact").value("HISTORICAL_COST_ONLY"));
         JsonNode previewAfter = body(mockMvc.perform(get("/api/v1/business-initialization/preview")
                         .header(HttpHeaders.AUTHORIZATION, bearer(token)))
                 .andExpect(status().isOk()).andReturn());

@@ -7,6 +7,12 @@ import type {
 
 export type MaintenanceStatus = 'ACTIVE' | 'CANCELLED';
 
+export type MaintenanceFinancialImpact =
+  | 'OUTFLOW_CREATED'
+  | 'OUTFLOW_REVERSED'
+  | 'HISTORICAL_COST_ONLY'
+  | 'NO_FINANCIAL_COST';
+
 export type MaintenanceItemInput = {
   partId: string;
   details?: string | null;
@@ -36,7 +42,7 @@ export type MaintenanceSummary = {
 
 export type MaintenanceDetail = MaintenanceSummary & {
   items: MaintenanceItem[];
-  financialImpact: 'OUTFLOW_CREATED' | 'HISTORICAL_COST_ONLY' | 'NO_FINANCIAL_COST';
+  financialImpact: MaintenanceFinancialImpact;
   createdAt: string;
   cancelledBy: UserReference | null;
   cancellationReason: string | null;
@@ -47,6 +53,7 @@ export type MaintenanceFilters = {
   from?: string;
   to?: string;
   page?: number;
+  size?: number;
 };
 
 export type MaintenancePage = PageResponse<MaintenanceSummary>;
