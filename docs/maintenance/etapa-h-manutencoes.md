@@ -56,19 +56,23 @@ listbox, setas, Home/End, Enter, trap de foco, Escape, restauração, reduced mo
 comportamento mobile-first. O formulário mostra a data de compra, cutoff, aviso histórico
 e total apenas como preview.
 
-## Evidências
+## Evidências finais
 
-O primeiro head técnico é `4884ac9c081492c4a05cc0047347f54a61fbeb0a`.
-Os workflows iniciais são `34432460142` (backend) e `34432460202` (frontend). As
-evidências finais serão vinculadas exclusivamente ao head de fechamento após ambos os
-gates concluírem com sucesso.
+O head técnico validado é
+[`6787c324ee11259f564c3d84d33e9dd134aa5c4a`](https://github.com/bacelardev/iphone-resale-manager/commit/6787c324ee11259f564c3d84d33e9dd134aa5c4a).
 
-Validação local concluída:
-
-- Prettier, ESLint e TypeScript;
-- 45/45 Vitest em 9 arquivos;
-- build de produção;
-- PostgreSQL 16.13 com V1–V4 e testes negativos da V4.
+- [Backend verify `34487892600`](https://github.com/bacelardev/iphone-resale-manager/actions/runs/34487892600):
+  `success`, 53 testes (24 unitários e 29 de integração), sem falhas, erros ou skips;
+- [Frontend verify `34487892690`](https://github.com/bacelardev/iphone-resale-manager/actions/runs/34487892690):
+  `success`, Prettier, ESLint, TypeScript, build, 45/45 Vitest em 9 arquivos e
+  33/33 Playwright, sem skips;
+- PostgreSQL 16.15, Flyway V1–V4, Hibernate `ddl-auto=validate`, backend real e
+  autenticação/CORS aprovados no CI;
+- axe e responsividade aprovados em 375, 430, 768, 1024 e 1440 px;
+- [screenshots responsivos](https://github.com/bacelardev/iphone-resale-manager/actions/runs/34487892690/artifacts/10156553778)
+  publicados como artefato do workflow;
+- validação SQL direta adicional em PostgreSQL 16.13 aceitou os dois limites válidos da
+  V4 e rejeitou três violações com SQLSTATE `23514`.
 
 ## Limites
 
