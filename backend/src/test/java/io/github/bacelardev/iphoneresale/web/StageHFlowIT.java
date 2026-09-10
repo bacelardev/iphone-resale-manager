@@ -41,6 +41,13 @@ class StageHFlowIT extends PostgresIntegrationTest {
         JsonNode part = createPart(token, "screen_" + suffix, "Tela " + suffix);
         assertThat(part.path("code").asText()).isEqualTo("SCREEN_" + suffix);
 
+        mockMvc.perform(patch("/api/v1/parts/{id}", part.path("id").asText())
+                        .header(HttpHeaders.AUTHORIZATION, bearer(token))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json(Map.of("name", "Tela sem versão " + suffix))))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("VALIDATION_ERROR"));
+
         mockMvc.perform(post("/api/v1/parts")
                         .header(HttpHeaders.AUTHORIZATION, bearer(token))
                         .contentType(MediaType.APPLICATION_JSON)
@@ -81,6 +88,11 @@ class StageHFlowIT extends PostgresIntegrationTest {
         UUID id = UUID.fromString(maintenance.path("id").asText());
         assertThat(maintenance.path("total").decimalValue()).isEqualByComparingTo("250.00");
         assertThat(activeLedger(id, "MAINTENANCE")).isEqualTo(1);
+
+        JsonNode zeroCost = register(token, device, cutoff.plusSeconds(3),
+                List.of(item(part, "Diagnóstico", 0.00)), false);
+        UUID zeroCostId = UUID.fromString(zeroCost.path("id").asText());
+        assertThat(transactionCount(zeroCostId, "MAINTENANCE")).isZero();
 
         mockMvc.perform(post("/api/v1/devices/{deviceId}/maintenances/{id}/cancel",
                                 device.path("id").asText(), id)
@@ -133,7 +145,8 @@ class StageHFlowIT extends PostgresIntegrationTest {
         mockMvc.perform(post("/api/v1/devices/{id}/maintenances", imported.path("id").asText())
                         .header(HttpHeaders.AUTHORIZATION, bearer(token))
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(json(request(cutoff, List.of(item(part, null, 10.00))))))
+                        .content(json(request(cutoff.minusSeconds(1),
+                                List.of(item(part, null, 10.00))))))
                 .andExpect(status().isUnprocessableEntity())
                 .andExpect(jsonPath("$.code").value("MAINTENANCE_REQUIRES_OPERATIONAL_PERIOD"));
 
@@ -146,6 +159,25 @@ class StageHFlowIT extends PostgresIntegrationTest {
                 .andExpect(status().isUnprocessableEntity())
                 .andExpect(jsonPath("$.code").value(
                         "INITIAL_MAINTENANCE_REQUIRES_IMPORTED_DEVICE"));
+
+        JsonNode previewBefore = body(mockMvc.perform(get("/api/v1/business-initialization/preview")
+                        .header(HttpHeaders.AUTHORIZATION, bearer(token)))
+                .andExpect(status().isOk()).andReturn());
+        mockMvc.perform(post("/api/v1/devices/{deviceId}/maintenances/{id}/cancel",
+                                imported.path("id").asText(), id)
+                        .header(HttpHeaders.AUTHORIZATION, bearer(token))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json(Map.of("expectedVersion", historical.path("version").asLong(),
+                                "reason", "Correção do custo histórico."))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("CANCELLED"));
+        JsonNode previewAfter = body(mockMvc.perform(get("/api/v1/business-initialization/preview")
+                        .header(HttpHeaders.AUTHORIZATION, bearer(token)))
+                .andExpect(status().isOk()).andReturn());
+        assertThat(previewBefore.path("maintenanceCapital").decimalValue()
+                .subtract(previewAfter.path("maintenanceCapital").decimalValue()))
+                .isEqualByComparingTo("175.50");
+        assertThat(transactionCount(id, "MAINTENANCE_REVERSAL")).isZero();
     }
 
     @Test
@@ -182,6 +214,14 @@ class StageHFlowIT extends PostgresIntegrationTest {
                 select count(*) from audit_log
                  where entity_id = ? and action = 'MAINTENANCE_CANCELLED'
                 """, Integer.class, maintenanceId)).isZero();
+
+        mockMvc.perform(post("/api/v1/devices/{id}/maintenances", device.path("id").asText())
+                        .header(HttpHeaders.AUTHORIZATION, bearer(token))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json(request(cutoff.plusSeconds(3),
+                                List.of(item(other, "Nova tentativa", 10.00))))))
+                .andExpect(status().isUnprocessableEntity())
+                .andExpect(jsonPath("$.code").value("DEVICE_ARCHIVED"));
     }
 
     private Instant ensureInitialization(String token) throws Exception {

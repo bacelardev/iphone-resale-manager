@@ -192,10 +192,11 @@ test.describe.serial('Etapa G com backend e PostgreSQL reais', () => {
     await expect(modelList.getByText(/ordem 7/)).toBeVisible();
     modelName = updatedModelName;
     const code = `COLOR_UI_${suffix}`;
-    await page.locator('#color-code').fill(code);
-    await page.locator('#color-name').fill(`Cor UI ${suffix}`);
-    await page.getByRole('button', { name: 'Adicionar' }).last().click();
-    const row = page.getByRole('listitem').filter({ hasText: code });
+    const colorSection = page.locator('.catalog-section').filter({ hasText: 'Cores' });
+    await colorSection.locator('#color-code').fill(code);
+    await colorSection.locator('#color-name').fill(`Cor UI ${suffix}`);
+    await colorSection.getByRole('button', { name: 'Adicionar' }).click();
+    const row = colorSection.getByRole('listitem').filter({ hasText: code });
     await expect(row).toBeVisible();
     await row.getByRole('button', { name: /Desativar/ }).click();
     await expect(row.getByText('Inativo')).toBeVisible();

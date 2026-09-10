@@ -188,3 +188,20 @@ permanecem mapeadas para etapas futuras, sem antecipar regras de negócio.
 - estado de preparação: CTA quando `NOT_STARTED` e banner discreto quando `PREPARING`.
 
 O seletor de modelo é combobox pesquisável no desktop e bottom sheet no mobile. Caixa/capital, manutenção, venda e dashboard financeiro continuam reservados às etapas seguintes.
+
+## Telas implementadas na proposta da Etapa H
+
+- `/settings/catalogs`: terceira seção real para Peças, com criação, busca, edição de
+  nome, ativação e desativação.
+- `/devices/:deviceId`: histórico técnico, total ativo, quantidade, origem, responsável,
+  status e ações elegíveis.
+- `/devices/:deviceId/maintenances/new`: formulário operacional com itens dinâmicos e
+  total de preview.
+- `/devices/:deviceId/maintenances/import`: aviso histórico, compra/cutoff e ausência de
+  nova saída de caixa.
+- `/devices/:deviceId/maintenances/:maintenanceId`: detalhe imutável, itens, custo,
+  origem, impacto financeiro e cancelamento em Dialog/BottomSheet.
+
+PartPicker reutiliza o CatalogPicker aprovado: busca por nome/código, combobox semântico,
+listbox com setas/Home/End/Enter, trap de foco, Escape, restauração e sheet mobile. As
+cinco larguras oficiais permanecem 375, 430, 768, 1024 e 1440 px. Venda não foi iniciada.

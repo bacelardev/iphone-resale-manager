@@ -120,11 +120,12 @@ test.describe.serial('Etapa H com backend e PostgreSQL reais', () => {
     await section.locator('#part-code').fill(partCode);
     await section.locator('#part-name').fill(partName);
     await section.getByRole('button', { name: 'Adicionar' }).click();
-    const row = section.getByRole('listitem').filter({ hasText: partCode });
+    let row = section.getByRole('listitem').filter({ hasText: partCode });
     await expect(row).toBeVisible();
     await section.getByLabel('Buscar em peças').fill(partCode);
     await expect(section.getByRole('listitem')).toHaveCount(1);
     await row.getByRole('button', { name: new RegExp(`Editar ${partName}`) }).click();
+    row = section.locator('.catalog-list li').first();
     partName = `${partName} revisada`;
     await row.getByLabel('Nome de peça').fill(partName);
     await row.getByRole('button', { name: 'Salvar' }).click();

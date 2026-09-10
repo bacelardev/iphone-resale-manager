@@ -968,3 +968,58 @@ A Etapa G implementa os contratos autenticados em `/api/v1` para:
 - `/device-photos/content/{id}`: servir mídia somente mediante URL temporária assinada.
 
 O JSON do aparelho nunca aceita `registrationOrigin`, `internalCode`, autoria ou arquivamento. A origem é definida pelo endpoint e permanece imutável. `PATCH` e comandos mutáveis exigem `expectedVersion`. A conclusão da implantação, manutenção, venda e financeiro completo continuam fora do contrato executável desta etapa.
+
+## 17. Refinamento executável da Etapa H
+
+### Catálogo de peças
+
+| Método e rota | Semântica |
+| --- | --- |
+| `GET /parts` | Busca por `search`, `active`, paginação e sort `name|code|createdAt`. |
+| `POST /parts` | Recebe `code` e `name`; responde `201 + Location`. |
+| `GET /parts/{id}` | Consulta item ativo ou inativo. |
+| `PATCH /parts/{id}` | Recebe `expectedVersion` e `name`; código não é editável. |
+| `POST /parts/{id}/activate` | Recebe `expectedVersion`. |
+| `POST /parts/{id}/deactivate` | Recebe `expectedVersion`; preserva histórico. |
+
+### Manutenções
+
+`POST /devices/{deviceId}/maintenances` cria origem `OPERATIONAL` e
+`POST /devices/{deviceId}/maintenances/initial-import` cria origem `INITIAL_IMPORT`.
+Ambos recebem somente:
+
+```json
+{
+  "performedAt": "2026-09-09T18:00:00Z",
+  "items": [
+    { "partId": "uuid", "details": null, "cost": 250.00 }
+  ]
+}
+```
+
+O cliente não envia total, posição, status, origem nem responsável. O backend retorna
+`registrationOrigin`, itens ordenados, total calculado e `financialImpact`, sem expor ID
+interno do ledger ou entidade JPA.
+
+`GET /devices/{deviceId}/maintenances` aceita `status`, `from`, `to`, `page`, `size` e
+sort allowlist `performedAt|createdAt|status`; padrão `performedAt,desc`.
+`GET /devices/{deviceId}/maintenances/{maintenanceId}` exige vínculo com o aparelho.
+
+O cancelamento usa `POST /devices/{deviceId}/maintenances/{maintenanceId}/cancel`:
+
+```json
+{
+  "expectedVersion": 0,
+  "reason": "Lançamento duplicado."
+}
+```
+
+`expectedVersion` é `Long`, obrigatório e não negativo. Não existe PATCH de manutenção.
+
+Erros específicos implementados: `PART_NOT_FOUND`, `CATALOG_ITEM_INACTIVE`,
+`DETAILS_REQUIRED_FOR_OTHER`, `MAINTENANCE_DATE_BEFORE_PURCHASE`,
+`MAINTENANCE_NOT_FOUND`, `MAINTENANCE_ALREADY_CANCELLED`,
+`INITIAL_MAINTENANCE_IMPORT_CLOSED`,
+`INITIAL_MAINTENANCE_REQUIRES_IMPORTED_DEVICE`,
+`INITIAL_MAINTENANCE_INVALID_DATE`, `MAINTENANCE_REQUIRES_OPERATIONAL_PERIOD` e
+`MAINTENANCE_LEDGER_MISSING`.

@@ -297,3 +297,34 @@ migrations permanecem preservadas. Não foi iniciada a Etapa G.
 ## Registro de aprovação da Etapa G
 
 As decisões G-01 a G-20 são finais. O head técnico `2c56075a` e o fechamento `4525b092` foram aprovados após validação integral. A Etapa G está encerrada em versão 1.0 aprovada em 09/09/2026. `maintenance.registration_origin` permanece somente como preparação de schema/JPA; nenhuma funcionalidade da Etapa H foi iniciada.
+
+## Decisões da Etapa H — versão 1.0 proposta
+
+- **H-01:** manutenção operacional com total positivo cria `MAINTENANCE/OUTFLOW` atomicamente.
+- **H-02:** manutenção operacional de custo zero não cria ledger.
+- **H-03:** manutenção `INITIAL_IMPORT` nunca cria ledger, ainda que possua custo.
+- **H-04:** nova importação histórica existe somente durante `PREPARING`.
+- **H-05:** manutenção histórica só pode pertencer a aparelho `INITIAL_IMPORT`.
+- **H-06:** com implantação persistida, manutenção operacional exige `performedAt > cutoffAt`.
+- **H-07:** manutenção histórica exige `purchasedAt <= performedAt <= cutoffAt`.
+- **H-08:** `registrationOrigin` é derivada do endpoint e imutável.
+- **H-09:** manutenção e itens são imutáveis; correção ocorre por cancelamento e novo registro.
+- **H-10:** peça reservada `OTHER` exige detalhes com 1–255 caracteres após trim.
+- **H-11:** total é calculado no backend; preview do cliente não é fonte de verdade.
+- **H-12:** cancelamento operacional positivo cria `MAINTENANCE_REVERSAL/INFLOW`.
+- **H-13:** cancelamento histórico ou operacional zero não cria reversão.
+- **H-14:** preview incorpora custos ativos `INITIAL_IMPORT` em `maintenanceCapital`.
+- **H-15:** arquivamento cancela manutenções e reversões necessárias atomicamente.
+- **H-16:** peças são catálogo real, versionado, pesquisável e sem hard delete.
+- **H-17:** nenhum seed de peças é criado sem decisão explícita de dados oficiais.
+- **H-18:** UI preserva os baselines V2/Mobile-first e reutiliza Dialog/BottomSheet acessível.
+- **H-19:** gates usam PostgreSQL 16, Flyway V1–V4, Hibernate validate, Vitest, Playwright e axe.
+- **H-20:** venda e qualquer funcionalidade da Etapa I não foram iniciadas.
+
+Interpretações registradas: V4 é obrigatória para a última barreira de cutover; locks
+seguem aparelho → implantação → manutenções ordenadas; cancelamentos automáticos são
+resumidos na auditoria principal de arquivamento; PartPicker adapta o modal aprovado da G.
+
+**Versão:** 1.0 proposta
+
+**Status:** aguardando aprovação da Etapa H
