@@ -72,17 +72,17 @@ e total apenas como preview.
 ## Evidências finais
 
 O head técnico validado é
-[`6787c324ee11259f564c3d84d33e9dd134aa5c4a`](https://github.com/bacelardev/iphone-resale-manager/commit/6787c324ee11259f564c3d84d33e9dd134aa5c4a).
+[`5445e9e30b4f4d34fd855db08d6677d72da8820c`](https://github.com/bacelardev/iphone-resale-manager/commit/5445e9e30b4f4d34fd855db08d6677d72da8820c).
 
-- [Backend verify `34487892600`](https://github.com/bacelardev/iphone-resale-manager/actions/runs/34487892600):
+- [Backend verify `34493632944`](https://github.com/bacelardev/iphone-resale-manager/actions/runs/34493632944):
   `success`, 53 testes (24 unitários e 29 de integração), sem falhas, erros ou skips;
-- [Frontend verify `34487892690`](https://github.com/bacelardev/iphone-resale-manager/actions/runs/34487892690):
-  `success`, Prettier, ESLint, TypeScript, build, 45/45 Vitest em 9 arquivos e
+- [Frontend verify `34493632782`](https://github.com/bacelardev/iphone-resale-manager/actions/runs/34493632782):
+  `success`, Prettier, ESLint, TypeScript, build, 49/49 Vitest em 10 arquivos e
   33/33 Playwright, sem skips;
 - PostgreSQL 16.15, Flyway V1–V4, Hibernate `ddl-auto=validate`, backend real e
   autenticação/CORS aprovados no CI;
 - axe e responsividade aprovados em 375, 430, 768, 1024 e 1440 px;
-- [screenshots responsivos](https://github.com/bacelardev/iphone-resale-manager/actions/runs/34487892690/artifacts/10156553778)
+- [screenshots responsivos](https://github.com/bacelardev/iphone-resale-manager/actions/runs/34493632782/artifacts/10158936528)
   publicados como artefato do workflow;
 - validação SQL direta adicional em PostgreSQL 16.13 aceitou os dois limites válidos da
   V4 e rejeitou três violações com SQLSTATE `23514`.
