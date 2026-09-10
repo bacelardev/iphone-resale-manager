@@ -298,7 +298,7 @@ migrations permanecem preservadas. Não foi iniciada a Etapa G.
 
 As decisões G-01 a G-20 são finais. O head técnico `2c56075a` e o fechamento `4525b092` foram aprovados após validação integral. A Etapa G está encerrada em versão 1.0 aprovada em 09/09/2026. `maintenance.registration_origin` permanece somente como preparação de schema/JPA; nenhuma funcionalidade da Etapa H foi iniciada.
 
-## Decisões da Etapa H — versão 1.0 proposta
+## Decisões da Etapa H — versão 1.0 aprovada
 
 - **H-01:** manutenção operacional com total positivo cria `MAINTENANCE/OUTFLOW` atomicamente.
 - **H-02:** manutenção operacional de custo zero não cria ledger.
@@ -325,6 +325,9 @@ Interpretações registradas: V4 é obrigatória para a última barreira de cuto
 seguem aparelho → implantação → manutenções ordenadas; cancelamentos automáticos são
 resumidos na auditoria principal de arquivamento; PartPicker adapta o modal aprovado da G.
 
-**Versão:** 1.0 proposta
+**Versão:** 1.0 aprovada
 
-**Status:** aguardando aprovação da Etapa H
+**Status:** Etapa H encerrada
+
+As decisões H-01 a H-20 são finais. A Etapa H foi aprovada em 10/09/2026 após os
+gates completos do backend e frontend. A Etapa I não foi iniciada.

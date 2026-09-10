@@ -1,12 +1,12 @@
 # Etapa H — Manutenções, Peças e Importação Histórica
 
-**Versão:** 1.0 proposta
+**Versão:** 1.0 aprovada
 
-**Status:** aguardando aprovação
+**Status:** Etapa H encerrada
 
 **Branch:** `codex/etapa-h-maintenance`
 
-**PR:** #3 — draft, sem merge automático
+**PR:** #3 — aprovado para merge
 
 ## Escopo entregue
 
@@ -91,4 +91,4 @@ O head técnico validado é
 
 - Não há PATCH de manutenção, reativação ou seed silencioso de peças.
 - Conclusão da implantação, venda, financeiro completo e Etapa I não foram iniciados.
-- A Etapa H não está aprovada nem mergeada; aguarda revisão explícita.
+- A Etapa H está aprovada e encerrada; a Etapa I depende de nova autorização explícita.

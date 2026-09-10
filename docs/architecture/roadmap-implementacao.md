@@ -110,7 +110,7 @@ Status: concluída na versão inicial.
   **Etapa F encerrada**. Entrega reúne a fundação visual da Fase 3 e a integração web
   da Fase 4. Validação final em `docs/frontend/etapa-f-fundacao-frontend.md`.
 - G: aparelhos, catálogos e preparação da implantação, **versão 1.0 aprovada** e **Etapa G encerrada**.
-- H: manutenções, peças e importação histórica em **versão 1.0 proposta**, em PR draft.
+- H: manutenções, peças e importação histórica, **versão 1.0 aprovada** e **Etapa H encerrada**.
 - I e etapas seguintes: não iniciadas; exigem nova autorização explícita.
 
 
@@ -123,15 +123,15 @@ Status: concluída na versão inicial.
 - Status: **versão 1.0 aprovada; Etapa G encerrada**.
 - Evidências aprovadas: head técnico `2c56075a` e fechamento `4525b092`.
 - No encerramento da G, `maintenance.registration_origin` permanecia somente schema/JPA;
-  a autorização posterior iniciou a H no branch próprio, ainda sem aprovação ou merge.
+  a autorização posterior implementou e encerrou a H em branch e PR próprios.
 
-## Etapa H em proposta
+## Etapa H encerrada
 
-- Branch: `codex/etapa-h-maintenance`; PR draft #3, sem merge automático.
+- Branch: `codex/etapa-h-maintenance`; PR #3 aprovado para merge.
 - Fase 6: catálogo de peças, manutenção operacional, importação histórica, totais,
   ledger, cancelamento/reversão, preview e arquivamento integrado.
 - Migration V4 aditiva; V1/V2/V3 preservadas.
 - Frontend V2/Mobile-first com histórico, formulário, detalhe, cancelamento e PartPicker
   dentro da fundação acessível existente.
-- Status: **versão 1.0 proposta — aguardando aprovação**.
+- Status: **versão 1.0 aprovada — Etapa H encerrada**.
 - Etapa I não iniciada.

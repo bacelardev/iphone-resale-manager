@@ -124,7 +124,7 @@ A versão 1.1 deverá incorporar as decisões aprovadas durante a modelagem Post
 - Evidências finais preservadas no head técnico `2c56075a` e no fechamento `4525b092`.
 - PR #2 autorizado para revisão final e merge, sem antecipar comportamento da Etapa H.
 
-## [Etapa H — 1.0 proposta] — 2026-09-10
+## [Etapa H — 1.0 aprovada] — 2026-09-10
 
 ### Adicionado
 
@@ -140,8 +140,8 @@ A versão 1.1 deverá incorporar as decisões aprovadas durante a modelagem Post
 
 - migrations V1/V2/V3, decisões A–G, security baseline e protótipos oficiais;
 - venda, conclusão da implantação, financeiro completo e Etapa I fora do escopo;
-- PR #3 permanece draft e sem merge automático.
+- PR #3 aprovado para merge após os gates finais, sem antecipar a Etapa I.
 
 ### Status
 
-- **Versão: 1.0 proposta**; **Status: aguardando aprovação da Etapa H**.
+- **Versão: 1.0 aprovada**; **Status: Etapa H encerrada**.
