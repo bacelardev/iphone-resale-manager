@@ -66,6 +66,12 @@ export function listColors(active?: boolean) {
   );
 }
 
+export function listParts(active?: boolean, search?: string) {
+  return apiRequest<PageResponse<CatalogItem>>(
+    `/api/v1/parts${query({ active, search, size: 100, sort: 'name,asc' })}`,
+  );
+}
+
 export function createModel(input: { code: string; name: string; displayOrder: number }) {
   return apiRequest<CatalogItem>('/api/v1/models', { method: 'POST', body: input });
 }
@@ -74,8 +80,12 @@ export function createColor(input: { code: string; name: string }) {
   return apiRequest<CatalogItem>('/api/v1/colors', { method: 'POST', body: input });
 }
 
+export function createPart(input: { code: string; name: string }) {
+  return apiRequest<CatalogItem>('/api/v1/parts', { method: 'POST', body: input });
+}
+
 export function updateCatalog(
-  kind: 'models' | 'colors',
+  kind: 'models' | 'colors' | 'parts',
   item: CatalogItem,
   input: { name: string; displayOrder?: number },
 ) {
@@ -89,7 +99,11 @@ export function updateCatalog(
   });
 }
 
-export function setCatalogActive(kind: 'models' | 'colors', item: CatalogItem, active: boolean) {
+export function setCatalogActive(
+  kind: 'models' | 'colors' | 'parts',
+  item: CatalogItem,
+  active: boolean,
+) {
   return apiRequest<CatalogItem>(
     `/api/v1/${kind}/${item.id}/${active ? 'activate' : 'deactivate'}`,
     {

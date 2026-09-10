@@ -7,6 +7,7 @@ import io.github.bacelardev.iphoneresale.application.service.BusinessException;
 import io.github.bacelardev.iphoneresale.application.service.PageableFactory;
 import io.github.bacelardev.iphoneresale.application.service.VersionGuard;
 import io.github.bacelardev.iphoneresale.application.service.initialization.BusinessInitializationService;
+import io.github.bacelardev.iphoneresale.application.service.maintenance.MaintenanceService;
 import io.github.bacelardev.iphoneresale.domain.enums.AuditAction;
 import io.github.bacelardev.iphoneresale.domain.enums.AuditedEntityType;
 import io.github.bacelardev.iphoneresale.domain.enums.BusinessInitializationStatus;
@@ -70,6 +71,7 @@ public class DeviceService {
     private final DeviceColorJpaRepository colors;
     private final FinancialTransactionJpaRepository transactions;
     private final MaintenanceJpaRepository maintenances;
+    private final MaintenanceService maintenanceService;
     private final PhotoStorage storage;
     private final PhotoUrlSigner photoUrls;
     private final AuditService audit;
@@ -83,6 +85,7 @@ public class DeviceService {
             DeviceColorJpaRepository colors,
             FinancialTransactionJpaRepository transactions,
             MaintenanceJpaRepository maintenances,
+            MaintenanceService maintenanceService,
             PhotoStorage storage,
             PhotoUrlSigner photoUrls,
             AuditService audit,
@@ -95,6 +98,7 @@ public class DeviceService {
         this.colors = colors;
         this.transactions = transactions;
         this.maintenances = maintenances;
+        this.maintenanceService = maintenanceService;
         this.storage = storage;
         this.photoUrls = photoUrls;
         this.audit = audit;
@@ -173,11 +177,10 @@ public class DeviceService {
 
     @Transactional
     public DeviceDetailResponse update(UUID id, UpdateDeviceRequest request) {
-        Device snapshot = device(id);
-        BusinessInitialization initialization =
-                snapshot.getRegistrationOrigin() == RegistrationOrigin.INITIAL_IMPORT
-                        ? initializationService.requiredForUpdate() : null;
         Device device = mutableDevice(id);
+        BusinessInitialization initialization =
+                device.getRegistrationOrigin() == RegistrationOrigin.INITIAL_IMPORT
+                        ? initializationService.requiredForUpdate() : null;
         VersionGuard.require(device.getVersion(), request.expectedVersion());
         IphoneModel model = request.modelId() == null ? device.getModel() : activeModel(request.modelId());
         DeviceColor color = request.colorId() == null ? device.getColor() : activeColor(request.colorId());
@@ -251,20 +254,22 @@ public class DeviceService {
             throw BusinessException.unprocessable("DEVICE_HAS_ACTIVE_SALE",
                     "Cancele a venda antes de arquivar o aparelho.");
         }
-        if (maintenances.existsByDeviceIdAndStatus(id, MaintenanceStatus.ACTIVE)) {
-            throw BusinessException.unprocessable("DEVICE_HAS_ACTIVE_MAINTENANCE",
-                    "Cancele as manutenções ativas antes de arquivar o aparelho.");
-        }
+        String reason = request.reason().trim();
+        MaintenanceService.ArchiveMaintenanceResult maintenanceResult =
+                maintenanceService.cancelActiveForArchive(
+                        device, "Arquivamento do aparelho: " + reason);
         if (device.getRegistrationOrigin() == RegistrationOrigin.OPERATIONAL) {
             FinancialTransaction original = activePurchase(id);
             transactions.saveAndFlush(FinancialTransaction.devicePurchaseReversal(
-                    original, "Arquivamento: " + request.reason().trim()));
+                    original, "Arquivamento: " + reason));
         }
         device.archive(clock.instant(), audit.actor());
         devices.flush();
         audit.record(AuditAction.ARCHIVED, AuditedEntityType.DEVICE, id, device.getInternalCode(),
                 "Aparelho " + device.getInternalCode() + " arquivado.",
-                Map.of("reason", request.reason().trim()));
+                Map.of("reason", reason,
+                        "cancelledMaintenanceCount", maintenanceResult.cancelledCount(),
+                        "maintenanceReversedAmount", maintenanceResult.reversedAmount()));
         return detail(device);
     }
 

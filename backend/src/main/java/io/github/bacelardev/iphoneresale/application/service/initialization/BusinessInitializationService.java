@@ -10,6 +10,7 @@ import io.github.bacelardev.iphoneresale.domain.enums.RegistrationOrigin;
 import io.github.bacelardev.iphoneresale.domain.model.BusinessInitialization;
 import io.github.bacelardev.iphoneresale.infrastructure.persistence.repository.BusinessInitializationJpaRepository;
 import io.github.bacelardev.iphoneresale.infrastructure.persistence.repository.DeviceJpaRepository;
+import io.github.bacelardev.iphoneresale.infrastructure.persistence.repository.MaintenanceJpaRepository;
 import io.github.bacelardev.iphoneresale.web.dto.initialization.BusinessInitializationPreviewResponse;
 import io.github.bacelardev.iphoneresale.web.dto.initialization.BusinessInitializationResponse;
 import io.github.bacelardev.iphoneresale.web.dto.initialization.StartBusinessInitializationRequest;
@@ -32,6 +33,7 @@ public class BusinessInitializationService {
 
     private final BusinessInitializationJpaRepository initializations;
     private final DeviceJpaRepository devices;
+    private final MaintenanceJpaRepository maintenances;
     private final AuditService audit;
     private final EntityManager entityManager;
     private final Clock clock;
@@ -40,6 +42,7 @@ public class BusinessInitializationService {
     public BusinessInitializationService(
             BusinessInitializationJpaRepository initializations,
             DeviceJpaRepository devices,
+            MaintenanceJpaRepository maintenances,
             AuditService audit,
             EntityManager entityManager,
             Clock clock,
@@ -47,6 +50,7 @@ public class BusinessInitializationService {
     ) {
         this.initializations = initializations;
         this.devices = devices;
+        this.maintenances = maintenances;
         this.audit = audit;
         this.entityManager = entityManager;
         this.clock = clock;
@@ -97,6 +101,11 @@ public class BusinessInitializationService {
             throw BusinessException.conflict("INITIALIZATION_CUTOFF_LOCKED",
                     "A data de corte não pode mudar depois da primeira importação inicial.");
         }
+        if (maintenances.existsByRegistrationOriginAndPerformedAtLessThanEqual(
+                RegistrationOrigin.OPERATIONAL, request.cutoffAt())) {
+            throw BusinessException.conflict("INITIALIZATION_CUTOFF_LOCKED",
+                    "A data de corte conflita com uma manutenção operacional já registrada.");
+        }
         initialization.updateCutoff(request.cutoffAt());
         initializations.flush();
         audit.record(AuditAction.UPDATED, AuditedEntityType.BUSINESS_INITIALIZATION,
@@ -112,7 +121,8 @@ public class BusinessInitializationService {
                         "Inicie a preparação antes de consultar a prévia."));
         long count = devices.countByRegistrationOriginAndArchivedAtIsNull(RegistrationOrigin.INITIAL_IMPORT);
         BigDecimal purchaseCapital = devices.sumPurchasePriceByOrigin(RegistrationOrigin.INITIAL_IMPORT);
-        BigDecimal maintenanceCapital = BigDecimal.ZERO.setScale(2);
+        BigDecimal maintenanceCapital = maintenances.sumActiveInitialImportCost();
+        if (maintenanceCapital == null) maintenanceCapital = BigDecimal.ZERO.setScale(2);
         return new BusinessInitializationPreviewResponse(
                 initialization.getStatus().name(), initialization.getCutoffAt(), count,
                 purchaseCapital, maintenanceCapital, purchaseCapital.add(maintenanceCapital)

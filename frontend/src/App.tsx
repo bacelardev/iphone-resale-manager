@@ -8,6 +8,8 @@ import { DevicesPage } from '@/pages/DevicesPage';
 import { NewDevicePage } from '@/pages/NewDevicePage';
 import { DeviceDetailPage } from '@/pages/DeviceDetailPage';
 import { CatalogsPage } from '@/pages/CatalogsPage';
+import { MaintenanceFormPage } from '@/pages/MaintenanceFormPage';
+import { MaintenanceDetailPage } from '@/pages/MaintenanceDetailPage';
 import { ProtectedRoute, PublicRoute } from '@/routes/guards';
 import { useAuth } from '@/features/auth/context';
 
@@ -31,6 +33,18 @@ export function App() {
           <Route path="/devices/new" element={<NewDevicePage />} />
           <Route path="/devices/import" element={<NewDevicePage />} />
           <Route path="/devices/:id" element={<DeviceDetailPage />} />
+          <Route
+            path="/devices/:deviceId/maintenances/new"
+            element={<MaintenanceFormPage origin="operational" />}
+          />
+          <Route
+            path="/devices/:deviceId/maintenances/import"
+            element={<MaintenanceFormPage origin="initial-import" />}
+          />
+          <Route
+            path="/devices/:deviceId/maintenances/:maintenanceId"
+            element={<MaintenanceDetailPage />}
+          />
           <Route path="/settings/catalogs" element={<CatalogsPage />} />
           <Route
             path="/financial"

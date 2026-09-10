@@ -20,6 +20,7 @@ import { Input } from '@/components/ui/input';
 import { PageHeader } from '@/components/ui/page-header';
 import { Select } from '@/components/ui/select';
 import { CatalogPicker } from '@/features/devices/CatalogPicker';
+import { MaintenancesSection } from '@/features/maintenances/MaintenancesSection';
 import {
   addDevicePhoto,
   archiveDevice,
@@ -189,6 +190,8 @@ export function DeviceDetailPage() {
           </Card>
         </div>
       </div>
+
+      <MaintenancesSection device={value} />
 
       {!value.archived && (
         <Card className="device-actions-card">

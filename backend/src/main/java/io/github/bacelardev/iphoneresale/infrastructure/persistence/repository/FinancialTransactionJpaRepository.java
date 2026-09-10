@@ -23,4 +23,19 @@ public interface FinancialTransactionJpaRepository
                )
             """)
     Optional<FinancialTransaction> findActiveDevicePurchase(@Param("deviceId") UUID deviceId);
+
+    @Query("""
+            select original
+              from FinancialTransaction original
+             where original.type = io.github.bacelardev.iphoneresale.domain.enums.FinancialTransactionType.MAINTENANCE
+               and original.maintenance.id = :maintenanceId
+               and not exists (
+                   select reversal.id
+                     from FinancialTransaction reversal
+                    where reversal.reversalOf = original
+               )
+            """)
+    Optional<FinancialTransaction> findActiveMaintenanceTransaction(
+            @Param("maintenanceId") UUID maintenanceId
+    );
 }

@@ -86,6 +86,32 @@ public class FinancialTransaction extends CreatedOnlyEntity {
         return transaction;
     }
 
+    public static FinancialTransaction maintenance(Maintenance maintenance, BigDecimal amount) {
+        FinancialTransaction transaction = new FinancialTransaction();
+        transaction.direction = FinancialDirection.OUTFLOW;
+        transaction.type = FinancialTransactionType.MAINTENANCE;
+        transaction.amount = amount;
+        transaction.occurredAt = maintenance.getPerformedAt();
+        transaction.maintenance = maintenance;
+        return transaction;
+    }
+
+    public static FinancialTransaction maintenanceReversal(
+            FinancialTransaction original,
+            Instant occurredAt,
+            String description
+    ) {
+        FinancialTransaction transaction = new FinancialTransaction();
+        transaction.direction = FinancialDirection.INFLOW;
+        transaction.type = FinancialTransactionType.MAINTENANCE_REVERSAL;
+        transaction.amount = original.amount;
+        transaction.occurredAt = occurredAt;
+        transaction.maintenance = original.maintenance;
+        transaction.reversalOf = original;
+        transaction.description = description;
+        return transaction;
+    }
+
     public FinancialDirection getDirection() {
         return direction;
     }
