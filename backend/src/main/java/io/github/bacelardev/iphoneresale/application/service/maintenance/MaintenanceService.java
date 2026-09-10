@@ -253,10 +253,6 @@ public class MaintenanceService {
             RegistrationOrigin origin,
             Optional<BusinessInitialization> initialization
     ) {
-        if (performedAt.isBefore(device.getPurchasedAt())) {
-            throw BusinessException.unprocessable("MAINTENANCE_DATE_BEFORE_PURCHASE",
-                    "A manutenção não pode ser anterior à compra do aparelho.");
-        }
         if (origin == RegistrationOrigin.INITIAL_IMPORT) {
             BusinessInitialization value = initialization.orElseThrow(() ->
                     BusinessException.conflict("BUSINESS_INITIALIZATION_NOT_STARTED",
@@ -269,14 +265,21 @@ public class MaintenanceService {
                 throw BusinessException.unprocessable("INITIAL_MAINTENANCE_REQUIRES_IMPORTED_DEVICE",
                         "A manutenção histórica exige um aparelho do estoque inicial.");
             }
-            if (performedAt.isAfter(value.getCutoffAt())) {
+            if (performedAt.isBefore(device.getPurchasedAt())
+                    || performedAt.isAfter(value.getCutoffAt())) {
                 throw BusinessException.unprocessable("INITIAL_MAINTENANCE_INVALID_DATE",
-                        "A manutenção histórica deve ocorrer até a data de corte.");
+                        "A manutenção histórica deve ocorrer entre a compra e a data de corte.");
             }
-        } else if (initialization.isPresent()
-                && !performedAt.isAfter(initialization.get().getCutoffAt())) {
-            throw BusinessException.unprocessable("MAINTENANCE_REQUIRES_OPERATIONAL_PERIOD",
-                    "A manutenção operacional deve ocorrer depois da data de corte.");
+        } else {
+            if (performedAt.isBefore(device.getPurchasedAt())) {
+                throw BusinessException.unprocessable("MAINTENANCE_DATE_BEFORE_PURCHASE",
+                        "A manutenção não pode ser anterior à compra do aparelho.");
+            }
+            if (initialization.isPresent()
+                    && !performedAt.isAfter(initialization.get().getCutoffAt())) {
+                throw BusinessException.unprocessable("MAINTENANCE_REQUIRES_OPERATIONAL_PERIOD",
+                        "A manutenção operacional deve ocorrer depois da data de corte.");
+            }
         }
     }
 
