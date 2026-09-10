@@ -8,10 +8,7 @@ import type {
 export type MaintenanceStatus = 'ACTIVE' | 'CANCELLED';
 
 export type MaintenanceFinancialImpact =
-  | 'OUTFLOW_CREATED'
-  | 'OUTFLOW_REVERSED'
-  | 'HISTORICAL_COST_ONLY'
-  | 'NO_FINANCIAL_COST';
+  'OUTFLOW_CREATED' | 'OUTFLOW_REVERSED' | 'HISTORICAL_COST_ONLY' | 'NO_FINANCIAL_COST';
 
 export type MaintenanceItemInput = {
   partId: string;
