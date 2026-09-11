@@ -331,3 +331,35 @@ resumidos na auditoria principal de arquivamento; PartPicker adapta o modal apro
 
 As decisões H-01 a H-20 são finais. A Etapa H foi aprovada em 10/09/2026 após os
 gates completos do backend e frontend. A Etapa I não foi iniciada.
+
+## Decisões da Etapa I — versão 1.0 proposta
+
+| ID | Decisão |
+| --- | --- |
+| I-01 | Venda exclusivamente operacional, sem coluna/origem ou endpoint de importação adicional. |
+| I-02 | `soldAt > cutoffAt` quando existe implantação. |
+| I-03 | Venda permitida durante `PREPARING` após cutoff. |
+| I-04 | Venda não antecede manutenção `ACTIVE`; canceladas não bloqueiam. |
+| I-05 | Investimento considera apenas manutenção `ACTIVE`. |
+| I-06 | Prejuízo permitido. |
+| I-07 | Margem = lucro / preço de venda × 100. |
+| I-08 | Margem com quatro casas `BigDecimal`, arredondamento `HALF_UP`. |
+| I-09 | Dados confirmados da venda são imutáveis; sem valores derivados duplicados. |
+| I-10 | Correção via cancelamento e nova venda. |
+| I-11 | Registro gera `SALE/INFLOW` pelo preço/data da venda. |
+| I-12 | Cancelamento gera `SALE_REVERSAL/OUTFLOW`, mesmo valor e `reversalOf` original. |
+| I-13 | Registro insere Sale antes de mudar Device para `VENDIDO`. |
+| I-14 | Cancelamento retorna Device a `DISPONIVEL_VENDA`. |
+| I-15 | Uma única Sale `ACTIVE` por aparelho; canceladas ficam históricas. |
+| I-16 | Lock canônico começa por Device; versões obrigatórias impedem comandos obsoletos. |
+| I-17 | Archive exige cancelar venda primeiro e nunca cancela automaticamente. |
+| I-18 | V5 evolui triggers de cronologia/cutoff sem mudar V1–V4. |
+| I-19 | V2/Mobile-first, CI real, axe e 375/430/768/1024/1440. |
+| I-20 | Etapa J não iniciada; PR draft sem merge automático. |
+
+Consulta da venda usa `REPEATABLE_READ` para manter um snapshot coerente entre venda,
+aparelho e soma de manutenção durante cancelamento concorrente. Motivo completo fica
+na Sale e auditoria; descrição curta do estorno evita exceder `varchar(500)` quando o
+motivo já ocupa o limite. Nenhuma dependência nova.
+
+**Status:** Etapa I — versão 1.0 proposta aguardando aprovação.

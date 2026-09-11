@@ -356,7 +356,7 @@ Cancelamento não apaga cabeçalho nem itens. Manutenção total zero não gera 
 
 **Entrada:** `deviceId`, `deviceVersion`, `salePrice` e `soldAt`.
 
-**Pré-condições:** aparelho existe, não está arquivado, está `DISPONIVEL_VENDA`, não possui venda ativa, `salePrice > 0` e `soldAt >= purchasedAt`.
+**Pré-condições:** aparelho existe, não está arquivado, está `DISPONIVEL_VENDA`, não possui venda ativa, `salePrice > 0`, `soldAt >= purchasedAt` e `soldAt >= max(performedAt)` das manutenções `ACTIVE`. Com implantação persistida, também exige `soldAt > cutoffAt`, inclusive durante `PREPARING` e para aparelhos `INITIAL_IMPORT`.
 
 **Fluxo principal:**
 
@@ -379,7 +379,7 @@ profit           = salePrice - investmentTotal
 marginPercent    = profit / salePrice * 100
 ```
 
-Margem usa quatro casas decimais na resposta. Lucro negativo é permitido e informado; não existe regra aprovada que proíba venda com prejuízo.
+Margem usa quatro casas decimais na resposta com `BigDecimal` e `HALF_UP`. Lucro negativo é permitido e informado; não existe regra aprovada que proíba venda com prejuízo.
 
 **Erros:** `DEVICE_NOT_FOUND`, `DEVICE_ARCHIVED`, `DEVICE_NOT_AVAILABLE_FOR_SALE`, `SALE_ALREADY_EXISTS`, `SALE_DATE_BEFORE_PURCHASE`, `CONCURRENT_MODIFICATION`.
 
@@ -571,3 +571,28 @@ de cada registro. O preview soma apenas manutenções `ACTIVE/INITIAL_IMPORT` em
 `maintenanceCapital` e deriva `stockCapital`.
 
 A venda e a Etapa I permanecem fora deste refinamento.
+
+## Refinamento executável da Etapa I
+
+`RegisterSale`, `GetDeviceSale` e `CancelSale` estão implementados para revisão.
+Venda é exclusivamente operacional; não há importação de vendas nem conclusão da implantação.
+Sem implantação, compra ≤ venda. Com implantação `PREPARING` ou `COMPLETED`, exige
+venda > cutoff. Venda não antecede manutenção `ACTIVE`; canceladas não entram em custo
+ou cronologia. Datas futuras não são proibidas pelo contrato.
+
+Registro bloqueia Device, valida versão, disponibilidade, ausência de venda ativa e
+datas; insere Sale antes de mudar Device para `VENDIDO`; cria `SALE/INFLOW` e
+`SALE_REGISTERED/SALE` em commit único. Investimento soma compra e manutenção ativa;
+prejuízo é permitido. Margem divide lucro pelo preço de venda, em quatro casas `HALF_UP`.
+
+Consulta singular retorna somente a venda ativa, ou `404 SALE_NOT_FOUND`. Usa snapshot
+`REPEATABLE_READ` para que cancelamento/manutenção concorrentes não misturem os cálculos.
+Cancelamento bloqueia Device e Sale, valida as duas versões e o motivo, exige ledger
+original não estornado, cancela e cria `SALE_REVERSAL/OUTFLOW` pelo mesmo valor,
+com referência ao original. Retorna o aparelho a `DISPONIVEL_VENDA` e audita
+`SALE_CANCELLED/SALE`. Falta do lançamento original retorna `409 SALE_LEDGER_MISSING`
+sem efeito parcial. Nova venda após cancelamento é permitida.
+
+Com venda ativa, manutenção e arquivamento são bloqueados; compra/data não mudam.
+Os demais campos editáveis da G preservam suas permissões. Venda cancelada permanece
+no banco/ledger/auditoria; não há PATCH nem lista global de vendas nesta etapa.

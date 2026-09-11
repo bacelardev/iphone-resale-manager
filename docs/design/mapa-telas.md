@@ -205,3 +205,17 @@ O seletor de modelo é combobox pesquisável no desktop e bottom sheet no mobile
 PartPicker reutiliza o CatalogPicker aprovado: busca por nome/código, combobox semântico,
 listbox com setas/Home/End/Enter, trap de foco, Escape, restauração e sheet mobile. As
 cinco larguras oficiais permanecem 375, 430, 768, 1024 e 1440 px. Venda não foi iniciada.
+
+## Telas da proposta da Etapa I
+
+| Tela | Rota/estado | Comportamento |
+| --- | --- | --- |
+| 07 — Registrar venda | `/devices/:deviceId/sale/new` | Compra, manutenção ativa, investimento, preço/data local e preview de lucro/margem; prejuízo permitido. |
+| 17 — Detalhes da venda | `/devices/:deviceId/sale` | Valores oficiais, status, responsável, data econômica, criação e entrada gerada. |
+| 18 — Cancelar venda | Dialog desktop / bottom sheet mobile | Resumo, motivo, aviso de estorno, envio único, foco/Escape/restauração. |
+| Detalhe do aparelho | `/devices/:id` | Registrar venda somente disponível/não arquivado; Ver venda quando vendido. |
+| Estoque | `/devices` | Cache invalidado após venda/cancelamento para refletir vendido/disponível. |
+
+Após cancelamento, a navegação retorna ao aparelho disponível com feedback de sucesso.
+Lucro é verde, prejuízo/cancelamento vermelho e CTA principal branco. Datas usam o
+helper local aprovado. Nenhuma tela financeira da Etapa J foi implementada.

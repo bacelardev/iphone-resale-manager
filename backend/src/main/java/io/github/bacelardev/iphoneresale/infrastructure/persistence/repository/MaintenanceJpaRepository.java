@@ -41,6 +41,14 @@ public interface MaintenanceJpaRepository
     BigDecimal sumActiveCostByDeviceId(@Param("deviceId") UUID deviceId);
 
     @Query("""
+            select max(maintenance.performedAt)
+              from Maintenance maintenance
+             where maintenance.device.id = :deviceId
+               and maintenance.status = io.github.bacelardev.iphoneresale.domain.enums.MaintenanceStatus.ACTIVE
+            """)
+    Instant latestActivePerformedAtByDeviceId(@Param("deviceId") UUID deviceId);
+
+    @Query("""
             select coalesce(sum(item.cost), 0)
               from MaintenanceItem item
              where item.maintenance.status = io.github.bacelardev.iphoneresale.domain.enums.MaintenanceStatus.ACTIVE

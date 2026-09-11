@@ -1893,3 +1893,86 @@ input[type='checkbox'] {
 .picker-dialog .picker-options small {
   color: #a1a1a6;
 }
+
+.sale-layout,
+.sale-detail-layout {
+  display: grid;
+  gap: 18px;
+}
+.sale-form-card,
+.sale-summary-card {
+  display: grid;
+  align-content: start;
+  gap: 18px;
+}
+.sale-summary-list,
+.sale-cancel-values {
+  display: grid;
+  gap: 0;
+  margin: 0;
+}
+.sale-summary-list > div,
+.sale-cancel-values > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 12px 0;
+  border-bottom: 1px solid #292929;
+}
+.sale-summary-list dt,
+.sale-cancel-values dt {
+  color: #a1a1a6;
+}
+.sale-summary-list dd,
+.sale-cancel-values dd {
+  margin: 0;
+  text-align: right;
+}
+.sale-value-positive dd {
+  color: #5ed28a;
+}
+.sale-value-negative dd,
+.sale-loss-warning {
+  color: #ff6b6b;
+}
+.sale-loss-warning {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.55;
+}
+.sale-cancel-summary {
+  display: flex;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid #543232;
+  border-radius: 12px;
+  background: #2a1717;
+  color: #ffd6d6;
+}
+.sale-cancel-summary svg {
+  flex: 0 0 auto;
+}
+.sale-cancel-summary p {
+  margin: 0;
+  line-height: 1.5;
+}
+@media (min-width: 900px) {
+  .sale-layout,
+  .sale-detail-layout {
+    grid-template-columns: minmax(0, 1.2fr) minmax(300px, 0.8fr);
+    align-items: start;
+  }
+}
+
+.sale-cancel-button {
+  color: #ff6b6b;
+}
+.sale-success-notice {
+  color: #5ed28a;
+  line-height: 1.6;
+}
+.sale-summary-list dd,
+.sale-cancel-values dd {
+  overflow-wrap: anywhere;
+  min-width: 0;
+}

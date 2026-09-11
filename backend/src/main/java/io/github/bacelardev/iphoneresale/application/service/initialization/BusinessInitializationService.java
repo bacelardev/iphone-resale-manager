@@ -11,6 +11,7 @@ import io.github.bacelardev.iphoneresale.domain.model.BusinessInitialization;
 import io.github.bacelardev.iphoneresale.infrastructure.persistence.repository.BusinessInitializationJpaRepository;
 import io.github.bacelardev.iphoneresale.infrastructure.persistence.repository.DeviceJpaRepository;
 import io.github.bacelardev.iphoneresale.infrastructure.persistence.repository.MaintenanceJpaRepository;
+import io.github.bacelardev.iphoneresale.infrastructure.persistence.repository.SaleJpaRepository;
 import io.github.bacelardev.iphoneresale.web.dto.initialization.BusinessInitializationPreviewResponse;
 import io.github.bacelardev.iphoneresale.web.dto.initialization.BusinessInitializationResponse;
 import io.github.bacelardev.iphoneresale.web.dto.initialization.StartBusinessInitializationRequest;
@@ -34,6 +35,7 @@ public class BusinessInitializationService {
     private final BusinessInitializationJpaRepository initializations;
     private final DeviceJpaRepository devices;
     private final MaintenanceJpaRepository maintenances;
+    private final SaleJpaRepository sales;
     private final AuditService audit;
     private final EntityManager entityManager;
     private final Clock clock;
@@ -43,6 +45,7 @@ public class BusinessInitializationService {
             BusinessInitializationJpaRepository initializations,
             DeviceJpaRepository devices,
             MaintenanceJpaRepository maintenances,
+            SaleJpaRepository sales,
             AuditService audit,
             EntityManager entityManager,
             Clock clock,
@@ -51,6 +54,7 @@ public class BusinessInitializationService {
         this.initializations = initializations;
         this.devices = devices;
         this.maintenances = maintenances;
+        this.sales = sales;
         this.audit = audit;
         this.entityManager = entityManager;
         this.clock = clock;
@@ -105,6 +109,10 @@ public class BusinessInitializationService {
                 RegistrationOrigin.OPERATIONAL, request.cutoffAt())) {
             throw BusinessException.conflict("INITIALIZATION_CUTOFF_LOCKED",
                     "A data de corte conflita com uma manutenção operacional já registrada.");
+        }
+        if (sales.existsBySoldAtLessThanEqual(request.cutoffAt())) {
+            throw BusinessException.conflict("INITIALIZATION_CUTOFF_LOCKED",
+                    "A data de corte conflita com uma venda já registrada.");
         }
         initialization.updateCutoff(request.cutoffAt());
         initializations.flush();

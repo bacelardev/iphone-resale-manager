@@ -41,7 +41,7 @@ export function errorMessage(error: unknown): string {
       case 'INITIAL_IMPORT_INVALID_DATE':
         return 'A compra deve ser anterior ou igual à data de corte da implantação.';
       case 'INITIALIZATION_CUTOFF_LOCKED':
-        return 'A data de corte não pode mudar depois da primeira importação.';
+        return 'A data de corte conflita com importações ou operações já registradas.';
       case 'BUSINESS_INITIALIZATION_NOT_STARTED':
         return 'Inicie a preparação da implantação antes de importar o estoque.';
       case 'BUSINESS_INITIALIZATION_ALREADY_STARTED':
@@ -50,6 +50,22 @@ export function errorMessage(error: unknown): string {
         return 'O aparelho deve manter ao menos duas fotos.';
       case 'PHOTO_LIMIT_EXCEEDED':
         return 'O aparelho pode ter no máximo quatro fotos.';
+      case 'DEVICE_NOT_AVAILABLE_FOR_SALE':
+        return 'O aparelho precisa estar disponível para registrar a venda.';
+      case 'SALE_ALREADY_EXISTS':
+        return 'Este aparelho já possui uma venda ativa.';
+      case 'SALE_DATE_BEFORE_PURCHASE':
+        return 'A venda não pode ser anterior à compra do aparelho.';
+      case 'SALE_DATE_BEFORE_ACTIVE_MAINTENANCE':
+        return 'A venda não pode ser anterior a uma manutenção ativa.';
+      case 'SALE_REQUIRES_OPERATIONAL_PERIOD':
+        return 'A venda deve ocorrer depois da data de corte da implantação.';
+      case 'SALE_NOT_FOUND':
+        return 'Este aparelho não possui uma venda ativa.';
+      case 'SALE_ALREADY_CANCELLED':
+        return 'Esta venda já foi cancelada. Atualize o aparelho.';
+      case 'SALE_LEDGER_MISSING':
+        return 'A entrada financeira original da venda não foi encontrada.';
       case 'UNSUPPORTED_IMAGE_TYPE':
         return 'Envie uma foto JPEG, PNG ou WebP válida.';
       case 'FILE_TOO_LARGE':

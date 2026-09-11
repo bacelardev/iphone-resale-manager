@@ -144,3 +144,14 @@ Apagar apenas o arquivo ou o commit mais recente não invalida a credencial vaza
   evento inclui token, segredo, chave de storage ou detalhe SQL.
 - PartPicker mantém trap/restauração de foco, Escape, teclado e axe; não introduz HTML
   armazenado nem dependência visual externa.
+
+## Extensão permanente da baseline — proposta da Etapa I
+
+- Rotas de venda exigem Bearer de sócio ativo e preservam CORS, no-store e DTOs fechados.
+- `deviceVersion` e `saleVersion` são obrigatórios, não negativos e conferidos sob lock.
+- Preço, datas e motivo são validados no backend; PostgreSQL V5 protege invariantes críticas.
+- Usuário responsável vem da sessão; nenhum seletor de vendedor ou input de lucro/ledger.
+- Registro/cancelamento são atômicos com ledger e auditoria append-only, sem PATCH/delete.
+- Falta do ledger original bloqueia cancelamento. Motivo é texto escapado e limitado.
+- Resposta não expõe entidades, IDs internos de ledger, hash, token nem storage key.
+- Testes negativos, concorrência real, SQL direto e browser com axe fazem parte do gate.

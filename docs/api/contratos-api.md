@@ -753,7 +753,7 @@ Resposta: `200 MaintenanceResponse`. Erros: `404 MAINTENANCE_NOT_FOUND`, `409 MA
 
 Resposta: `201 SaleResponse`, `Location: /api/v1/devices/{deviceId}/sale`.
 
-Erros: `404 DEVICE_NOT_FOUND`, `422 DEVICE_ARCHIVED`, `422 DEVICE_NOT_AVAILABLE_FOR_SALE`, `409 SALE_ALREADY_EXISTS`, `422 SALE_DATE_BEFORE_PURCHASE`, `409 CONCURRENT_MODIFICATION`.
+Erros: `404 DEVICE_NOT_FOUND`, `422 DEVICE_ARCHIVED`, `422 DEVICE_NOT_AVAILABLE_FOR_SALE`, `409 SALE_ALREADY_EXISTS`, `422 SALE_DATE_BEFORE_PURCHASE`, `422 SALE_DATE_BEFORE_ACTIVE_MAINTENANCE`, `422 SALE_REQUIRES_OPERATIONAL_PERIOD`, `409 CONCURRENT_MODIFICATION`.
 
 A resposta só é emitida após venda, status `VENDIDO`, entrada no ledger e auditoria confirmarem juntos.
 
@@ -771,7 +771,7 @@ Retorna a venda ativa: `200 SaleResponse`. Sem venda ativa: `404 SALE_NOT_FOUND`
 }
 ```
 
-Resposta: `200 SaleResponse` com `status=CANCELLED`. Erros: `404 SALE_NOT_FOUND`, `409 SALE_ALREADY_CANCELLED`, `409 CONCURRENT_MODIFICATION`, `422 INVALID_DEVICE_STATUS_TRANSITION`.
+Resposta: `200 SaleResponse` com `status=CANCELLED`. Erros: `404 SALE_NOT_FOUND`, `409 SALE_ALREADY_CANCELLED`, `409 SALE_LEDGER_MISSING`, `409 CONCURRENT_MODIFICATION`, `422 INVALID_DEVICE_STATUS_TRANSITION`.
 
 ## 11. Financeiro
 
@@ -1034,3 +1034,37 @@ Erros específicos implementados: `PART_NOT_FOUND`, `CATALOG_ITEM_INACTIVE`,
 `INITIAL_MAINTENANCE_REQUIRES_IMPORTED_DEVICE`,
 `INITIAL_MAINTENANCE_INVALID_DATE`, `MAINTENANCE_REQUIRES_OPERATIONAL_PERIOD` e
 `MAINTENANCE_LEDGER_MISSING`.
+
+## 18. Refinamento executável da Etapa I — venda singular
+
+Todas as rotas usam `/api/v1`, Bearer de sócio ativo, DTO fechado e `no-store`.
+
+| Método/rota | Request | Resposta |
+| --- | --- | --- |
+| `POST /devices/{deviceId}/sale` | `deviceVersion`, `salePrice`, `soldAt` | `201 SaleResponse` + `Location` singular |
+| `GET /devices/{deviceId}/sale` | Nenhum | `200 SaleResponse` ativa; `404 SALE_NOT_FOUND` se não houver |
+| `POST /devices/{deviceId}/sale/cancel` | `saleVersion`, `deviceVersion`, `reason` | `200 SaleResponse` com `CANCELLED` |
+
+Versões são `Long` nullable no request com `@NotNull @PositiveOrZero`. Ausência, null
+ou negativo retorna `400 VALIDATION_ERROR`; divergência retorna `409 CONCURRENT_MODIFICATION`.
+Preço é positivo com até 12 dígitos inteiros e duas casas. Motivo é obrigatório,
+normalizado por trim e limitado a 500 caracteres. Campos desconhecidos retornam
+`400 MALFORMED_REQUEST`. Autor e valores derivados não são aceitos do cliente.
+
+`SaleResponse` preserva `id`, `deviceId`, `salePrice`, `soldAt`, `responsibleUser`,
+`status`, `purchasePrice`, `maintenanceTotal`, `investmentTotal`, `profit`,
+`marginPercent`, `cancelledAt`, `cancelledBy`, `cancellationReason`, `createdAt`, `version`.
+Margem sai em quatro casas com `HALF_UP`, inclusive zero/negativa. IDs internos de
+transações, entidades JPA, hashes, tokens e storage keys não são expostos.
+
+| Código novo | HTTP | Condição |
+| --- | --- | --- |
+| `SALE_REQUIRES_OPERATIONAL_PERIOD` | 422 | `soldAt <= cutoffAt` com implantação persistida |
+| `SALE_DATE_BEFORE_ACTIVE_MAINTENANCE` | 422 | Venda anterior a manutenção ativa |
+| `SALE_LEDGER_MISSING` | 409 | Cancelamento sem entrada original não estornada |
+| `INITIALIZATION_CUTOFF_LOCKED` | 409 | Alteração de cutoff alcança venda registrada, inclusive cancelada |
+
+`SALE_ALREADY_EXISTS` é 409. `SALE_ALREADY_CANCELLED` é 409 ao cancelar novamente com
+versão atual do aparelho; uma versão antiga continua retornando conflito de versão.
+O endpoint singular não identifica uma venda cancelada anterior se já houver nova venda:
+a versão do aparelho evita que um comando antigo cancele a nova operação.
