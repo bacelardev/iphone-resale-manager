@@ -153,12 +153,19 @@ test.describe.serial('Etapa I com backend e PostgreSQL reais', () => {
     await expect(page.getByText('R$ 1.150,00', { exact: true })).toBeVisible();
     await page.screenshot({ path: 'test-results/stage-i-sale-detail.png', fullPage: true });
     await authenticated(page, `/devices/${profitableDeviceId}`);
-    await expect(page.getByText('Vendido', { exact: true })).toBeVisible();
+    await expect(page.locator('.page-actions').getByText('Vendido', { exact: true })).toBeVisible();
     await expect(page.getByRole('link', { name: 'Ver venda' })).toBeVisible();
+    await page.getByRole('button', { name: 'Editar', exact: true }).click();
+    await expect(page.getByLabel('Preço de compra', { exact: true })).toBeDisabled();
+    await expect(page.getByLabel('Data de compra', { exact: true })).toBeDisabled();
+    await page.getByLabel('Saúde da bateria', { exact: true }).fill('92');
+    await page.getByRole('button', { name: 'Salvar alterações' }).click();
+    await expect(page.getByText('92%', { exact: true })).toBeVisible();
+
     const sold = await get(request, `/devices/${profitableDeviceId}`);
     await page.getByRole('link', { name: 'Voltar', exact: true }).click();
     await page.getByRole('textbox', { name: 'Buscar aparelhos' }).fill(sold.internalCode);
-    await expect(page.getByText('Vendido', { exact: true })).toBeVisible();
+    await expect(page.locator('.device-grid').getByText('Vendido', { exact: true })).toBeVisible();
   });
 
   test('dialog de cancelamento preserva foco, Escape e axe', async ({ page }) => {
@@ -193,7 +200,9 @@ test.describe.serial('Etapa I com backend e PostgreSQL reais', () => {
     const available = await get(request, `/devices/${profitableDeviceId}`);
     await page.getByRole('link', { name: 'Voltar', exact: true }).click();
     await page.getByRole('textbox', { name: 'Buscar aparelhos' }).fill(available.internalCode);
-    await expect(page.getByText('Disponível para venda', { exact: true })).toBeVisible();
+    await expect(
+      page.locator('.device-grid').getByText('Disponível para venda', { exact: true }),
+    ).toBeVisible();
   });
 
   test('permite nova venda com prejuízo após cancelamento', async ({ page }) => {

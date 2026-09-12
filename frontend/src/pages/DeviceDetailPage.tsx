@@ -320,8 +320,10 @@ function DeviceEditForm({
         modelId,
         colorId,
         storageGb: Number(storage),
-        purchasePrice: Number(price),
-        purchasedAt: new Date(purchasedAt).toISOString(),
+        ...(device.status !== 'VENDIDO' && {
+          purchasePrice: Number(price),
+          purchasedAt: new Date(purchasedAt).toISOString(),
+        }),
         faceIdWorking: faceId,
         originalScreen: screen,
         originalBattery: battery,
@@ -366,6 +368,7 @@ function DeviceEditForm({
           <FormField id="edit-price" label="Preço de compra">
             <Input
               id="edit-price"
+              disabled={device.status === 'VENDIDO'}
               type="number"
               min="0.01"
               step="0.01"
@@ -377,6 +380,7 @@ function DeviceEditForm({
           <FormField id="edit-purchased-at" label="Data de compra">
             <Input
               id="edit-purchased-at"
+              disabled={device.status === 'VENDIDO'}
               type="datetime-local"
               value={purchasedAt}
               onChange={(event) => setPurchasedAt(event.target.value)}

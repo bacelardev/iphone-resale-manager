@@ -114,6 +114,7 @@ export function SaleDetailPage() {
           title="Cancelar venda"
           description={`${device.data.internalCode} · ${money.format(value.salePrice)}`}
           placement="bottom-sheet"
+          className="sale-cancel-dialog"
         >
           <div className="sale-cancel-summary">
             <IconCash size={22} aria-hidden />

@@ -196,7 +196,8 @@ class StageIFlowIT extends PostgresIntegrationTest {
         assertThat(jdbcTemplate.queryForObject("select count(*) from business_initialization", Integer.class)).isZero();
         Instant future = Instant.now().plusSeconds(86400);
         JsonNode device = availableDevice(token, future, "1800.00");
-        JsonNode sale = registerSale(token, device, "1800.00", future);
+        Instant persistedPurchaseDate = Instant.parse(device.path("purchasedAt").asText());
+        JsonNode sale = registerSale(token, device, "1800.00", persistedPurchaseDate);
         assertThat(sale.path("profit").decimalValue()).isEqualByComparingTo("0.00");
         assertThat(sale.path("marginPercent").decimalValue()).isEqualByComparingTo("0.0000");
         assertThat(sale.path("maintenanceTotal").decimalValue()).isEqualByComparingTo("0.00");
