@@ -3,7 +3,7 @@
 **Status:** Etapa I — versão 1.0 proposta aguardando aprovação.
 **Branch:** `codex/etapa-i-sales`.
 **Base:** `520d8a871b4f827a8aa927b24f14a9447264d6e1` (merge da Etapa H).
-**PR:** draft; sem merge automático. Etapa J não iniciada.
+**PR:** [#4](https://github.com/bacelardev/iphone-resale-manager/pull/4), draft; sem merge automático. Etapa J não iniciada.
 
 ## Entrega
 
@@ -22,9 +22,17 @@ retorna a disponível com feedback de sucesso. Segue os dois SVGs oficiais da F.
 
 ## Validação
 
-Evidências finais do head técnico e workflows serão registradas após a execução do CI.
-O ambiente local tem Node 24; Java 21/PostgreSQL 16 são validados no GitHub Actions.
-Nenhum teste não executado é contado como aprovado.
+**Head técnico validado:** `b2e8bc7a84c87bc8793199b2ad6401f56cd3ce66`.
+
+- [Backend verify #42](https://github.com/bacelardev/iphone-resale-manager/actions/runs/34723033256): Java 21, Maven 3.9.16 e `mvn clean verify` verdes. Foram 29 testes unitários e 46 de integração (75 no total), sem falhas ou skips; a Etapa I adiciona 5 testes de domínio e 17 cenários de integração.
+- [Frontend verify #61](https://github.com/bacelardev/iphone-resale-manager/actions/runs/34723033250): lint, Prettier, TypeScript e build verdes; 66 testes unitários/componentes em 13 arquivos e 46 testes Playwright, todos aprovados sem skips.
+- O frontend iniciou o backend real contra PostgreSQL 16.15; Flyway aplicou a cadeia V1–V5 e Hibernate `ddl-auto=validate` iniciou sem divergência.
+- Playwright cobriu autenticação real, venda, cancelamento e estorno, revenda, prejuízo permitido, cronologia, estoque atualizado, foco/Escape, axe e as larguras 375, 430, 768, 1024 e 1440 px.
+- [Artefato `frontend-responsive-screenshots`](https://github.com/bacelardev/iphone-resale-manager/actions/runs/34723033250/artifacts/10307355038): 2.901.536 bytes, SHA-256 `32bbf1b3163cf4c8b2f3541d7020bd6d4261acb4b8a83069d891aa0b3dfcefbf`, retenção até 19/09/2026.
+
+Nenhum teste não executado foi contado como aprovado. As falhas intermediárias foram
+de precisão temporal e escopo de seletores de teste; foram corrigidas antes do head
+técnico final, sem relaxar regras de negócio ou acessibilidade.
 
 Cobertura adicionada: contratos/validações, cálculos, prejuízo/zero, cutoff, cronologia,
 reversão, versões, ledger ausente, revenda, imutabilidade SQL, concorrência de vendas e
