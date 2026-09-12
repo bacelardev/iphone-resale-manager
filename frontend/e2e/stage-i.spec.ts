@@ -196,7 +196,7 @@ test.describe.serial('Etapa I com backend e PostgreSQL reais', () => {
     await page.getByRole('button', { name: 'Confirmar cancelamento' }).click();
     await expect(page).toHaveURL(`/devices/${profitableDeviceId}`);
     await expect(page.getByText('Disponível para venda', { exact: true })).toBeVisible();
-    await expect(page.getByRole('status')).toContainText('Venda cancelada');
+    await expect(page.locator('.sale-success-notice')).toContainText('Venda cancelada');
     const available = await get(request, `/devices/${profitableDeviceId}`);
     await page.getByRole('link', { name: 'Voltar', exact: true }).click();
     await page.getByRole('textbox', { name: 'Buscar aparelhos' }).fill(available.internalCode);
