@@ -1,4 +1,4 @@
-import { useMemo, useState, type FormEvent } from 'react';
+import { useMemo, useRef, useState, type FormEvent } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   IconArrowDown,
@@ -76,6 +76,7 @@ export function FinancialPage() {
   const [direction, setDirection] = useState<FinancialDirection | ''>('');
   const [operation, setOperation] = useState<Operation | null>(null);
   const [reversal, setReversal] = useState<FinancialTransaction | null>(null);
+  const operationTrigger = useRef<HTMLElement | null>(null);
 
   const period = useMemo(() => {
     if (preset !== 'custom') return periodFor(preset);
@@ -104,8 +105,16 @@ export function FinancialPage() {
   });
 
   function openOperation(value: Operation, transaction?: FinancialTransaction) {
+    operationTrigger.current =
+      document.activeElement instanceof HTMLElement ? document.activeElement : null;
     setReversal(transaction ?? null);
     setOperation(value);
+  }
+
+  function closeOperation() {
+    setOperation(null);
+    setReversal(null);
+    requestAnimationFrame(() => operationTrigger.current?.focus());
   }
 
   const loading = initialization.isLoading || summary.isLoading || transactions.isLoading;
@@ -267,10 +276,7 @@ export function FinancialPage() {
         reversal={reversal}
         userId={user?.id ?? ''}
         userName={user?.name ?? ''}
-        onClose={() => {
-          setOperation(null);
-          setReversal(null);
-        }}
+        onClose={closeOperation}
       />
     </div>
   );
