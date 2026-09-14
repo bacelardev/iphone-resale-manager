@@ -4,8 +4,7 @@ import java.math.BigDecimal;
 import java.time.Instant;
 
 public record FinancialSummaryResponse(
-        Instant from,
-        Instant to,
+        FinancialPeriodResponse period,
         BigDecimal openingBalance,
         BigDecimal closingBalance,
         BigDecimal revenue,
