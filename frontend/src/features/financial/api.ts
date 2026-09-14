@@ -49,6 +49,17 @@ export function listFinancialTransactions(input: {
   );
 }
 
+export function createOpeningBalance(input: {
+  amount: number;
+  occurredAt: string;
+  description: string;
+}) {
+  return apiRequest<FinancialTransaction>('/api/v1/financial/opening-balance', {
+    method: 'POST',
+    body: input,
+  });
+}
+
 export function createContribution(input: {
   ownerUserId: string;
   amount: number;
