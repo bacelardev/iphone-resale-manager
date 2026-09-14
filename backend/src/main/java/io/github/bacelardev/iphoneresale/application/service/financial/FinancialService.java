@@ -33,9 +33,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.Clock;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneId;
-import java.time.temporal.ChronoUnit;
 import java.time.ZonedDateTime;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -99,8 +99,7 @@ public class FinancialService {
                     "BUSINESS_ALREADY_INITIALIZED",
                     "A implantação inicial já foi concluída.");
         }
-        if (!request.occurredAt().truncatedTo(ChronoUnit.MICROS)
-                .equals(initialization.getCutoffAt().truncatedTo(ChronoUnit.MICROS))) {
+        if (!sameDatabaseInstant(request.occurredAt(), initialization.getCutoffAt())) {
             throw BusinessException.unprocessable(
                     "OPENING_BALANCE_CUTOFF_MISMATCH",
                     "A data do saldo inicial deve ser igual à data de corte da implantação.");
@@ -313,6 +312,11 @@ public class FinancialService {
         return users.findByIdAndActiveTrue(id).orElseThrow(() ->
                 BusinessException.badRequest("INVALID_FINANCIAL_OPERATION",
                         "O sócio relacionado não existe ou está inativo."));
+    }
+
+    private static boolean sameDatabaseInstant(Instant first, Instant second) {
+        return Duration.between(first, second).abs()
+                .compareTo(Duration.ofNanos(1_000)) <= 0;
     }
 
     private static void validateOperationalDate(
