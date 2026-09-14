@@ -228,7 +228,7 @@ test.describe.serial('Etapa J com backend e PostgreSQL reais — 18 fluxos', () 
     await expect(page.getByText('Saldo atual', { exact: true })).toBeVisible();
     await expect(page.getByText('Faturamento do mês', { exact: true })).toBeVisible();
     await expect(page.getByText('Capital em estoque', { exact: true })).toBeVisible();
-    await expect(page.getByRole('link', { name: /Financeiro/ })).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Financeiro', exact: true })).toBeVisible();
     await page.screenshot({ path: 'test-results/stage-j-dashboard.png', fullPage: true });
   });
 
