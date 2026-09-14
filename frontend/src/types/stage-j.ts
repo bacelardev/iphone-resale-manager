@@ -35,8 +35,11 @@ export type FinancialTransaction = {
 };
 
 export type FinancialSummary = {
-  from: string;
-  to: string;
+  period: {
+    from: string;
+    to: string;
+    businessTimezone: string;
+  };
   openingBalance: number;
   closingBalance: number;
   revenue: number;
