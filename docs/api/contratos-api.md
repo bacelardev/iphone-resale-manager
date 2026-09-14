@@ -810,6 +810,16 @@ Resposta: `200 PageResponse<FinancialTransactionResponse>`.
 
 ### POST `/financial/opening-balance`
 
+Durante `PREPARING`, `occurredAt` deve ser exatamente igual ao `cutoffAt` persistido.
+A criação usa a mesma trava consultiva transacional da conclusão, impedindo duas aberturas
+simultâneas e corrida entre abertura e conclusão. Depois de criar o saldo inicial, o
+`cutoffAt` não pode mais ser alterado.
+
+Se existir um `OPENING_BALANCE` ativo, a conclusão reutiliza a mesma transação quando valor
+e `cutoffAt` coincidem com `declaredCashBalance`; qualquer divergência retorna
+`409 INITIALIZATION_OPENING_BALANCE_MISMATCH`. `declaredCashBalance = 0` continua sem criar
+transação.
+
 ### POST `/financial/contributions`
 
 ### POST `/financial/withdrawals`
@@ -918,6 +928,8 @@ Não existem `POST`, `PATCH` ou `DELETE` para auditoria.
 | `DEVICE_ALREADY_ARCHIVED` | 409 | Arquivamento repetido. |
 | `FINANCIAL_TRANSACTION_ALREADY_REVERSED` | 409 | Original já possui estorno. |
 | `OPENING_BALANCE_ALREADY_EXISTS` | 409 | Já há saldo inicial não estornado. |
+| `OPENING_BALANCE_CUTOFF_MISMATCH` | 422 | Data do saldo inicial diverge do `cutoffAt`. |
+| `INITIALIZATION_OPENING_BALANCE_MISMATCH` | 409 | Saldo inicial ativo diverge da conclusão. |
 | `PASSWORD_CHANGE_NOT_ALLOWED` | 422 | Tentativa de alterar senha de outro usuário. |
 | `CANNOT_DEACTIVATE_CURRENT_USER` | 422 | Autodesativação bloqueada. |
 | `LAST_ACTIVE_USER_REQUIRED` | 422 | Desativação eliminaria o último acesso. |
