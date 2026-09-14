@@ -38,6 +38,17 @@ Caixa positivo gera exatamente um `OPENING_BALANCE / INFLOW` em `cutoffAt`. Caix
 mantém `openingBalanceTransactionId = null`. Após concluir, importações `INITIAL_IMPORT`,
 alteração do cutoff e nova conclusão ficam bloqueadas.
 
+## Saldo inicial explícito
+
+`POST /api/v1/financial/opening-balance` recebe `amount > 0`, `occurredAt` e `description`
+durante `PREPARING`. `occurredAt` deve ser igual ao `cutoffAt`. A criação e a conclusão
+compartilham a mesma trava consultiva transacional: duas requisições simultâneas não criam duas
+aberturas, e a conclusão reutiliza a existente quando data e valor declarado coincidem.
+
+Uma abertura existente bloqueia alteração posterior do `cutoffAt`. Divergência na conclusão usa
+o código estável `INITIALIZATION_OPENING_BALANCE_MISMATCH`; uma segunda abertura usa
+`OPENING_BALANCE_ALREADY_EXISTS`.
+
 ## Ledger operacional
 
 - `DEVICE_PURCHASE / OUTFLOW`
@@ -57,7 +68,26 @@ Operações de aparelho, manutenção e venda são revertidas apenas pelos casos
 ## Resumo
 
 `GET /api/v1/financial/summary` usa `[from,to)`. Sem período explícito, usa o mês atual em
-`America/Bahia`.
+`America/Bahia`. Os limites efetivos ficam exclusivamente dentro de `period`:
+
+```json
+{
+  "period": {
+    "from": "2026-09-01T03:00:00Z",
+    "to": "2026-10-01T03:00:00Z",
+    "businessTimezone": "America/Bahia"
+  },
+  "openingBalance": 0.00,
+  "closingBalance": 0.00,
+  "revenue": 0.00,
+  "devicePurchaseCost": 0.00,
+  "maintenanceCost": 0.00,
+  "profit": 0.00,
+  "marginPercent": null,
+  "stockCapital": 0.00,
+  "calculatedAt": "2026-09-14T12:00:00Z"
+}
+```
 
 `openingBalance` soma o efeito líquido anterior ao início. `closingBalance` agrega o movimento
 do período. Receita inclui vendas ativas. Custos operacionais excluem importações históricas.
