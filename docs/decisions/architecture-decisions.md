@@ -368,3 +368,19 @@ motivo já ocupa o limite. Nenhuma dependência nova.
 
 As decisões I-01 a I-20 foram aprovadas sem alteração em 14/09/2026. O fechamento foi
 exclusivamente documental; a Etapa J não foi iniciada.
+
+
+## Decisões da Etapa J
+
+- **J-01 — Marca:** produto denominado Delarte Control; Andelar é a assinatura institucional.
+- **J-02 — Fronteira interna:** nomes persistidos, packages, migrations e prefixos legados não são renomeados.
+- **J-03 — Caixa de abertura:** caixa positivo gera um único `OPENING_BALANCE`; zero não gera transação.
+- **J-04 — Capital histórico:** fotografia informativa em `owner_capital_opening`, fora do ledger.
+- **J-05 — Autoria:** `ownerUser` representa o sócio; `createdBy`, o registrador.
+- **J-06 — Imutabilidade:** ledger append-only, com estorno vinculado e máximo de um por original.
+- **J-07 — Tempo:** `America/Bahia`, efeito por `occurredAt` e intervalo `[from,to)`.
+- **J-08 — Resultado:** lucro e margem são calculados oficialmente no backend.
+- **J-09 — Estoque:** `stockCapital` é snapshot e nunca é somado ao caixa.
+- **J-10 — Concorrência:** locks determinísticos protegem conclusão, abertura e estornos.
+- **J-11 — Banco:** V6 é aditiva e reforça conclusão, temporalidade e imutabilidade histórica.
+- **J-12 — Interface:** mobile-first, sem overflow, dialogs acessíveis e sinais não dependentes só de cor.

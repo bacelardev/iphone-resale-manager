@@ -596,3 +596,28 @@ sem efeito parcial. Nova venda após cancelamento é permitida.
 Com venda ativa, manutenção e arquivamento são bloqueados; compra/data não mudam.
 Os demais campos editáveis da G preservam suas permissões. Venda cancelada permanece
 no banco/ledger/auditoria; não há PATCH nem lista global de vendas nesta etapa.
+
+
+## Etapa J
+
+### Concluir implantação existente
+
+1. O sócio consulta a prévia da data de corte e do capital em estoque.
+2. Informa o caixa real e, opcionalmente, aportes/retiradas históricos por sócio.
+3. O sistema bloqueia a implantação, valida versão e estado `PREPARING`.
+4. Caixa positivo cria/reutiliza um único saldo inicial coerente; caixa zero não cria ledger.
+5. Capital histórico é persistido fora do caixa.
+6. A implantação passa a `COMPLETED` e importações históricas ficam bloqueadas.
+
+### Registrar movimento financeiro manual
+
+Aporte e retirada guardam o sócio relacionado e o registrador autenticado separadamente.
+Ajuste livre recebe direção. Estorno deriva direção oposta e valor do original, mantém ambos os
+lançamentos e admite no máximo um estorno por original.
+
+### Consultar financeiro e dashboard
+
+O usuário escolhe Hoje, Semana, Mês, Ano ou período personalizado. O sistema calcula os limites
+civis em `America/Bahia`, apresenta saldos, faturamento, custos, lucro/prejuízo, margem e
+capital em estoque e permite filtrar o ledger. O dashboard utiliza os mesmos números oficiais e
+as contagens reais de aparelhos.

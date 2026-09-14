@@ -152,3 +152,16 @@ Vendas concluídas e movimentações financeiras não devem desaparecer por excl
 - Lock canônico começa por Device, compartilhado com manutenção/arquivamento.
 - V5 protege estado, cronologia, imutabilidade e mudança conflitante de cutoff sem alterar V1–V4.
 - A Etapa I está aprovada e encerrada na versão 1.0; financeiro completo e conclusão da implantação pertencem à J e não foram iniciados.
+
+
+## Regras financeiras da Etapa J
+
+- Caixa real e capital em estoque são grandezas distintas.
+- Estoque importado preserva custos históricos, mas não cria saída operacional.
+- Capital histórico dos sócios é informativo e não movimenta o caixa.
+- Toda transação financeira é imutável; correções são novos lançamentos vinculados.
+- Saldo pode ser negativo; retirada não é bloqueada por insuficiência.
+- `occurredAt` determina o efeito econômico; resumos usam `[from,to)`.
+- Após `COMPLETED`, a data de corte, a conclusão e as importações históricas são definitivas.
+- Dinheiro usa `BigDecimal`; margem usa quatro casas e `HALF_UP`.
+- `ownerUser` e `createdBy` têm semânticas diferentes e ambas são auditáveis.

@@ -1,4 +1,4 @@
-# Frontend — iPhone Resale
+# Frontend — Delarte Control
 
 Etapa F: **1.0 proposta**, aguardando aprovação. Fundação e autenticação reais; módulos
 de negócio são placeholders protegidos.

@@ -1068,3 +1068,64 @@ transações, entidades JPA, hashes, tokens e storage keys não são expostos.
 versão atual do aparelho; uma versão antiga continua retornando conflito de versão.
 O endpoint singular não identifica uma venda cancelada anterior se já houver nova venda:
 a versão do aparelho evita que um comando antigo cancele a nova operação.
+
+
+## Etapa J — implantação e financeiro
+
+### POST `/api/v1/business-initialization/complete`
+
+Conclui definitivamente a implantação em uma única transação.
+
+```json
+{
+  "expectedVersion": 0,
+  "declaredCashBalance": 4000.00,
+  "ownerCapitalOpenings": [
+    {
+      "ownerUserId": "uuid",
+      "historicalContributionAmount": 9000.00,
+      "historicalWithdrawalAmount": 1000.00
+    }
+  ]
+}
+```
+
+O caixa declarado gera exatamente um `OPENING_BALANCE / INFLOW` em `cutoffAt` quando
+positivo. Caixa zero não gera lançamento. Capital histórico é apenas informativo e não integra
+o ledger. A resposta de `GET /api/v1/business-initialization` inclui estado, saldo declarado,
+lançamento de abertura, conclusão, responsável, capital por sócio e versão.
+
+### Operações financeiras
+
+- `POST /api/v1/financial/contributions`: `OWNER_CONTRIBUTION / INFLOW`.
+- `POST /api/v1/financial/withdrawals`: `OWNER_WITHDRAWAL / OUTFLOW`.
+- `POST /api/v1/financial/adjustments`: ajuste livre ou estorno manual mutuamente exclusivo.
+- `GET /api/v1/financial/transactions`: filtros `from`, `to`, `type`, `direction`,
+  `page`, `size` e `sort`.
+- `GET /api/v1/financial/summary`: intervalo `[from,to)`; sem parâmetros, mês civil em
+  `America/Bahia`.
+
+Aportes e retiradas exigem `ownerUserId`; `ownerUser` identifica o sócio do dinheiro e
+`createdBy` identifica quem registrou. O ledger é append-only. Não existem `PATCH` ou
+`DELETE` financeiros.
+
+Ordenação financeira aceita somente `occurredAt`, `createdAt`, `amount`, `type` e
+`direction`; padrão `occurredAt,desc`.
+
+### Resumo financeiro
+
+- `openingBalance`: efeito líquido anterior a `from`.
+- `closingBalance`: abertura mais efeito líquido no período.
+- `revenue`: vendas ativas no período.
+- `devicePurchaseCost`: compras operacionais não estornadas no período.
+- `maintenanceCost`: manutenções operacionais ativas no período.
+- `profit`: venda menos compra e manutenções ativas de cada aparelho vendido.
+- `marginPercent`: `profit / revenue * 100`, quatro casas; `null` sem faturamento.
+- `stockCapital`: compra mais manutenções ativas dos aparelhos não vendidos/não arquivados.
+
+Códigos específicos: `BUSINESS_INITIALIZATION_NOT_STARTED`,
+`BUSINESS_ALREADY_INITIALIZED`, `INITIALIZATION_CUTOFF_LOCKED`,
+`INITIALIZATION_OPENING_BALANCE_MISMATCH`, `OWNER_CAPITAL_DUPLICATE`,
+`FINANCIAL_TRANSACTION_NOT_FOUND`, `FINANCIAL_TRANSACTION_ALREADY_REVERSED`,
+`OPERATIONAL_REVERSAL_NOT_ALLOWED`, `INVALID_FINANCIAL_OPERATION`,
+`FINANCIAL_OPERATION_REQUIRES_OPERATIONAL_PERIOD` e `CONCURRENT_MODIFICATION`.
