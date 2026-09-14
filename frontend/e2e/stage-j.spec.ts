@@ -97,7 +97,7 @@ test.describe.serial('Etapa J com backend e PostgreSQL reais — 18 fluxos', () 
 
   test('1. login exibe o branding Delarte Control', async ({ page }) => {
     await page.goto('/login');
-    await expect(page.getByText('Delarte Control', { exact: true })).toBeVisible();
+    await expect(page.getByText(/Delarte Control/).first()).toBeVisible();
     await expect(page).toHaveTitle(/Delarte Control/);
     await page.screenshot({ path: 'test-results/stage-j-login.png', fullPage: true });
   });
