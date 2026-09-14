@@ -1994,7 +1994,6 @@ input[type='checkbox'] {
   }
 }
 
-
 /* Etapa J — Delarte Control financial workspace */
 .financial-page,
 .completion-card,
@@ -2149,7 +2148,7 @@ input[type='checkbox'] {
 }
 @media (min-width: 760px) {
   .completion-card {
-    grid-template-columns: minmax(0, 1fr) minmax(240px, .7fr);
+    grid-template-columns: minmax(0, 1fr) minmax(240px, 0.7fr);
   }
   .completion-form {
     grid-column: 1 / -1;

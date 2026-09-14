@@ -11,10 +11,10 @@ const formatter = new Intl.DateTimeFormat('en-CA', {
 
 function parts(value: Date): DateParts {
   const values = Object.fromEntries(
-    formatter.formatToParts(value).filter((item) => item.type !== 'literal').map((item) => [
-      item.type,
-      Number(item.value),
-    ]),
+    formatter
+      .formatToParts(value)
+      .filter((item) => item.type !== 'literal')
+      .map((item) => [item.type, Number(item.value)]),
   );
   return { year: values.year, month: values.month, day: values.day };
 }
@@ -45,9 +45,10 @@ export function periodFor(preset: Exclude<PeriodPreset, 'custom'>, now = new Dat
       to: instant({ year: current.year + 1, month: 1, day: 1 }),
     };
   }
-  const nextMonth = current.month === 12
-    ? { year: current.year + 1, month: 1, day: 1 }
-    : { year: current.year, month: current.month + 1, day: 1 };
+  const nextMonth =
+    current.month === 12
+      ? { year: current.year + 1, month: 1, day: 1 }
+      : { year: current.year, month: current.month + 1, day: 1 };
   return {
     from: instant({ year: current.year, month: current.month, day: 1 }),
     to: instant(nextMonth),

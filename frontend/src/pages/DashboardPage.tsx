@@ -1,11 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
-import {
-  IconArrowRight,
-  IconDeviceMobile,
-  IconHistory,
-  IconWallet,
-} from '@tabler/icons-react';
+import { IconArrowRight, IconDeviceMobile, IconHistory, IconWallet } from '@tabler/icons-react';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import { ErrorState } from '@/components/ui/error-state';
@@ -59,8 +54,14 @@ export function DashboardPage() {
       />
       {error && <ErrorState error={error} />}
       <div className="dashboard-metrics" aria-live="polite">
-        <DashboardMetric label="Saldo atual" value={summary.data ? money.format(summary.data.closingBalance) : '—'} />
-        <DashboardMetric label="Faturamento do mês" value={summary.data ? money.format(summary.data.revenue) : '—'} />
+        <DashboardMetric
+          label="Saldo atual"
+          value={summary.data ? money.format(summary.data.closingBalance) : '—'}
+        />
+        <DashboardMetric
+          label="Faturamento do mês"
+          value={summary.data ? money.format(summary.data.revenue) : '—'}
+        />
         <DashboardMetric
           label={summary.data && summary.data.profit < 0 ? 'Prejuízo do mês' : 'Lucro do mês'}
           value={summary.data ? money.format(summary.data.profit) : '—'}
@@ -73,9 +74,15 @@ export function DashboardPage() {
               : `${percent.format(summary.data.marginPercent)}%`
           }
         />
-        <DashboardMetric label="Capital em estoque" value={summary.data ? money.format(summary.data.stockCapital) : '—'} />
+        <DashboardMetric
+          label="Capital em estoque"
+          value={summary.data ? money.format(summary.data.stockCapital) : '—'}
+        />
         <DashboardMetric label="Disponíveis" value={String(available.data?.totalElements ?? '—')} />
-        <DashboardMetric label="Em manutenção" value={String(maintenance.data?.totalElements ?? '—')} />
+        <DashboardMetric
+          label="Em manutenção"
+          value={String(maintenance.data?.totalElements ?? '—')}
+        />
         <DashboardMetric label="Vendidos" value={String(sold.data?.totalElements ?? '—')} />
       </div>
       <p className="financial-explanation">

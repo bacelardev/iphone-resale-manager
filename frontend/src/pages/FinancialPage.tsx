@@ -28,11 +28,7 @@ import {
   getFinancialSummary,
   listFinancialTransactions,
 } from '@/features/financial/api';
-import {
-  customPeriod,
-  periodFor,
-  type PeriodPreset,
-} from '@/features/financial/periods';
+import { customPeriod, periodFor, type PeriodPreset } from '@/features/financial/periods';
 import type {
   FinancialDirection,
   FinancialTransaction,
@@ -159,8 +155,15 @@ export function FinancialPage() {
           {summary.data && (
             <>
               <div className="financial-cards">
-                <Metric label="Saldo inicial do período" value={money.format(summary.data.openingBalance)} />
-                <Metric label="Saldo final do período" value={money.format(summary.data.closingBalance)} strong />
+                <Metric
+                  label="Saldo inicial do período"
+                  value={money.format(summary.data.openingBalance)}
+                />
+                <Metric
+                  label="Saldo final do período"
+                  value={money.format(summary.data.closingBalance)}
+                  strong
+                />
                 <Metric label="Faturamento" value={money.format(summary.data.revenue)} />
                 <Metric
                   label={summary.data.profit < 0 ? 'Prejuízo' : 'Lucro'}
@@ -177,7 +180,10 @@ export function FinancialPage() {
                 />
                 <Metric label="Compras" value={money.format(summary.data.devicePurchaseCost)} />
                 <Metric label="Manutenções" value={money.format(summary.data.maintenanceCost)} />
-                <Metric label="Capital em estoque" value={money.format(summary.data.stockCapital)} />
+                <Metric
+                  label="Capital em estoque"
+                  value={money.format(summary.data.stockCapital)}
+                />
               </div>
               <p className="financial-explanation">
                 Saldo em caixa é o dinheiro disponível. Capital em estoque é o valor investido nos
@@ -213,7 +219,9 @@ export function FinancialPage() {
                 >
                   <option value="">Todos</option>
                   {Object.entries(typeLabels).map(([value, label]) => (
-                    <option key={value} value={value}>{label}</option>
+                    <option key={value} value={value}>
+                      {label}
+                    </option>
                   ))}
                 </Select>
               </FormField>
@@ -240,7 +248,9 @@ export function FinancialPage() {
                     onReverse={
                       reversible.includes(item.type) &&
                       !item.reversalOfId &&
-                      !transactions.data?.content.some((candidate) => candidate.reversalOfId === item.id)
+                      !transactions.data?.content.some(
+                        (candidate) => candidate.reversalOfId === item.id,
+                      )
                         ? () => openOperation('reversal', item)
                         : undefined
                     }
@@ -277,13 +287,15 @@ function PeriodControls(props: {
   return (
     <Card className="period-card">
       <div className="period-presets" aria-label="Período financeiro">
-        {([
-          ['today', 'Hoje'],
-          ['week', 'Semana'],
-          ['month', 'Mês'],
-          ['year', 'Ano'],
-          ['custom', 'Personalizado'],
-        ] as const).map(([value, label]) => (
+        {(
+          [
+            ['today', 'Hoje'],
+            ['week', 'Semana'],
+            ['month', 'Mês'],
+            ['year', 'Ano'],
+            ['custom', 'Personalizado'],
+          ] as const
+        ).map(([value, label]) => (
           <Button
             key={value}
             variant={props.preset === value ? 'primary' : 'ghost'}
@@ -440,13 +452,14 @@ function OperationDialog({
   });
 
   if (!operation) return null;
-  const title = operation === 'contribution'
-    ? 'Registrar aporte'
-    : operation === 'withdrawal'
-      ? 'Registrar retirada'
-      : operation === 'reversal'
-        ? 'Estornar movimentação'
-        : 'Registrar ajuste';
+  const title =
+    operation === 'contribution'
+      ? 'Registrar aporte'
+      : operation === 'withdrawal'
+        ? 'Registrar retirada'
+        : operation === 'reversal'
+          ? 'Estornar movimentação'
+          : 'Registrar ajuste';
 
   function submit(event: FormEvent) {
     event.preventDefault();
@@ -548,11 +561,13 @@ function InitializationCompletion({ userId, userName }: { userId: string; userNa
         declaredCashBalance: Number(cash),
         ownerCapitalOpenings:
           Number(contribution) > 0 || Number(withdrawal) > 0
-            ? [{
-                ownerUserId: userId,
-                historicalContributionAmount: Number(contribution),
-                historicalWithdrawalAmount: Number(withdrawal),
-              }]
+            ? [
+                {
+                  ownerUserId: userId,
+                  historicalContributionAmount: Number(contribution),
+                  historicalWithdrawalAmount: Number(withdrawal),
+                },
+              ]
             : [],
       }),
     onSuccess: async () => {
