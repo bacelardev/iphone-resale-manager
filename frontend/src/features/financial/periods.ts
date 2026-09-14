@@ -16,6 +16,11 @@ function dateParts(year: number | undefined, month: number | undefined, day: num
   return { year, month, day };
 }
 
+function parseDate(value: string) {
+  const values = value.split('-').map(Number);
+  return dateParts(values[0], values[1], values[2]);
+}
+
 function parts(value: Date): DateParts {
   const values = Object.fromEntries(
     formatter
@@ -63,8 +68,8 @@ export function periodFor(preset: Exclude<PeriodPreset, 'custom'>, now = new Dat
 }
 
 export function customPeriod(from: string, toInclusive: string) {
-  const fromParts = dateParts(...from.split('-').map(Number));
-  const toParts = dateParts(...toInclusive.split('-').map(Number));
+  const fromParts = parseDate(from);
+  const toParts = parseDate(toInclusive);
   return {
     from: instant(fromParts),
     to: instant(shift(toParts, 1)),
