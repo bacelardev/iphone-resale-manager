@@ -140,8 +140,20 @@ public class FinancialTransaction extends CreatedOnlyEntity {
     }
 
     public static FinancialTransaction openingBalance(BigDecimal amount, Instant occurredAt) {
+        return openingBalance(
+                amount,
+                occurredAt,
+                "Saldo inicial declarado na conclusão da implantação."
+        );
+    }
+
+    public static FinancialTransaction openingBalance(
+            BigDecimal amount,
+            Instant occurredAt,
+            String description
+    ) {
         return manual(FinancialDirection.INFLOW, FinancialTransactionType.OPENING_BALANCE,
-                null, amount, occurredAt, "Saldo inicial declarado na conclusão da implantação.", null);
+                null, amount, occurredAt, description, null);
     }
 
     public static FinancialTransaction ownerContribution(
