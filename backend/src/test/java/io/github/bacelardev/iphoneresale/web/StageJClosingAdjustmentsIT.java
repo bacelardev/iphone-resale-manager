@@ -59,6 +59,7 @@ class StageJClosingAdjustmentsIT extends PostgresIntegrationTest {
         String token = login();
         Instant cutoff = Instant.now().minusSeconds(3600);
         JsonNode initialization = start(token, cutoff);
+        cutoff = Instant.parse(initialization.path("cutoffAt").asText());
 
         mockMvc.perform(post("/api/v1/financial/opening-balance")
                         .header(HttpHeaders.AUTHORIZATION, bearer(token))
@@ -121,8 +122,10 @@ class StageJClosingAdjustmentsIT extends PostgresIntegrationTest {
     @Test
     void concurrentOpeningBalancesCreateExactlyOneTransactionAndAudit() throws Exception {
         String token = login();
-        Instant cutoff = Instant.now().minusSeconds(3600);
-        start(token, cutoff);
+        Instant cutoff = Instant.parse(
+                start(token, Instant.now().minusSeconds(3600))
+                        .path("cutoffAt").asText()
+        );
         String request = json(Map.of(
                 "amount", 3000,
                 "occurredAt", cutoff,
