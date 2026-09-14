@@ -9,6 +9,13 @@ const formatter = new Intl.DateTimeFormat('en-CA', {
   day: '2-digit',
 });
 
+function dateParts(year: number | undefined, month: number | undefined, day: number | undefined) {
+  if (year === undefined || month === undefined || day === undefined) {
+    throw new Error('Data inválida.');
+  }
+  return { year, month, day };
+}
+
 function parts(value: Date): DateParts {
   const values = Object.fromEntries(
     formatter
@@ -16,7 +23,7 @@ function parts(value: Date): DateParts {
       .filter((item) => item.type !== 'literal')
       .map((item) => [item.type, Number(item.value)]),
   );
-  return { year: values.year, month: values.month, day: values.day };
+  return dateParts(values.year, values.month, values.day);
 }
 
 function instant(value: DateParts) {
@@ -56,10 +63,10 @@ export function periodFor(preset: Exclude<PeriodPreset, 'custom'>, now = new Dat
 }
 
 export function customPeriod(from: string, toInclusive: string) {
-  const [fy, fm, fd] = from.split('-').map(Number);
-  const [ty, tm, td] = toInclusive.split('-').map(Number);
+  const fromParts = dateParts(...from.split('-').map(Number));
+  const toParts = dateParts(...toInclusive.split('-').map(Number));
   return {
-    from: instant({ year: fy, month: fm, day: fd }),
-    to: instant(shift({ year: ty, month: tm, day: td }, 1)),
+    from: instant(fromParts),
+    to: instant(shift(toParts, 1)),
   };
 }
