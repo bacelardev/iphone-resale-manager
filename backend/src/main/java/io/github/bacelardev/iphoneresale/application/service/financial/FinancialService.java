@@ -35,6 +35,7 @@ import java.math.RoundingMode;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneId;
+import java.time.temporal.ChronoUnit;
 import java.time.ZonedDateTime;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -98,7 +99,8 @@ public class FinancialService {
                     "BUSINESS_ALREADY_INITIALIZED",
                     "A implantação inicial já foi concluída.");
         }
-        if (!request.occurredAt().equals(initialization.getCutoffAt())) {
+        if (!request.occurredAt().truncatedTo(ChronoUnit.MICROS)
+                .equals(initialization.getCutoffAt().truncatedTo(ChronoUnit.MICROS))) {
             throw BusinessException.unprocessable(
                     "OPENING_BALANCE_CUTOFF_MISMATCH",
                     "A data do saldo inicial deve ser igual à data de corte da implantação.");
