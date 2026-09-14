@@ -119,6 +119,10 @@ public class BusinessInitializationService {
         BusinessInitialization initialization = requiredForUpdate();
         VersionGuard.require(initialization.getVersion(), request.expectedVersion());
         requirePreparing(initialization);
+        if (transactions.findActiveOpeningBalanceForUpdate().isPresent()) {
+            throw BusinessException.conflict("INITIALIZATION_CUTOFF_LOCKED",
+                    "A data de corte não pode mudar depois do registro do saldo inicial.");
+        }
         if (devices.existsByRegistrationOrigin(RegistrationOrigin.INITIAL_IMPORT)) {
             throw BusinessException.conflict("INITIALIZATION_CUTOFF_LOCKED",
                     "A data de corte não pode mudar depois da primeira importação inicial.");
