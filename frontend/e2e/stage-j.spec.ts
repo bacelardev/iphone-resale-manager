@@ -104,7 +104,9 @@ test.describe.serial('Etapa J com backend e PostgreSQL reais — 18 fluxos', () 
 
   test('2. fluxo PREPARING orienta a conclusão da implantação', async ({ page }) => {
     await authenticated(page, '/financial');
-    await expect(page.getByRole('heading', { name: 'Concluir configuração inicial' })).toBeVisible();
+    await expect(
+      page.getByRole('heading', { name: 'Concluir configuração inicial' }),
+    ).toBeVisible();
     await expect(page.getByText(/Após concluir, aparelhos e manutenções históricas/)).toBeVisible();
     await expect(page.getByRole('button', { name: 'Novo movimento' })).not.toBeVisible();
   });
@@ -115,7 +117,10 @@ test.describe.serial('Etapa J com backend e PostgreSQL reais — 18 fluxos', () 
     await expect(preview.getByText('Data de corte', { exact: true })).toBeVisible();
     await expect(preview.getByText('Aparelhos importados', { exact: true })).toBeVisible();
     await expect(preview.getByText('Capital em estoque', { exact: true })).toBeVisible();
-    await page.screenshot({ path: 'test-results/stage-j-initialization-preview.png', fullPage: true });
+    await page.screenshot({
+      path: 'test-results/stage-j-initialization-preview.png',
+      fullPage: true,
+    });
   });
 
   test('4. conclui implantação com saldo inicial e capital histórico informativo', async ({
@@ -136,7 +141,9 @@ test.describe.serial('Etapa J com backend e PostgreSQL reais — 18 fluxos', () 
   test('5. bloqueia importações históricas depois de COMPLETED', async ({ page }) => {
     await authenticated(page, '/devices/import');
     await expect(page.getByRole('heading', { name: 'Preparação necessária' })).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Importar aparelho existente' })).not.toBeVisible();
+    await expect(
+      page.getByRole('button', { name: 'Importar aparelho existente' }),
+    ).not.toBeVisible();
   });
 
   test('6. financeiro abre com resumo e ledger reais', async ({ page }) => {
@@ -186,9 +193,7 @@ test.describe.serial('Etapa J com backend e PostgreSQL reais — 18 fluxos', () 
     await dialog.getByLabel('Descrição').fill('Estorno E2E J do aporte.');
     await dialog.getByRole('button', { name: 'Confirmar' }).click();
     await expect(dialog).not.toBeVisible();
-    await expect(
-      row.getByRole('button', { name: 'Estornar movimentação' }),
-    ).not.toBeVisible();
+    await expect(row.getByRole('button', { name: 'Estornar movimentação' })).not.toBeVisible();
     await expect(page.getByText('Estorno E2E J do aporte.', { exact: true })).toBeVisible();
   });
 
