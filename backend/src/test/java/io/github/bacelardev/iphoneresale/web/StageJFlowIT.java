@@ -171,11 +171,17 @@ class StageJFlowIT extends PostgresIntegrationTest {
                         .param("from", cutoff.toString())
                         .param("to", to.toString()))
                 .andExpect(status().isOk())
+                .andExpect(jsonPath("$.period.from").value(cutoff.toString()))
+                .andExpect(jsonPath("$.period.to").value(to.toString()))
+                .andExpect(jsonPath("$.period.businessTimezone").value("America/Bahia"))
+                .andExpect(jsonPath("$.from").doesNotExist())
+                .andExpect(jsonPath("$.to").doesNotExist())
                 .andExpect(jsonPath("$.openingBalance").value(0.00))
                 .andExpect(jsonPath("$.closingBalance").value(-750.00))
                 .andExpect(jsonPath("$.revenue").value(0.00))
                 .andExpect(jsonPath("$.profit").value(0.00))
-                .andExpect(jsonPath("$.marginPercent").doesNotExist())
+                .andExpect(jsonPath("$.marginPercent").value(
+                        org.hamcrest.Matchers.nullValue()))
                 .andExpect(jsonPath("$.stockCapital").value(0.00));
 
         mockMvc.perform(get("/api/v1/financial/summary")
