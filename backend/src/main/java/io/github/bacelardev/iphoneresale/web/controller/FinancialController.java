@@ -7,6 +7,7 @@ import io.github.bacelardev.iphoneresale.web.dto.common.PageResponse;
 import io.github.bacelardev.iphoneresale.web.dto.financial.AdjustmentRequest;
 import io.github.bacelardev.iphoneresale.web.dto.financial.FinancialSummaryResponse;
 import io.github.bacelardev.iphoneresale.web.dto.financial.FinancialTransactionResponse;
+import io.github.bacelardev.iphoneresale.web.dto.financial.OpeningBalanceRequest;
 import io.github.bacelardev.iphoneresale.web.dto.financial.OwnerMovementRequest;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -29,6 +30,14 @@ public class FinancialController {
 
     public FinancialController(FinancialService service) {
         this.service = service;
+    }
+
+    @PostMapping("/opening-balance")
+    @ResponseStatus(HttpStatus.CREATED)
+    public FinancialTransactionResponse openingBalance(
+            @Valid @RequestBody OpeningBalanceRequest request
+    ) {
+        return service.openingBalance(request);
     }
 
     @PostMapping("/contributions")
