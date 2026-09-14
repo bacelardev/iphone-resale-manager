@@ -29,10 +29,6 @@ public interface FinancialTransactionJpaRepository
     );
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
-    @EntityGraph(attributePaths = {
-            "createdBy", "ownerUser", "reversalOf", "device",
-            "maintenance", "maintenance.device", "sale", "sale.device"
-    })
     @Query("select transaction from FinancialTransaction transaction where transaction.id = :id")
     Optional<FinancialTransaction> findByIdForUpdate(@Param("id") UUID id);
 
