@@ -151,4 +151,4 @@ Vendas concluídas e movimentações financeiras não devem desaparecer por excl
 - Cancelamento retorna somente a disponível; permite nova venda e preserva a venda anterior.
 - Lock canônico começa por Device, compartilhado com manutenção/arquivamento.
 - V5 protege estado, cronologia, imutabilidade e mudança conflitante de cutoff sem alterar V1–V4.
-- A Etapa I está em proposta para revisão; financeiro completo e conclusão da implantação pertencem à J.
+- A Etapa I está aprovada e encerrada na versão 1.0; financeiro completo e conclusão da implantação pertencem à J e não foram iniciados.

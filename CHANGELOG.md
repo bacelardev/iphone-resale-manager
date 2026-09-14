@@ -1,10 +1,10 @@
 # Changelog
 
-## Etapa I — versão 1.0 proposta
+## Etapa I — versão 1.0 aprovada
 
 - Vendas operacionais, lucro/margem oficiais, cancelamento com estorno e revenda.
 - V5 aditiva, frontend responsivo e cobertura backend/frontend/E2E.
-- Branch própria e PR draft; aguardando aprovação, sem merge e sem Etapa J.
+- Etapa I encerrada pelo PR #4, sem alterações funcionais adicionais e sem iniciar a Etapa J.
 
 
 ## 1.3 — Fundação frontend (Etapa F 1.0 aprovada)

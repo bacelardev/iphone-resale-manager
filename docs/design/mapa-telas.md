@@ -206,7 +206,7 @@ PartPicker reutiliza o CatalogPicker aprovado: busca por nome/código, combobox 
 listbox com setas/Home/End/Enter, trap de foco, Escape, restauração e sheet mobile. As
 cinco larguras oficiais permanecem 375, 430, 768, 1024 e 1440 px. Venda não foi iniciada.
 
-## Telas da proposta da Etapa I
+## Telas da Etapa I — versão 1.0 aprovada
 
 | Tela | Rota/estado | Comportamento |
 | --- | --- | --- |

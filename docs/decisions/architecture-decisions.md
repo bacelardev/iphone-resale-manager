@@ -332,7 +332,7 @@ resumidos na auditoria principal de arquivamento; PartPicker adapta o modal apro
 As decisões H-01 a H-20 são finais. A Etapa H foi aprovada em 10/09/2026 após os
 gates completos do backend e frontend. A Etapa I não foi iniciada.
 
-## Decisões da Etapa I — versão 1.0 proposta
+## Decisões da Etapa I — versão 1.0 aprovada
 
 | ID | Decisão |
 | --- | --- |
@@ -362,4 +362,9 @@ aparelho e soma de manutenção durante cancelamento concorrente. Motivo complet
 na Sale e auditoria; descrição curta do estorno evita exceder `varchar(500)` quando o
 motivo já ocupa o limite. Nenhuma dependência nova.
 
-**Status:** Etapa I — versão 1.0 proposta aguardando aprovação.
+**Versão:** 1.0 aprovada
+
+**Status:** Etapa I encerrada
+
+As decisões I-01 a I-20 foram aprovadas sem alteração em 14/09/2026. O fechamento foi
+exclusivamente documental; a Etapa J não foi iniciada.

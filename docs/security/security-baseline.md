@@ -145,7 +145,7 @@ Apagar apenas o arquivo ou o commit mais recente não invalida a credencial vaza
 - PartPicker mantém trap/restauração de foco, Escape, teclado e axe; não introduz HTML
   armazenado nem dependência visual externa.
 
-## Extensão permanente da baseline — proposta da Etapa I
+## Extensão permanente da baseline — Etapa I versão 1.0 aprovada
 
 - Rotas de venda exigem Bearer de sócio ativo e preservam CORS, no-store e DTOs fechados.
 - `deviceVersion` e `saleVersion` são obrigatórios, não negativos e conferidos sob lock.

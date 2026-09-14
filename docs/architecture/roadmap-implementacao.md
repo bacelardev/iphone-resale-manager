@@ -111,7 +111,7 @@ Status: concluída na versão inicial.
   da Fase 4. Validação final em `docs/frontend/etapa-f-fundacao-frontend.md`.
 - G: aparelhos, catálogos e preparação da implantação, **versão 1.0 aprovada** e **Etapa G encerrada**.
 - H: manutenções, peças e importação histórica, **versão 1.0 aprovada** e **Etapa H encerrada**.
-- I: implementação autorizada, versão 1.0 proposta em branch própria e PR draft.
+- I: vendas, lucro, margem e reversão, **versão 1.0 aprovada** e **Etapa I encerrada**.
 - J e etapas seguintes: não iniciadas; exigem nova autorização explícita.
 
 
@@ -137,11 +137,12 @@ Status: concluída na versão inicial.
 - Status: **versão 1.0 aprovada — Etapa H encerrada**.
 - Etapa I não iniciada.
 
-## Etapa I — versão 1.0 proposta aguardando aprovação
+## Etapa I encerrada
 
 - Base: merge da H `520d8a871b4f827a8aa927b24f14a9447264d6e1`.
-- Branch: `codex/etapa-i-sales`; PR em draft, sem merge automático.
+- Branch: `codex/etapa-i-sales`; PR #4 aprovado para merge.
 - Fase 7: registro, consulta singular, cálculo oficial, prejuízo, cancelamento/reversão e revenda.
 - V5 aditiva; V1–V4 preservadas. Frontend V2/Mobile-first, cinco larguras, axe e CI real.
 - Evidências e limites em `docs/sales/etapa-i-vendas.md`.
+- Status: **versão 1.0 aprovada; Etapa I encerrada**, sem alterações funcionais no fechamento.
 - Nenhuma funcionalidade da Etapa J iniciada; não há conclusão da implantação.

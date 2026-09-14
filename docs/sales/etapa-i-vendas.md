@@ -1,9 +1,18 @@
 # Etapa I — Vendas, lucro, margem e reversão
 
-**Status:** Etapa I — versão 1.0 proposta aguardando aprovação.
+**Versão:** 1.0 aprovada.
+**Status:** Etapa I encerrada.
 **Branch:** `codex/etapa-i-sales`.
 **Base:** `520d8a871b4f827a8aa927b24f14a9447264d6e1` (merge da Etapa H).
-**PR:** [#4](https://github.com/bacelardev/iphone-resale-manager/pull/4), draft; sem merge automático. Etapa J não iniciada.
+**PR:** [#4](https://github.com/bacelardev/iphone-resale-manager/pull/4), aprovado para merge. Etapa J não iniciada.
+
+## Fechamento
+
+A versão 1.0 foi aprovada em 14/09/2026. O fechamento é exclusivamente documental:
+nenhum código funcional, contrato ou comportamento foi alterado. Permanecem integrais
+as migrations V1–V5, as decisões A–I, a security baseline e os baselines visuais
+V2 + Mobile-first. A Etapa J, o financeiro posterior e a conclusão da implantação
+não foram iniciados nem antecipados.
 
 ## Entrega
 
