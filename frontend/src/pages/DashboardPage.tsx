@@ -1,108 +1,116 @@
+import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import {
-  IconArrowUpRight,
-  IconDeviceMobile,
-  IconWallet,
-  IconHistory,
   IconArrowRight,
-  IconLayoutGrid,
+  IconDeviceMobile,
+  IconHistory,
+  IconWallet,
 } from '@tabler/icons-react';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
+import { ErrorState } from '@/components/ui/error-state';
 import { PageHeader } from '@/components/ui/page-header';
 import { useAuth } from '@/features/auth/context';
+import { getInitialization, listDevices } from '@/features/devices/api';
+import { getFinancialSummary } from '@/features/financial/api';
 
-const modules = [
-  {
-    to: '/devices',
-    icon: IconDeviceMobile,
-    title: 'Seus aparelhos',
-    text: 'Cada iPhone, do início ao próximo dono.',
-    tag: 'APARELHOS',
-  },
-  {
-    to: '/financial',
-    icon: IconWallet,
-    title: 'Sua visão financeira',
-    text: 'Mais clareza para cada decisão.',
-    tag: 'FINANCEIRO',
-  },
-  {
-    to: '/history',
-    icon: IconHistory,
-    title: 'Cada movimento',
-    text: 'O caminho da sua operação, registrado.',
-    tag: 'HISTÓRICO',
-  },
-];
+const money = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
+const percent = new Intl.NumberFormat('pt-BR', {
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 4,
+});
+
 export function DashboardPage() {
   const { user } = useAuth();
+  const initialization = useQuery({
+    queryKey: ['business-initialization'],
+    queryFn: getInitialization,
+  });
+  const summary = useQuery({
+    queryKey: ['financial-summary', 'dashboard'],
+    queryFn: () => getFinancialSummary(),
+    enabled: initialization.data?.status === 'COMPLETED',
+  });
+  const available = useQuery({
+    queryKey: ['devices-count', 'DISPONIVEL_VENDA'],
+    queryFn: () => listDevices({ status: 'DISPONIVEL_VENDA', size: 1 }),
+  });
+  const maintenance = useQuery({
+    queryKey: ['devices-count', 'PENDENTE_MANUTENCAO'],
+    queryFn: () => listDevices({ status: 'PENDENTE_MANUTENCAO', size: 1 }),
+  });
+  const sold = useQuery({
+    queryKey: ['devices-count', 'VENDIDO'],
+    queryFn: () => listDevices({ status: 'VENDIDO', size: 1 }),
+  });
+
+  const error = summary.error || available.error || maintenance.error || sold.error;
   return (
     <div className="dashboard-page">
       <PageHeader
         eyebrow="SEU PAINEL"
         title={`Olá, ${user?.name.split(' ')[0] ?? 'sócio'}.`}
-        description="Tudo começa com uma visão mais clara."
+        description="Uma leitura real do caixa, do resultado e dos aparelhos."
         action={
           <Badge positive>
-            <span className="status-dot" /> Acesso confirmado
+            <span className="status-dot" /> Dados atualizados
           </Badge>
         }
       />
-      <Card className="welcome-card">
-        <div className="welcome-copy">
-          <span className="eyebrow">UM NOVO ESPAÇO PARA SUA OPERAÇÃO</span>
-          <h2>
-            Organize o presente.
-            <br />
-            <span>Prepare o próximo passo.</span>
-          </h2>
-          <p>
-            Seu espaço está pronto. Em breve, aparelhos, finanças e histórico estarão conectados
-            aqui.
-          </p>
-          <div className="welcome-status">
-            <span className="status-dot" /> Você está conectado como sócio
-          </div>
-        </div>
-        <div className="welcome-art" aria-hidden>
-          <div className="art-frame">
-            <span className="art-top">VISÃO. CONTROLE. EVOLUÇÃO.</span>
-            <IconLayoutGrid size={72} stroke={0.8} />
-            <span className="art-bottom">
-              iR<span>↗</span>
-            </span>
-          </div>
-        </div>
-      </Card>
-      <div className="section-heading">
-        <h2>Explore seu espaço</h2>
-        <span>Construído para evoluir com você</span>
+      {error && <ErrorState error={error} />}
+      <div className="dashboard-metrics" aria-live="polite">
+        <DashboardMetric label="Saldo atual" value={summary.data ? money.format(summary.data.closingBalance) : '—'} />
+        <DashboardMetric label="Faturamento do mês" value={summary.data ? money.format(summary.data.revenue) : '—'} />
+        <DashboardMetric
+          label={summary.data && summary.data.profit < 0 ? 'Prejuízo do mês' : 'Lucro do mês'}
+          value={summary.data ? money.format(summary.data.profit) : '—'}
+        />
+        <DashboardMetric
+          label="Margem"
+          value={
+            summary.data?.marginPercent == null
+              ? '—'
+              : `${percent.format(summary.data.marginPercent)}%`
+          }
+        />
+        <DashboardMetric label="Capital em estoque" value={summary.data ? money.format(summary.data.stockCapital) : '—'} />
+        <DashboardMetric label="Disponíveis" value={String(available.data?.totalElements ?? '—')} />
+        <DashboardMetric label="Em manutenção" value={String(maintenance.data?.totalElements ?? '—')} />
+        <DashboardMetric label="Vendidos" value={String(sold.data?.totalElements ?? '—')} />
       </div>
-      <div className="module-grid">
-        {modules.map(({ to, icon: Icon, title, text, tag }) => (
-          <Link key={to} to={to} className="module-card">
-            <div className="module-top">
-              <span className="module-icon">
-                <Icon size={23} stroke={1.5} aria-hidden />
-              </span>
-              <IconArrowUpRight size={20} stroke={1.5} aria-hidden />
-            </div>
-            <p className="eyebrow">{tag}</p>
-            <h3>{title}</h3>
-            <p>{text}</p>
-            <div className="module-bottom">
-              <Badge>Em breve</Badge>
-              <IconArrowRight size={18} aria-hidden />
-            </div>
-          </Link>
-        ))}
-      </div>
-      <div className="dashboard-note">
-        <span className="note-line" />
-        <p>Uma operação bem cuidada começa nos detalhes.</p>
-        <span className="note-line" />
+      <p className="financial-explanation">
+        Saldo em caixa representa dinheiro disponível; capital em estoque representa o investimento
+        nos aparelhos atuais.
+      </p>
+      <div className="dashboard-modules">
+        <Link to="/devices" className="module-card">
+          <IconDeviceMobile size={24} aria-hidden />
+          <h2>Aparelhos</h2>
+          <p>Estoque, manutenção e vendas.</p>
+          <IconArrowRight size={18} aria-hidden />
+        </Link>
+        <Link to="/financial" className="module-card">
+          <IconWallet size={24} aria-hidden />
+          <h2>Financeiro</h2>
+          <p>Caixa, resultado e movimentações.</p>
+          <IconArrowRight size={18} aria-hidden />
+        </Link>
+        <Link to="/history" className="module-card">
+          <IconHistory size={24} aria-hidden />
+          <h2>Histórico</h2>
+          <p>Auditoria consolidada em uma próxima etapa.</p>
+          <Badge>Em breve</Badge>
+        </Link>
       </div>
     </div>
+  );
+}
+
+function DashboardMetric({ label, value }: { label: string; value: string }) {
+  return (
+    <Card className="dashboard-metric">
+      <span>{label}</span>
+      <strong>{value}</strong>
+    </Card>
   );
 }

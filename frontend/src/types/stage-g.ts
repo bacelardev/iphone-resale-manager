@@ -84,6 +84,15 @@ export type BusinessInitialization = {
   status: 'NOT_STARTED' | 'PREPARING' | 'COMPLETED';
   cutoffAt: string | null;
   trackingStartedAt: string | null;
+  declaredCashBalance?: number | null;
+  openingBalanceTransactionId?: string | null;
+  completedAt?: string | null;
+  completedBy?: UserReference | null;
+  ownerCapitalOpenings?: Array<{
+    ownerUser: UserReference;
+    historicalContributionAmount: number;
+    historicalWithdrawalAmount: number;
+  }>;
   version?: number | null;
 };
 
