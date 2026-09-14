@@ -134,7 +134,9 @@ test.describe.serial('Etapa J com backend e PostgreSQL reais — 18 fluxos', () 
     await expect(
       page.getByRole('heading', { name: 'Concluir configuração inicial' }),
     ).not.toBeVisible();
-    await expect(page.getByText('Saldo inicial', { exact: true })).toBeVisible();
+    await expect(
+      page.locator('.transaction-row').filter({ hasText: 'Saldo inicial' }).first(),
+    ).toBeVisible();
     await expect(page.getByText('R$ 4.000,00', { exact: true }).first()).toBeVisible();
   });
 
