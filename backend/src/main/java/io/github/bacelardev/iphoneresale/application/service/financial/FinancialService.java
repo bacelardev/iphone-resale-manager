@@ -16,8 +16,10 @@ import io.github.bacelardev.iphoneresale.infrastructure.persistence.repository.B
 import io.github.bacelardev.iphoneresale.infrastructure.persistence.repository.FinancialTransactionJpaRepository;
 import io.github.bacelardev.iphoneresale.web.dto.common.PageResponse;
 import io.github.bacelardev.iphoneresale.web.dto.financial.AdjustmentRequest;
+import io.github.bacelardev.iphoneresale.web.dto.financial.FinancialPeriodResponse;
 import io.github.bacelardev.iphoneresale.web.dto.financial.FinancialSummaryResponse;
 import io.github.bacelardev.iphoneresale.web.dto.financial.FinancialTransactionResponse;
+import io.github.bacelardev.iphoneresale.web.dto.financial.OpeningBalanceRequest;
 import io.github.bacelardev.iphoneresale.web.dto.financial.OwnerMovementRequest;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.Query;
@@ -43,6 +45,7 @@ import java.util.UUID;
 @Service
 public class FinancialService {
 
+    private static final long INITIALIZATION_ADVISORY_LOCK_KEY = 3_092_026_090_801L;
     private static final Set<FinancialTransactionType> MANUALLY_REVERSIBLE = Set.of(
             FinancialTransactionType.OPENING_BALANCE,
             FinancialTransactionType.OWNER_CONTRIBUTION,
@@ -81,6 +84,40 @@ public class FinancialService {
         this.entityManager = entityManager;
         this.clock = clock;
         this.businessZone = ZoneId.of(businessTimeZone);
+    }
+
+    @Transactional
+    public FinancialTransactionResponse openingBalance(OpeningBalanceRequest request) {
+        advisoryInitializationLock();
+        BusinessInitialization initialization = initializations.findSingletonForUpdate()
+                .orElseThrow(() -> BusinessException.conflict(
+                        "BUSINESS_INITIALIZATION_NOT_STARTED",
+                        "Inicie a preparação antes de registrar o saldo inicial."));
+        if (initialization.getStatus() != BusinessInitializationStatus.PREPARING) {
+            throw BusinessException.conflict(
+                    "BUSINESS_ALREADY_INITIALIZED",
+                    "A implantação inicial já foi concluída.");
+        }
+        if (!request.occurredAt().equals(initialization.getCutoffAt())) {
+            throw BusinessException.unprocessable(
+                    "OPENING_BALANCE_CUTOFF_MISMATCH",
+                    "A data do saldo inicial deve ser igual à data de corte da implantação.");
+        }
+        if (transactions.findActiveOpeningBalanceForUpdate().isPresent()) {
+            throw BusinessException.conflict(
+                    "OPENING_BALANCE_ALREADY_EXISTS",
+                    "Já existe um saldo inicial não estornado.");
+        }
+
+        FinancialTransaction transaction = transactions.saveAndFlush(
+                FinancialTransaction.openingBalance(
+                        money(request.amount()),
+                        request.occurredAt(),
+                        request.description()
+                )
+        );
+        audit(transaction, "Saldo inicial registrado.");
+        return FinancialTransactionResponse.from(transaction);
     }
 
     @Transactional
@@ -250,7 +287,8 @@ public class FinancialService {
                         .divide(revenue, 4, RoundingMode.HALF_UP);
 
         return new FinancialSummaryResponse(
-                from, to, opening, opening.add(movement).setScale(2),
+                new FinancialPeriodResponse(from, to, businessZone.getId()),
+                opening, opening.add(movement).setScale(2),
                 revenue, purchaseCost, maintenanceCost, profit,
                 margin, stockCapital, clock.instant()
         );
@@ -318,6 +356,12 @@ public class FinancialService {
             throw BusinessException.badRequest("VALIDATION_ERROR",
                     "Informe um período válido com início anterior ao fim.");
         }
+    }
+
+    private void advisoryInitializationLock() {
+        entityManager.createNativeQuery("select pg_advisory_xact_lock(:key)")
+                .setParameter("key", INITIALIZATION_ADVISORY_LOCK_KEY)
+                .getSingleResult();
     }
 
     private BigDecimal scalar(String sql, Map<String, Object> parameters) {
