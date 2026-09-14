@@ -10,6 +10,8 @@ import { DeviceDetailPage } from '@/pages/DeviceDetailPage';
 import { CatalogsPage } from '@/pages/CatalogsPage';
 import { MaintenanceFormPage } from '@/pages/MaintenanceFormPage';
 import { MaintenanceDetailPage } from '@/pages/MaintenanceDetailPage';
+import { SaleFormPage } from '@/pages/SaleFormPage';
+import { SaleDetailPage } from '@/pages/SaleDetailPage';
 import { ProtectedRoute, PublicRoute } from '@/routes/guards';
 import { useAuth } from '@/features/auth/context';
 
@@ -45,6 +47,8 @@ export function App() {
             path="/devices/:deviceId/maintenances/:maintenanceId"
             element={<MaintenanceDetailPage />}
           />
+          <Route path="/devices/:deviceId/sale/new" element={<SaleFormPage />} />
+          <Route path="/devices/:deviceId/sale" element={<SaleDetailPage />} />
           <Route path="/settings/catalogs" element={<CatalogsPage />} />
           <Route
             path="/financial"

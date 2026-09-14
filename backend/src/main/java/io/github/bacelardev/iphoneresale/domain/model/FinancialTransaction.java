@@ -112,6 +112,32 @@ public class FinancialTransaction extends CreatedOnlyEntity {
         return transaction;
     }
 
+    public static FinancialTransaction sale(Sale sale) {
+        FinancialTransaction transaction = new FinancialTransaction();
+        transaction.direction = FinancialDirection.INFLOW;
+        transaction.type = FinancialTransactionType.SALE;
+        transaction.amount = sale.getSalePrice();
+        transaction.occurredAt = sale.getSoldAt();
+        transaction.sale = sale;
+        return transaction;
+    }
+
+    public static FinancialTransaction saleReversal(
+            FinancialTransaction original,
+            Instant occurredAt,
+            String description
+    ) {
+        FinancialTransaction transaction = new FinancialTransaction();
+        transaction.direction = FinancialDirection.OUTFLOW;
+        transaction.type = FinancialTransactionType.SALE_REVERSAL;
+        transaction.amount = original.amount;
+        transaction.occurredAt = occurredAt;
+        transaction.sale = original.sale;
+        transaction.reversalOf = original;
+        transaction.description = description;
+        return transaction;
+    }
+
     public FinancialDirection getDirection() {
         return direction;
     }

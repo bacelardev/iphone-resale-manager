@@ -12,6 +12,7 @@ import jakarta.persistence.Table;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.Objects;
 
 @Entity
 @Table(name = "sale")
@@ -46,6 +47,41 @@ public class Sale extends AuditableEntity {
     private String cancellationReason;
 
     protected Sale() {
+    }
+
+    public static Sale active(
+            Device device,
+            BigDecimal salePrice,
+            Instant soldAt,
+            AppUser responsibleUser
+    ) {
+        Sale sale = new Sale();
+        sale.device = Objects.requireNonNull(device, "device");
+        Objects.requireNonNull(salePrice, "salePrice");
+        if (salePrice.signum() <= 0 || salePrice.stripTrailingZeros().scale() > 2) {
+            throw new IllegalArgumentException("Sale price must be positive with at most two decimals");
+        }
+        sale.salePrice = salePrice;
+        sale.soldAt = Objects.requireNonNull(soldAt, "soldAt");
+        sale.responsibleUser = Objects.requireNonNull(responsibleUser, "responsibleUser");
+        sale.status = SaleStatus.ACTIVE;
+        return sale;
+    }
+
+    public void cancel(Instant cancelledAt, AppUser cancelledBy, String cancellationReason) {
+        if (status != SaleStatus.ACTIVE) {
+            throw new IllegalStateException("Only an active sale can be cancelled");
+        }
+        Objects.requireNonNull(cancelledAt, "cancelledAt");
+        Objects.requireNonNull(cancelledBy, "cancelledBy");
+        String reason = Objects.requireNonNull(cancellationReason, "cancellationReason").trim();
+        if (reason.isEmpty() || reason.length() > 500) {
+            throw new IllegalArgumentException("Cancellation reason must have 1 to 500 characters");
+        }
+        this.status = SaleStatus.CANCELLED;
+        this.cancelledAt = cancelledAt;
+        this.cancelledBy = cancelledBy;
+        this.cancellationReason = reason;
     }
 
     public Device getDevice() {

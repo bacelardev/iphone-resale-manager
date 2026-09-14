@@ -9,7 +9,7 @@ O modelo do aparelho não deve ser usado como identificador único.
 Um aparelho pode ter:
 
 - zero ou várias manutenções;
-- zero ou uma venda;
+- várias vendas históricas, no máximo uma ativa;
 - várias fotos;
 - vários eventos de auditoria.
 
@@ -61,7 +61,7 @@ Não permitir vender aparelho já vendido.
 
 ### Custo de manutenção
 
-É a soma dos itens de manutenção registrados.
+É a soma dos itens das manutenções `ACTIVE`; canceladas não compõem investimento.
 
 ### Investimento total
 
@@ -139,3 +139,16 @@ Vendas concluídas e movimentações financeiras não devem desaparecer por excl
 - V4 protege no PostgreSQL a fronteira temporal e alterações conflitantes do cutoff;
   V1, V2 e V3 permanecem imutáveis.
 - Venda, conclusão da implantação e Etapa I continuam fora do escopo.
+
+## Refinamento da Etapa I — vendas
+
+- Venda é operacional, inclusive sobre aparelho importado; `PREPARING` permite venda após cutoff.
+- Exige aparelho disponível, não arquivado, sem outra venda ativa e versão atual.
+- `soldAt >= purchasedAt`, `soldAt >= max(performedAt ACTIVE)` e, com implantação, `soldAt > cutoffAt`.
+- `investmentTotal = purchasePrice + maintenanceTotal ACTIVE`; `profit = salePrice - investmentTotal`.
+- `marginPercent = profit / salePrice * 100`, quatro casas `HALF_UP`; prejuízo permitido.
+- Venda/status/entrada/auditoria confirmam juntos. Cancelamento estorna sem editar/apagar o original.
+- Cancelamento retorna somente a disponível; permite nova venda e preserva a venda anterior.
+- Lock canônico começa por Device, compartilhado com manutenção/arquivamento.
+- V5 protege estado, cronologia, imutabilidade e mudança conflitante de cutoff sem alterar V1–V4.
+- A Etapa I está aprovada e encerrada na versão 1.0; financeiro completo e conclusão da implantação pertencem à J e não foram iniciados.

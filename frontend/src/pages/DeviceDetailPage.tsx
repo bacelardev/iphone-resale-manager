@@ -1,12 +1,13 @@
 import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useLocation, useParams } from 'react-router-dom';
 import {
   IconArchive,
   IconArrowLeft,
   IconCheck,
   IconEdit,
   IconPhotoPlus,
+  IconReceipt,
   IconTrash,
   IconX,
 } from '@tabler/icons-react';
@@ -44,6 +45,7 @@ const statusLabel: Record<DeviceStatus, string> = {
 
 export function DeviceDetailPage() {
   const { id = '' } = useParams();
+  const location = useLocation();
   const client = useQueryClient();
   const device = useQuery({
     queryKey: ['device', id],
@@ -104,6 +106,11 @@ export function DeviceDetailPage() {
 
       {value.archived && (
         <div className="archived-notice">Este aparelho está arquivado e permanece imutável.</div>
+      )}
+      {location.state?.saleCancelled && value.status === 'DISPONIVEL_VENDA' && (
+        <p role="status" className="sale-success-notice">
+          Venda cancelada e entrada financeira estornada. O aparelho está disponível para venda.
+        </p>
       )}
       {editing && (
         <DeviceEditForm
@@ -200,6 +207,20 @@ export function DeviceDetailPage() {
             <h2>Próximas decisões</h2>
           </div>
           <div className="page-actions">
+            {value.status === 'DISPONIVEL_VENDA' && (
+              <Button asChild>
+                <Link to={`/devices/${value.id}/sale/new`}>
+                  <IconReceipt size={18} aria-hidden /> Registrar venda
+                </Link>
+              </Button>
+            )}
+            {value.status === 'VENDIDO' && (
+              <Button asChild>
+                <Link to={`/devices/${value.id}/sale`}>
+                  <IconReceipt size={18} aria-hidden /> Ver venda
+                </Link>
+              </Button>
+            )}
             {value.status === 'PENDENTE_MANUTENCAO' && (
               <Button
                 variant="secondary"
@@ -299,8 +320,10 @@ function DeviceEditForm({
         modelId,
         colorId,
         storageGb: Number(storage),
-        purchasePrice: Number(price),
-        purchasedAt: new Date(purchasedAt).toISOString(),
+        ...(device.status !== 'VENDIDO' && {
+          purchasePrice: Number(price),
+          purchasedAt: new Date(purchasedAt).toISOString(),
+        }),
         faceIdWorking: faceId,
         originalScreen: screen,
         originalBattery: battery,
@@ -345,6 +368,7 @@ function DeviceEditForm({
           <FormField id="edit-price" label="Preço de compra">
             <Input
               id="edit-price"
+              disabled={device.status === 'VENDIDO'}
               type="number"
               min="0.01"
               step="0.01"
@@ -356,6 +380,7 @@ function DeviceEditForm({
           <FormField id="edit-purchased-at" label="Data de compra">
             <Input
               id="edit-purchased-at"
+              disabled={device.status === 'VENDIDO'}
               type="datetime-local"
               value={purchasedAt}
               onChange={(event) => setPurchasedAt(event.target.value)}
