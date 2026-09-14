@@ -131,14 +131,20 @@ class StageJClosingAdjustmentsIT extends PostgresIntegrationTest {
                 "occurredAt", cutoff,
                 "description", "Saldo inicial concorrente."));
 
-        Callable<Integer> register = () -> mockMvc.perform(
-                        post("/api/v1/financial/opening-balance")
-                                .header(HttpHeaders.AUTHORIZATION, bearer(token))
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(request))
-                .andReturn().getResponse().getStatus();
+        Callable<String> register = () -> {
+            var response = mockMvc.perform(post("/api/v1/financial/opening-balance")
+                            .header(HttpHeaders.AUTHORIZATION, bearer(token))
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(request))
+                    .andReturn().getResponse();
+            return response.getStatus() + ":" + response.getContentAsString();
+        };
 
-        assertThat(race(register, register)).containsExactlyInAnyOrder(201, 409);
+        List<String> outcomes = race(register, register);
+        assertThat(outcomes)
+                .as("Concurrent opening responses: %s", outcomes)
+                .extracting(value -> Integer.parseInt(value.substring(0, value.indexOf(':'))))
+                .containsExactlyInAnyOrder(201, 409);
         assertThat(count("financial_transaction",
                 "type = 'OPENING_BALANCE'")).isOne();
         assertThat(count("audit_log",
@@ -562,15 +568,15 @@ class StageJClosingAdjustmentsIT extends PostgresIntegrationTest {
         );
     }
 
-    private List<Integer> race(
-            Callable<Integer> first,
-            Callable<Integer> second
+    private <T> List<T> race(
+            Callable<T> first,
+            Callable<T> second
     ) throws Exception {
         CountDownLatch ready = new CountDownLatch(2);
         CountDownLatch start = new CountDownLatch(1);
         try (var executor = Executors.newFixedThreadPool(2)) {
-            var futures = new ArrayList<java.util.concurrent.Future<Integer>>();
-            for (Callable<Integer> operation : List.of(first, second)) {
+            var futures = new ArrayList<java.util.concurrent.Future<T>>();
+            for (Callable<T> operation : List.of(first, second)) {
                 futures.add(executor.submit(() -> {
                     ready.countDown();
                     if (!start.await(10, TimeUnit.SECONDS)) {
