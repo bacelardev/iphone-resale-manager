@@ -182,7 +182,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     ResponseEntity<ApiErrorResponse> unexpected(Exception exception, HttpServletRequest request) {
         LOGGER.error("Unhandled error requestId={} type={}",
-                RequestIdFilter.requestId(request), exception.getClass().getName());
+                RequestIdFilter.requestId(request), exception.getClass().getName(), exception);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(error(request, 500, "INTERNAL_ERROR",
                         "Não foi possível concluir a operação.", List.of()));

@@ -92,7 +92,8 @@ export function AppShell() {
           <Outlet />
         </main>
         <footer className="app-footer">
-          <span>iPhone Resale</span>
+          <span>Delarte Control</span>
+          <span>Desenvolvido por Andelar</span>
           <span>
             <IconLock size={13} aria-hidden /> Acesso restrito aos sócios
           </span>

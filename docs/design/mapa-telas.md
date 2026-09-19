@@ -219,3 +219,24 @@ cinco larguras oficiais permanecem 375, 430, 768, 1024 e 1440 px. Venda não foi
 Após cancelamento, a navegação retorna ao aparelho disponível com feedback de sucesso.
 Lucro é verde, prejuízo/cancelamento vermelho e CTA principal branco. Datas usam o
 helper local aprovado. Nenhuma tela financeira da Etapa J foi implementada.
+
+
+## Etapa J — telas ativas
+
+### Dashboard
+
+Cards reais para saldo atual, faturamento, lucro/prejuízo, margem, capital em estoque e contagens
+por estado do aparelho. Financeiro e Aparelhos deixam de exibir “Em breve”; Histórico permanece
+reservado.
+
+### Financeiro
+
+Presets Hoje/Semana/Mês/Ano/Personalizado; cards oficiais; explicação entre caixa e estoque;
+ledger filtrável; tabela fluida/lista mobile; aporte, retirada, ajuste e estorno em dialog central
+no desktop e bottom sheet no mobile.
+
+### Conclusão da implantação
+
+Durante `PREPARING`, exibe data de corte, aparelhos importados, capital em estoque, caixa real,
+capital histórico por sócio e aviso irreversível:
+“Após concluir, aparelhos e manutenções históricas não poderão mais ser importados.”

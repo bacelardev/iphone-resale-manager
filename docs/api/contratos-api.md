@@ -810,6 +810,16 @@ Resposta: `200 PageResponse<FinancialTransactionResponse>`.
 
 ### POST `/financial/opening-balance`
 
+Durante `PREPARING`, `occurredAt` deve ser exatamente igual ao `cutoffAt` persistido.
+A criação usa a mesma trava consultiva transacional da conclusão, impedindo duas aberturas
+simultâneas e corrida entre abertura e conclusão. Depois de criar o saldo inicial, o
+`cutoffAt` não pode mais ser alterado.
+
+Se existir um `OPENING_BALANCE` ativo, a conclusão reutiliza a mesma transação quando valor
+e `cutoffAt` coincidem com `declaredCashBalance`; qualquer divergência retorna
+`409 INITIALIZATION_OPENING_BALANCE_MISMATCH`. `declaredCashBalance = 0` continua sem criar
+transação.
+
 ### POST `/financial/contributions`
 
 ### POST `/financial/withdrawals`
@@ -918,6 +928,8 @@ Não existem `POST`, `PATCH` ou `DELETE` para auditoria.
 | `DEVICE_ALREADY_ARCHIVED` | 409 | Arquivamento repetido. |
 | `FINANCIAL_TRANSACTION_ALREADY_REVERSED` | 409 | Original já possui estorno. |
 | `OPENING_BALANCE_ALREADY_EXISTS` | 409 | Já há saldo inicial não estornado. |
+| `OPENING_BALANCE_CUTOFF_MISMATCH` | 422 | Data do saldo inicial diverge do `cutoffAt`. |
+| `INITIALIZATION_OPENING_BALANCE_MISMATCH` | 409 | Saldo inicial ativo diverge da conclusão. |
 | `PASSWORD_CHANGE_NOT_ALLOWED` | 422 | Tentativa de alterar senha de outro usuário. |
 | `CANNOT_DEACTIVATE_CURRENT_USER` | 422 | Autodesativação bloqueada. |
 | `LAST_ACTIVE_USER_REQUIRED` | 422 | Desativação eliminaria o último acesso. |
@@ -1068,3 +1080,64 @@ transações, entidades JPA, hashes, tokens e storage keys não são expostos.
 versão atual do aparelho; uma versão antiga continua retornando conflito de versão.
 O endpoint singular não identifica uma venda cancelada anterior se já houver nova venda:
 a versão do aparelho evita que um comando antigo cancele a nova operação.
+
+
+## Etapa J — implantação e financeiro
+
+### POST `/api/v1/business-initialization/complete`
+
+Conclui definitivamente a implantação em uma única transação.
+
+```json
+{
+  "expectedVersion": 0,
+  "declaredCashBalance": 4000.00,
+  "ownerCapitalOpenings": [
+    {
+      "ownerUserId": "uuid",
+      "historicalContributionAmount": 9000.00,
+      "historicalWithdrawalAmount": 1000.00
+    }
+  ]
+}
+```
+
+O caixa declarado gera exatamente um `OPENING_BALANCE / INFLOW` em `cutoffAt` quando
+positivo. Caixa zero não gera lançamento. Capital histórico é apenas informativo e não integra
+o ledger. A resposta de `GET /api/v1/business-initialization` inclui estado, saldo declarado,
+lançamento de abertura, conclusão, responsável, capital por sócio e versão.
+
+### Operações financeiras
+
+- `POST /api/v1/financial/contributions`: `OWNER_CONTRIBUTION / INFLOW`.
+- `POST /api/v1/financial/withdrawals`: `OWNER_WITHDRAWAL / OUTFLOW`.
+- `POST /api/v1/financial/adjustments`: ajuste livre ou estorno manual mutuamente exclusivo.
+- `GET /api/v1/financial/transactions`: filtros `from`, `to`, `type`, `direction`,
+  `page`, `size` e `sort`.
+- `GET /api/v1/financial/summary`: intervalo `[from,to)`; sem parâmetros, mês civil em
+  `America/Bahia`.
+
+Aportes e retiradas exigem `ownerUserId`; `ownerUser` identifica o sócio do dinheiro e
+`createdBy` identifica quem registrou. O ledger é append-only. Não existem `PATCH` ou
+`DELETE` financeiros.
+
+Ordenação financeira aceita somente `occurredAt`, `createdAt`, `amount`, `type` e
+`direction`; padrão `occurredAt,desc`.
+
+### Resumo financeiro
+
+- `openingBalance`: efeito líquido anterior a `from`.
+- `closingBalance`: abertura mais efeito líquido no período.
+- `revenue`: vendas ativas no período.
+- `devicePurchaseCost`: compras operacionais não estornadas no período.
+- `maintenanceCost`: manutenções operacionais ativas no período.
+- `profit`: venda menos compra e manutenções ativas de cada aparelho vendido.
+- `marginPercent`: `profit / revenue * 100`, quatro casas; `null` sem faturamento.
+- `stockCapital`: compra mais manutenções ativas dos aparelhos não vendidos/não arquivados.
+
+Códigos específicos: `BUSINESS_INITIALIZATION_NOT_STARTED`,
+`BUSINESS_ALREADY_INITIALIZED`, `INITIALIZATION_CUTOFF_LOCKED`,
+`INITIALIZATION_OPENING_BALANCE_MISMATCH`, `OWNER_CAPITAL_DUPLICATE`,
+`FINANCIAL_TRANSACTION_NOT_FOUND`, `FINANCIAL_TRANSACTION_ALREADY_REVERSED`,
+`OPERATIONAL_REVERSAL_NOT_ALLOWED`, `INVALID_FINANCIAL_OPERATION`,
+`FINANCIAL_OPERATION_REQUIRES_OPERATIONAL_PERIOD` e `CONCURRENT_MODIFICATION`.

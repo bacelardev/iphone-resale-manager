@@ -33,7 +33,7 @@ test('real login, CORS, session restoration, protected navigation and logout', a
   const dashboardHeading = page.getByRole('heading', { name: /Olá,/ });
   await expect(dashboardHeading).toBeVisible();
   await expect(dashboardHeading).toBeFocused();
-  await expect(page).toHaveTitle(/Olá,.* · iPhone Resale/);
+  await expect(page).toHaveTitle(/Olá,.* · Delarte Control/);
   await page.goto('/devices/new');
   await expect(page.getByRole('heading', { name: 'Novo aparelho' })).toBeVisible();
   await page.getByRole('button', { name: 'Sair', exact: true }).click();

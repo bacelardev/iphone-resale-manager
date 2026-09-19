@@ -1993,3 +1993,197 @@ input[type='checkbox'] {
     animation: none;
   }
 }
+
+/* Etapa J — Delarte Control financial workspace */
+.financial-page,
+.completion-card,
+.transactions-card {
+  display: grid;
+  gap: 20px;
+}
+.financial-cards,
+.dashboard-metrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 210px), 1fr));
+  gap: 14px;
+}
+.financial-metric,
+.dashboard-metric {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+.financial-metric span,
+.dashboard-metric span {
+  color: #a1a1a6;
+  font-size: 13px;
+}
+.financial-metric strong,
+.dashboard-metric strong {
+  overflow-wrap: anywhere;
+  font-size: clamp(20px, 3vw, 30px);
+}
+.metric-positive strong,
+.value-positive {
+  color: #5ed28a;
+}
+.metric-negative strong,
+.value-negative {
+  color: #ff7777;
+}
+.financial-explanation,
+.financial-guidance p,
+.completion-card p {
+  color: #a1a1a6;
+  line-height: 1.6;
+}
+.period-card,
+.period-presets,
+.custom-period,
+.transaction-actions,
+.transaction-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: end;
+}
+.period-presets {
+  flex: 1 1 100%;
+}
+.custom-period {
+  width: 100%;
+}
+.custom-period .form-field,
+.transaction-filters .form-field {
+  flex: 1 1 190px;
+}
+.transactions-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.transaction-list {
+  display: grid;
+}
+.transaction-row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 0;
+  border-top: 1px solid #292929;
+}
+.transaction-direction {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+}
+.transaction-inflow {
+  color: #5ed28a;
+  background: #13271b;
+}
+.transaction-outflow {
+  color: #ff7777;
+  background: #301919;
+}
+.transaction-main {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+.transaction-main span,
+.transaction-main small {
+  color: #a1a1a6;
+  overflow-wrap: anywhere;
+}
+.completion-card {
+  border-color: #5b4a21;
+  background: linear-gradient(145deg, #17140d, #111);
+}
+.completion-preview,
+.completion-form {
+  display: grid;
+  gap: 12px;
+}
+.completion-preview {
+  grid-template-columns: minmax(0, 1fr) auto;
+  padding: 16px;
+  border-radius: 14px;
+  background: #0b0b0b;
+}
+.completion-preview span {
+  color: #a1a1a6;
+}
+.completion-warning {
+  padding: 14px;
+  border: 1px solid #725d24;
+  border-radius: 12px;
+  color: #ffe099 !important;
+  background: #261f0d;
+}
+.dashboard-modules {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
+  gap: 14px;
+}
+.dashboard-modules .module-card {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 10px;
+}
+.dashboard-modules .module-card p {
+  grid-column: 1 / -1;
+}
+.app-footer {
+  flex-wrap: wrap;
+}
+.financial-dialog {
+  max-height: min(90vh, 760px);
+  overflow-y: auto;
+}
+@media (min-width: 760px) {
+  .completion-card {
+    grid-template-columns: minmax(0, 1fr) minmax(240px, 0.7fr);
+  }
+  .completion-form {
+    grid-column: 1 / -1;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .completion-form .completion-warning,
+  .completion-form .error-state,
+  .completion-form > .button {
+    grid-column: 1 / -1;
+  }
+  .financial-dialog {
+    top: 50%;
+    bottom: auto;
+    transform: translate(-50%, -50%);
+    width: min(90vw, 620px);
+    border-radius: 20px;
+    padding: 30px;
+  }
+}
+@media (max-width: 620px) {
+  .transaction-row {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+  }
+  .transaction-row > strong {
+    grid-column: 2;
+  }
+  .transaction-row > .button {
+    grid-column: 3;
+    grid-row: 1 / span 2;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .financial-dialog,
+  .transaction-row {
+    animation: none;
+    transition: none;
+  }
+}

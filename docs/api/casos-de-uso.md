@@ -410,6 +410,7 @@ O estorno usa o instante do cancelamento. A venda original e sua entrada permane
 | Campo | Definição |
 | --- | --- |
 | `period.from` / `period.to` | Limites efetivos, início inclusivo e fim exclusivo. |
+| `period.businessTimezone` | Fuso oficial usado no período padrão: `America/Bahia`. |
 | `openingBalance` | Soma de entradas menos saídas com `occurredAt < from`. |
 | `closingBalance` | Saldo inicial mais o movimento dentro do período. |
 | `revenue` | Soma das vendas atualmente ativas cujo `soldAt` está no período. |
@@ -428,7 +429,14 @@ Aceita `from`, `to`, `type`, `direction`, paginação e ordenação. Retorna eve
 
 ### UC-FIN-03 — Registrar saldo inicial
 
-Recebe `amount > 0`, `occurredAt` e descrição. Cria `OPENING_BALANCE/INFLOW`, sem origem operacional, e `FINANCIAL_TRANSACTION_CREATED`. Apenas um saldo inicial não estornado pode existir. A implementação deve proteger a verificação e a criação contra requisições simultâneas com lock transacional, advisory lock ou estratégia equivalente. Saldo inicial zero não cria linha e deve ser tratado pelo cliente como ausência de operação. Essa definição não exige alteração da migration V1.
+Recebe `amount > 0`, `occurredAt` e descrição. Durante `PREPARING`, a data deve
+coincidir exatamente com o `cutoffAt`. Cria `OPENING_BALANCE/INFLOW`, sem origem operacional,
+e `FINANCIAL_TRANSACTION_CREATED`. Apenas um saldo inicial não estornado pode existir.
+
+A verificação e a criação usam a mesma trava consultiva transacional da conclusão. Requisições
+simultâneas produzem uma criação e um `OPENING_BALANCE_ALREADY_EXISTS`. A conclusão reutiliza
+a abertura existente quando valor e data coincidem; divergência retorna
+`INITIALIZATION_OPENING_BALANCE_MISMATCH`. Caixa declarado zero não cria linha.
 
 ### UC-FIN-04 — Registrar aporte
 
@@ -447,7 +455,8 @@ Possui dois modos mutuamente exclusivos:
 
 Lançamentos operacionais só são estornados pelos casos de aparelho, manutenção ou venda. Ajuste e auditoria confirmam juntos.
 
-**Erros financeiros:** `INVALID_FINANCIAL_OPERATION`, `FINANCIAL_TRANSACTION_NOT_FOUND`, `FINANCIAL_TRANSACTION_ALREADY_REVERSED`, `OPERATIONAL_REVERSAL_NOT_ALLOWED`, `OPENING_BALANCE_ALREADY_EXISTS`.
+**Erros financeiros:** `INVALID_FINANCIAL_OPERATION`, `FINANCIAL_TRANSACTION_NOT_FOUND`, `FINANCIAL_TRANSACTION_ALREADY_REVERSED`, `OPERATIONAL_REVERSAL_NOT_ALLOWED`, `OPENING_BALANCE_ALREADY_EXISTS`,
+`OPENING_BALANCE_CUTOFF_MISMATCH` e `INITIALIZATION_OPENING_BALANCE_MISMATCH`.
 
 ## 12. Auditoria
 
@@ -596,3 +605,28 @@ sem efeito parcial. Nova venda após cancelamento é permitida.
 Com venda ativa, manutenção e arquivamento são bloqueados; compra/data não mudam.
 Os demais campos editáveis da G preservam suas permissões. Venda cancelada permanece
 no banco/ledger/auditoria; não há PATCH nem lista global de vendas nesta etapa.
+
+
+## Etapa J
+
+### Concluir implantação existente
+
+1. O sócio consulta a prévia da data de corte e do capital em estoque.
+2. Informa o caixa real e, opcionalmente, aportes/retiradas históricos por sócio.
+3. O sistema bloqueia a implantação, valida versão e estado `PREPARING`.
+4. Caixa positivo cria/reutiliza um único saldo inicial coerente; caixa zero não cria ledger.
+5. Capital histórico é persistido fora do caixa.
+6. A implantação passa a `COMPLETED` e importações históricas ficam bloqueadas.
+
+### Registrar movimento financeiro manual
+
+Aporte e retirada guardam o sócio relacionado e o registrador autenticado separadamente.
+Ajuste livre recebe direção. Estorno deriva direção oposta e valor do original, mantém ambos os
+lançamentos e admite no máximo um estorno por original.
+
+### Consultar financeiro e dashboard
+
+O usuário escolhe Hoje, Semana, Mês, Ano ou período personalizado. O sistema calcula os limites
+civis em `America/Bahia`, apresenta saldos, faturamento, custos, lucro/prejuízo, margem e
+capital em estoque e permite filtrar o ledger. O dashboard utiliza os mesmos números oficiais e
+as contagens reais de aparelhos.

@@ -3,6 +3,7 @@ package io.github.bacelardev.iphoneresale.web.controller;
 import io.github.bacelardev.iphoneresale.application.service.initialization.BusinessInitializationService;
 import io.github.bacelardev.iphoneresale.web.dto.initialization.BusinessInitializationPreviewResponse;
 import io.github.bacelardev.iphoneresale.web.dto.initialization.BusinessInitializationResponse;
+import io.github.bacelardev.iphoneresale.web.dto.initialization.CompleteBusinessInitializationRequest;
 import io.github.bacelardev.iphoneresale.web.dto.initialization.StartBusinessInitializationRequest;
 import io.github.bacelardev.iphoneresale.web.dto.initialization.UpdateBusinessInitializationRequest;
 import jakarta.validation.Valid;
@@ -43,6 +44,13 @@ public class BusinessInitializationController {
             @Valid @RequestBody UpdateBusinessInitializationRequest request
     ) {
         return service.update(request);
+    }
+
+    @PostMapping("/complete")
+    public BusinessInitializationResponse complete(
+            @Valid @RequestBody CompleteBusinessInitializationRequest request
+    ) {
+        return service.complete(request);
     }
 
     @GetMapping("/preview")

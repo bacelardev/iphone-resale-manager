@@ -146,3 +146,10 @@ Status: concluída na versão inicial.
 - Evidências e limites em `docs/sales/etapa-i-vendas.md`.
 - Status: **versão 1.0 aprovada; Etapa I encerrada**, sem alterações funcionais no fechamento.
 - Nenhuma funcionalidade da Etapa J iniciada; não há conclusão da implantação.
+
+
+## Estado da Etapa J
+
+**Versão 1.0 proposta aguardando aprovação.** A etapa fecha o ciclo financeiro operacional,
+conclui a implantação existente, ativa Financeiro e Dashboard com dados reais e oficializa
+Delarte Control / Desenvolvido por Andelar. A Etapa K não foi iniciada.

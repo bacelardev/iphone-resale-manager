@@ -1,5 +1,16 @@
 # Changelog
 
+## Etapa J — versão 1.0 proposta
+
+- Nome oficial do produto alterado para **Delarte Control**.
+- Assinatura institucional **Desenvolvido por Andelar** aplicada ao produto.
+- Implantação de negócio existente concluível de forma atômica e irreversível.
+- Caixa real, saldo inicial, capital histórico informativo e movimentos manuais implementados.
+- Resumo financeiro, ledger paginado, dashboard real e tela financeira responsiva.
+- V6 estritamente aditiva; V1–V5 preservadas.
+- Versão proposta em PR draft, aguardando aprovação; sem deploy e sem Etapa K.
+
+
 ## Etapa I — versão 1.0 aprovada
 
 - Vendas operacionais, lucro/margem oficiais, cancelamento com estorno e revenda.

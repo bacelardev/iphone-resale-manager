@@ -4,6 +4,7 @@ import { AppShell } from '@/layouts/AppShell';
 import { LoginPage } from '@/pages/LoginPage';
 import { DashboardPage } from '@/pages/DashboardPage';
 import { PlaceholderPage } from '@/pages/PlaceholderPage';
+import { FinancialPage } from '@/pages/FinancialPage';
 import { DevicesPage } from '@/pages/DevicesPage';
 import { NewDevicePage } from '@/pages/NewDevicePage';
 import { DeviceDetailPage } from '@/pages/DeviceDetailPage';
@@ -21,7 +22,7 @@ export function App() {
   useEffect(() => {
     const heading = document.querySelector<HTMLElement>('#main-content h1');
     heading?.focus();
-    document.title = `${heading?.textContent ?? 'Acesso'} · iPhone Resale`;
+    document.title = `${heading?.textContent ?? 'Acesso'} · Delarte Control`;
   }, [location.pathname, status]);
   return (
     <Routes>
@@ -50,15 +51,7 @@ export function App() {
           <Route path="/devices/:deviceId/sale/new" element={<SaleFormPage />} />
           <Route path="/devices/:deviceId/sale" element={<SaleDetailPage />} />
           <Route path="/settings/catalogs" element={<CatalogsPage />} />
-          <Route
-            path="/financial"
-            element={
-              <PlaceholderPage
-                title="Financeiro"
-                description="Clareza sobre os próximos passos da sua operação."
-              />
-            }
-          />
+          <Route path="/financial" element={<FinancialPage />} />
           <Route
             path="/history"
             element={

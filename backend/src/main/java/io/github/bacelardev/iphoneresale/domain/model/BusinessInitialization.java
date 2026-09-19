@@ -51,6 +51,22 @@ public class BusinessInitialization extends AuditableEntity {
         this.cutoffAt = cutoffAt;
     }
 
+    public void complete(
+            BigDecimal declaredCashBalance,
+            FinancialTransaction openingBalanceTransaction,
+            Instant completedAt,
+            AppUser completedBy
+    ) {
+        if (status != BusinessInitializationStatus.PREPARING) {
+            throw new IllegalStateException("Only a preparing initialization can be completed");
+        }
+        this.declaredCashBalance = declaredCashBalance;
+        this.openingBalanceTransaction = openingBalanceTransaction;
+        this.completedAt = completedAt;
+        this.completedBy = completedBy;
+        this.status = BusinessInitializationStatus.COMPLETED;
+    }
+
     public BusinessInitializationStatus getStatus() {
         return status;
     }

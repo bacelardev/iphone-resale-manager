@@ -31,4 +31,32 @@ public class OwnerCapitalOpening extends CreatedOnlyEntity {
 
     protected OwnerCapitalOpening() {
     }
+
+    public OwnerCapitalOpening(
+            BusinessInitialization businessInitialization,
+            AppUser ownerUser,
+            BigDecimal historicalContributionAmount,
+            BigDecimal historicalWithdrawalAmount
+    ) {
+        this.businessInitialization = businessInitialization;
+        this.ownerUser = ownerUser;
+        this.historicalContributionAmount = historicalContributionAmount;
+        this.historicalWithdrawalAmount = historicalWithdrawalAmount;
+    }
+
+    public BusinessInitialization getBusinessInitialization() {
+        return businessInitialization;
+    }
+
+    public AppUser getOwnerUser() {
+        return ownerUser;
+    }
+
+    public BigDecimal getHistoricalContributionAmount() {
+        return historicalContributionAmount;
+    }
+
+    public BigDecimal getHistoricalWithdrawalAmount() {
+        return historicalWithdrawalAmount;
+    }
 }

@@ -15,6 +15,7 @@ import org.hibernate.annotations.Immutable;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.Objects;
 
 @Entity
 @Immutable
@@ -135,6 +136,74 @@ public class FinancialTransaction extends CreatedOnlyEntity {
         transaction.sale = original.sale;
         transaction.reversalOf = original;
         transaction.description = description;
+        return transaction;
+    }
+
+    public static FinancialTransaction openingBalance(BigDecimal amount, Instant occurredAt) {
+        return openingBalance(
+                amount,
+                occurredAt,
+                "Saldo inicial declarado na conclusão da implantação."
+        );
+    }
+
+    public static FinancialTransaction openingBalance(
+            BigDecimal amount,
+            Instant occurredAt,
+            String description
+    ) {
+        return manual(FinancialDirection.INFLOW, FinancialTransactionType.OPENING_BALANCE,
+                null, amount, occurredAt, description, null);
+    }
+
+    public static FinancialTransaction ownerContribution(
+            AppUser ownerUser, BigDecimal amount, Instant occurredAt, String description
+    ) {
+        return manual(FinancialDirection.INFLOW, FinancialTransactionType.OWNER_CONTRIBUTION,
+                ownerUser, amount, occurredAt, description, null);
+    }
+
+    public static FinancialTransaction ownerWithdrawal(
+            AppUser ownerUser, BigDecimal amount, Instant occurredAt, String description
+    ) {
+        return manual(FinancialDirection.OUTFLOW, FinancialTransactionType.OWNER_WITHDRAWAL,
+                ownerUser, amount, occurredAt, description, null);
+    }
+
+    public static FinancialTransaction manualAdjustment(
+            FinancialDirection direction, BigDecimal amount, Instant occurredAt, String description
+    ) {
+        return manual(direction, FinancialTransactionType.MANUAL_ADJUSTMENT,
+                null, amount, occurredAt, description, null);
+    }
+
+    public static FinancialTransaction manualReversal(
+            FinancialTransaction original, Instant occurredAt, String description
+    ) {
+        Objects.requireNonNull(original, "original");
+        FinancialDirection opposite = original.direction == FinancialDirection.INFLOW
+                ? FinancialDirection.OUTFLOW : FinancialDirection.INFLOW;
+        return manual(opposite, FinancialTransactionType.MANUAL_ADJUSTMENT,
+                null, original.amount, occurredAt, description, original);
+    }
+
+    private static FinancialTransaction manual(
+            FinancialDirection direction,
+            FinancialTransactionType type,
+            AppUser ownerUser,
+            BigDecimal amount,
+            Instant occurredAt,
+            String description,
+            FinancialTransaction reversalOf
+    ) {
+        FinancialTransaction transaction = new FinancialTransaction();
+        transaction.direction = Objects.requireNonNull(direction, "direction");
+        transaction.type = Objects.requireNonNull(type, "type");
+        transaction.ownerUser = ownerUser;
+        transaction.amount = Objects.requireNonNull(amount, "amount");
+        transaction.occurredAt = Objects.requireNonNull(occurredAt, "occurredAt");
+        transaction.description = Objects.requireNonNull(description, "description").trim();
+        transaction.reversalOf = reversalOf;
         return transaction;
     }
 

@@ -21,6 +21,7 @@ export type DeviceFilters = {
   purchasedTo?: string;
   archived?: boolean;
   page?: number;
+  size?: number;
 };
 
 function query(values: Record<string, string | number | boolean | undefined>) {
@@ -47,6 +48,21 @@ export function updateInitialization(expectedVersion: number, cutoffAt: string) 
   return apiRequest<BusinessInitialization>('/api/v1/business-initialization', {
     method: 'PATCH',
     body: { expectedVersion, cutoffAt },
+  });
+}
+
+export function completeInitialization(input: {
+  expectedVersion: number;
+  declaredCashBalance: number;
+  ownerCapitalOpenings: Array<{
+    ownerUserId: string;
+    historicalContributionAmount: number;
+    historicalWithdrawalAmount: number;
+  }>;
+}) {
+  return apiRequest<BusinessInitialization>('/api/v1/business-initialization/complete', {
+    method: 'POST',
+    body: input,
   });
 }
 
@@ -115,7 +131,7 @@ export function setCatalogActive(
 
 export function listDevices(filters: DeviceFilters) {
   return apiRequest<PageResponse<DeviceSummary>>(
-    `/api/v1/devices${query({ ...filters, size: 24, sort: 'createdAt,desc' })}`,
+    `/api/v1/devices${query({ ...filters, size: filters.size ?? 24, sort: 'createdAt,desc' })}`,
   );
 }
 
