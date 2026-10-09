@@ -11,6 +11,6 @@ export const navigation = [
   { to: '/devices', label: 'Aparelhos', icon: IconDeviceMobile, ready: true },
   { to: '/settings/catalogs', label: 'Catálogos', icon: IconSettings, ready: true },
   { to: '/financial', label: 'Financeiro', icon: IconWallet, ready: true },
-  { to: '/history', label: 'Histórico', icon: IconHistory, ready: false },
-  { to: '/settings/users', label: 'Usuários', icon: IconUsers, ready: false },
+  { to: '/history', label: 'Histórico', icon: IconHistory, ready: true },
+  { to: '/settings/users', label: 'Usuários', icon: IconUsers, ready: true },
 ];

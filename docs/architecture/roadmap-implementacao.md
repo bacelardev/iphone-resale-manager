@@ -112,7 +112,8 @@ Status: concluída na versão inicial.
 - G: aparelhos, catálogos e preparação da implantação, **versão 1.0 aprovada** e **Etapa G encerrada**.
 - H: manutenções, peças e importação histórica, **versão 1.0 aprovada** e **Etapa H encerrada**.
 - I: vendas, lucro, margem e reversão, **versão 1.0 aprovada** e **Etapa I encerrada**.
-- J e etapas seguintes: não iniciadas; exigem nova autorização explícita.
+- J: financeiro e conclusão da implantação aprovados e encerrados pelo PR #5.
+- K: fechamento de produção da V1 em proposta, aguardando revisão humana; sem deploy.
 
 
 ## Etapa G encerrada
@@ -150,6 +151,6 @@ Status: concluída na versão inicial.
 
 ## Estado da Etapa J
 
-**Versão 1.0 proposta aguardando aprovação.** A etapa fecha o ciclo financeiro operacional,
-conclui a implantação existente, ativa Financeiro e Dashboard com dados reais e oficializa
-Delarte Control / Desenvolvido por Andelar. A Etapa K não foi iniciada.
+**Versão 1.0 aprovada e encerrada pelo PR #5.** A etapa fechou o ciclo financeiro operacional,
+concluiu a implantação existente, ativou Financeiro e Dashboard com dados reais e oficializou
+Delarte Control / Desenvolvido por Andelar. A Etapa K é o fechamento de produção da V1.

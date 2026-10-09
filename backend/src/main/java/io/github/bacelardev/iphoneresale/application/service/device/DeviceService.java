@@ -317,6 +317,12 @@ public class DeviceService {
         audit.record(AuditAction.PHOTO_REMOVED, AuditedEntityType.DEVICE_PHOTO, photoId,
                 device.getInternalCode(), "Foto removida do aparelho " + device.getInternalCode() + ".",
                 Map.of("deviceId", deviceId.toString(), "position", photo.getPosition()));
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                storage.delete(photo.getStorageKey());
+            }
+        });
     }
 
     private Device createDevice(
