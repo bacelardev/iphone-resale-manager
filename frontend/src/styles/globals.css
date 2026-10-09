@@ -1156,19 +1156,16 @@ svg {
 @keyframes modal-in {
   from {
     transform: translate(-50%, calc(-50% + 8px));
-    opacity: 0;
   }
 }
 @keyframes drawer-in {
   from {
     translate: -20px 0;
-    opacity: 0;
   }
 }
 @keyframes sheet-in {
   from {
     transform: translate(-50%, 20px);
-    opacity: 0;
   }
 }
 .empty-state {

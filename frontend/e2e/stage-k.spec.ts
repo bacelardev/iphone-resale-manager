@@ -58,7 +58,7 @@ test.describe.serial('Etapa K com backend e PostgreSQL reais — 4 fluxos', () =
     await authenticated(page, '/history');
     await expect(page.getByRole('heading', { name: 'Histórico' })).toBeVisible();
     await page.getByLabel('Área').selectOption('USER');
-    await page.getByLabel('Ação').selectOption('UPDATED');
+    await page.getByLabel('Ação', { exact: true }).selectOption('UPDATED');
 
     const event = page.getByRole('button', { name: new RegExp(auditSummary) });
     await expect(event).toBeVisible();
