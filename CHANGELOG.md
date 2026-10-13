@@ -1,6 +1,14 @@
 # Changelog
 
-## Etapa J — versão 1.0 proposta
+## Etapa K — versão 1.0 proposta
+
+- Histórico/auditoria consultável e gestão final de usuários implementados.
+- Storage ImageKit privado preparado com fallback reversível para fotos locais existentes.
+- Readiness para Render, Netlify, Neon e UptimeRobot, sem deploy.
+- Healthcheck público mínimo, hardening de uploads e validação fail-fast do perfil de produção.
+- V1–V6 preservadas; versão proposta em Draft PR, aguardando revisão humana.
+
+## Etapa J — versão 1.0 aprovada
 
 - Nome oficial do produto alterado para **Delarte Control**.
 - Assinatura institucional **Desenvolvido por Andelar** aplicada ao produto.
@@ -8,7 +16,7 @@
 - Caixa real, saldo inicial, capital histórico informativo e movimentos manuais implementados.
 - Resumo financeiro, ledger paginado, dashboard real e tela financeira responsiva.
 - V6 estritamente aditiva; V1–V5 preservadas.
-- Versão proposta em PR draft, aguardando aprovação; sem deploy e sem Etapa K.
+- Etapa encerrada pelo merge do PR #5; sem deploy de produção.
 
 
 ## Etapa I — versão 1.0 aprovada

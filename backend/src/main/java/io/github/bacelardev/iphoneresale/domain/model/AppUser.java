@@ -40,6 +40,30 @@ public class AppUser extends AuditableEntity {
         return user;
     }
 
+    public static AppUser createSocio(String name, String username, String passwordHash) {
+        return bootstrapSocio(name, username, passwordHash);
+    }
+
+    public void update(String name, String username, String newPasswordHash) {
+        this.name = name;
+        this.username = username;
+        if (newPasswordHash != null) {
+            this.passwordHash = newPasswordHash;
+        }
+    }
+
+    public boolean activate() {
+        if (active) return false;
+        active = true;
+        return true;
+    }
+
+    public boolean deactivate() {
+        if (!active) return false;
+        active = false;
+        return true;
+    }
+
     public String getName() {
         return name;
     }

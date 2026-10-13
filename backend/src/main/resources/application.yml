@@ -41,9 +41,14 @@ app:
   cors:
     allowed-origins: ${APP_CORS_ALLOWED_ORIGINS:http://localhost:5173}
   photo-storage:
+    provider: ${APP_PHOTO_STORAGE_PROVIDER:local}
     root: ${APP_PHOTO_STORAGE_ROOT}
     signing-secret: ${APP_PHOTO_STORAGE_SIGNING_SECRET}
     signed-url-ttl: ${APP_PHOTO_STORAGE_SIGNED_URL_TTL:PT5M}
+    imagekit:
+      private-key: ${APP_IMAGEKIT_PRIVATE_KEY:}
+      url-endpoint: ${APP_IMAGEKIT_URL_ENDPOINT:}
+      folder: ${APP_IMAGEKIT_FOLDER:/delarte/devices}
   bootstrap:
     enabled: ${APP_BOOTSTRAP_ENABLED:false}
     name: ${APP_BOOTSTRAP_NAME:}
@@ -51,11 +56,12 @@ app:
     password: ${APP_BOOTSTRAP_PASSWORD:}
 
 server:
+  port: ${PORT:8080}
   error:
     include-message: never
     include-binding-errors: never
     include-stacktrace: never
-  forward-headers-strategy: none
+  forward-headers-strategy: ${SERVER_FORWARD_HEADERS_STRATEGY:none}
 
 logging:
   level:

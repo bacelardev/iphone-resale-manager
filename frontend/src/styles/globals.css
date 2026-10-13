@@ -1,5 +1,200 @@
 @import 'tailwindcss';
 
+/* Etapa K — histórico e usuários */
+.stage-k-filters,
+.stage-k-list-card,
+.stage-k-empty {
+  padding: 24px;
+}
+
+.stage-k-filters {
+  display: grid;
+  gap: 18px;
+  margin-bottom: 20px;
+}
+
+.stage-k-filter-title,
+.stage-k-form-actions,
+.stage-k-pagination,
+.user-row-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.stage-k-filter-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.users-filter-grid {
+  grid-template-columns: minmax(240px, 2fr) minmax(180px, 1fr);
+}
+
+.stage-k-list,
+.stage-k-detail-list {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.stage-k-list li {
+  border: 1px solid var(--color-border);
+  border-radius: 16px;
+  background: var(--color-card);
+}
+
+.stage-k-list li > button,
+.user-list-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+  padding: 16px;
+  border: 0;
+  border-radius: inherit;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+}
+
+.stage-k-list li > button:hover {
+  background: var(--color-hover);
+}
+
+.stage-k-list span,
+.stage-k-event-meta {
+  display: grid;
+  gap: 4px;
+}
+
+.stage-k-list small,
+.stage-k-empty p,
+.stage-k-pagination,
+.stage-k-detail-list dt {
+  color: var(--color-secondary);
+}
+
+.stage-k-event-meta {
+  justify-items: end;
+  color: var(--color-secondary);
+  font-size: 0.78rem;
+  letter-spacing: 0.03em;
+}
+
+.stage-k-pagination {
+  justify-content: space-between;
+  margin-top: 18px;
+}
+
+.stage-k-empty {
+  display: grid;
+  place-items: center;
+  gap: 8px;
+  min-height: 180px;
+  text-align: center;
+}
+
+.stage-k-detail-list {
+  margin-top: 20px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.stage-k-detail-list > div {
+  display: grid;
+  gap: 4px;
+  padding: 12px;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+}
+
+.stage-k-detail-list dt {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.stage-k-detail-list dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.stage-k-detail-wide {
+  grid-column: 1 / -1;
+}
+
+.stage-k-detail-list pre {
+  max-height: 240px;
+  margin: 0;
+  overflow: auto;
+  white-space: pre-wrap;
+}
+
+.user-list-row {
+  grid-template-columns: minmax(0, 1fr) auto auto;
+}
+
+.user-state {
+  color: var(--color-secondary);
+}
+
+.user-state.active {
+  color: var(--color-success);
+}
+
+.stage-k-form {
+  display: grid;
+  gap: 16px;
+  margin-top: 20px;
+}
+
+.stage-k-form-actions {
+  justify-content: flex-end;
+}
+
+@media (max-width: 767px) {
+  .stage-k-filters,
+  .stage-k-list-card,
+  .stage-k-empty {
+    padding: 18px;
+  }
+
+  .stage-k-filter-grid,
+  .users-filter-grid,
+  .stage-k-detail-list {
+    grid-template-columns: 1fr;
+  }
+
+  .stage-k-detail-wide {
+    grid-column: auto;
+  }
+
+  .stage-k-list li > button,
+  .user-list-row {
+    grid-template-columns: 1fr;
+    align-items: start;
+  }
+
+  .stage-k-event-meta {
+    justify-items: start;
+  }
+
+  .user-row-actions,
+  .user-row-actions > * {
+    width: 100%;
+  }
+
+  .stage-k-pagination {
+    align-items: stretch;
+    flex-direction: column;
+    text-align: center;
+  }
+}
+
 @theme inline {
   --color-background: #080808;
   --color-surface: #101010;
@@ -961,19 +1156,16 @@ svg {
 @keyframes modal-in {
   from {
     transform: translate(-50%, calc(-50% + 8px));
-    opacity: 0;
   }
 }
 @keyframes drawer-in {
   from {
     translate: -20px 0;
-    opacity: 0;
   }
 }
 @keyframes sheet-in {
   from {
     transform: translate(-50%, 20px);
-    opacity: 0;
   }
 }
 .empty-state {

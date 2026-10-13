@@ -3,7 +3,6 @@ import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { AppShell } from '@/layouts/AppShell';
 import { LoginPage } from '@/pages/LoginPage';
 import { DashboardPage } from '@/pages/DashboardPage';
-import { PlaceholderPage } from '@/pages/PlaceholderPage';
 import { FinancialPage } from '@/pages/FinancialPage';
 import { DevicesPage } from '@/pages/DevicesPage';
 import { NewDevicePage } from '@/pages/NewDevicePage';
@@ -13,6 +12,8 @@ import { MaintenanceFormPage } from '@/pages/MaintenanceFormPage';
 import { MaintenanceDetailPage } from '@/pages/MaintenanceDetailPage';
 import { SaleFormPage } from '@/pages/SaleFormPage';
 import { SaleDetailPage } from '@/pages/SaleDetailPage';
+import { HistoryPage } from '@/pages/HistoryPage';
+import { UsersPage } from '@/pages/UsersPage';
 import { ProtectedRoute, PublicRoute } from '@/routes/guards';
 import { useAuth } from '@/features/auth/context';
 
@@ -52,21 +53,8 @@ export function App() {
           <Route path="/devices/:deviceId/sale" element={<SaleDetailPage />} />
           <Route path="/settings/catalogs" element={<CatalogsPage />} />
           <Route path="/financial" element={<FinancialPage />} />
-          <Route
-            path="/history"
-            element={
-              <PlaceholderPage title="Histórico" description="Cada movimento tem uma história." />
-            }
-          />
-          <Route
-            path="/settings/users"
-            element={
-              <PlaceholderPage
-                title="Usuários"
-                description="As pessoas que fazem a operação acontecer."
-              />
-            }
-          />
+          <Route path="/history" element={<HistoryPage />} />
+          <Route path="/settings/users" element={<UsersPage />} />
         </Route>
       </Route>
       <Route path="*" element={<Navigate to="/dashboard" replace />} />
