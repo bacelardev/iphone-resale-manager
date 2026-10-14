@@ -40,6 +40,35 @@ foi registrada em vez de inventar uma migração de roles.
 - migração de fotos deve preservar backup local e manter o path relativo;
 - nenhuma migration foi criada; V1–V6 permanecem byte a byte preservadas.
 
+## Integração
+
+- PR #6 (`codex/etapa-k-production-readiness` → `main`) integrado em 2026-10-13 por merge commit
+  `7ccedeb6c88bc56036e058edf23c2c9d2c46acb9`; head integrado
+  `9c20e52036c174ecb26511eee23c80efe18e8dd9`; árvore `d618e50fc86166bd9e0b39ea39ebf2878195b8c5`,
+  idêntica à do head.
+- CI aprovado no head (Backend verify #105, Frontend verify #121) e no merge commit (Backend
+  verify #106, Frontend verify #122), com todos os steps e gates de zero skips verdes.
+- Branch de origem mantida para recuperação.
+- A integração do código **não** equivale a implantação: nenhum deploy, serviço externo,
+  credencial real ou smoke test de produção foi executado. Os limites acima permanecem válidos.
+
+## Auditoria pós-integração (2026-10-14)
+
+Auditoria somente leitura sobre a árvore integrada, registrada em
+`auditoria-etapa-k-pr6-2026-10-14.md`. Resultado: aprovado tecnicamente, sem bloqueios. Os
+riscos abaixo **não foram corrigidos** e permanecem como follow-up em PRs próprios:
+
+- rate limiting de login baseado em `getRemoteAddr()` com `forward-headers-strategy=framework`
+  no Render, o que permite contornar o limite por `X-Forwarded-For`; sem limite por username;
+- `ProductionConfigurationValidator` executa como `ApplicationRunner`, após Flyway e após o
+  servidor aceitar requisições, apenas no perfil `prod` e sem testes;
+- troca da própria senha sem exigir a senha atual e sem revogar as demais sessões;
+- consistência do armazenamento de fotos: compensação de upload também em `STATUS_UNKNOWN`,
+  remoção agora apaga conteúdo no provider local, falha de delete no ImageKit sem `fileId` no
+  log, cópias migradas de fotos legadas não removidas, runbook sem exigir upload privado;
+- lacunas de testes: URL assinada expirada/forjada, `ImageKitSdkGateway`, validador de
+  produção e `AuditQueryService`; sanitizador oculta `passwordChanged`.
+
 ## Validação local
 
 - backend Java 21: 181 fontes e 21 fontes de teste compiladas;

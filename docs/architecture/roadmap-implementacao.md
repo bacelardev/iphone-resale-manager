@@ -113,7 +113,8 @@ Status: concluída na versão inicial.
 - H: manutenções, peças e importação histórica, **versão 1.0 aprovada** e **Etapa H encerrada**.
 - I: vendas, lucro, margem e reversão, **versão 1.0 aprovada** e **Etapa I encerrada**.
 - J: financeiro e conclusão da implantação aprovados e encerrados pelo PR #5.
-- K: fechamento de produção da V1 em proposta, aguardando revisão humana; sem deploy.
+- K: fechamento de produção da V1 integrado pelo PR #6 e encerrado; sem deploy nem
+  validação operacional em produção.
 
 
 ## Etapa G encerrada
@@ -154,3 +155,20 @@ Status: concluída na versão inicial.
 **Versão 1.0 aprovada e encerrada pelo PR #5.** A etapa fechou o ciclo financeiro operacional,
 concluiu a implantação existente, ativou Financeiro e Dashboard com dados reais e oficializou
 Delarte Control / Desenvolvido por Andelar. A Etapa K é o fechamento de produção da V1.
+
+## Etapa K encerrada
+
+- Base: `main` em `4984b987a45974cf98318f755dc2037718c30320`.
+- Branch: `codex/etapa-k-production-readiness`; PR #6 integrado em 2026-10-13 por merge commit
+  `7ccedeb6c88bc56036e058edf23c2c9d2c46acb9` (head `9c20e52036c174ecb26511eee23c80efe18e8dd9`).
+- CI no head e no merge: Backend verify #105/#106 e Frontend verify #121/#122 aprovados, com
+  PostgreSQL/Testcontainers, Flyway, Hibernate validate e gates de zero skips.
+- V1–V6 preservadas; nenhuma migration nova. Papel único `SOCIO` confirmado.
+- Status: **versão 1.0 integrada; Etapa K encerrada**. A integração **não** significa sistema
+  implantado nem validado operacionalmente em produção: nenhum deploy, conta externa, credencial
+  real ou smoke test foi executado.
+- Auditoria pós-integração de 2026-10-14 sem bloqueios. Riscos técnicos permanecem como
+  follow-up: rate limiting de login atrás do proxy, momento da validação de configuração de
+  produção, troca de senha e sessões, consistência do armazenamento de fotos e lacunas de testes.
+  Detalhes em `docs/etapa-k/auditoria-etapa-k-pr6-2026-10-14.md`.
+- Nenhuma etapa posterior iniciada.
