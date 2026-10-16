@@ -151,19 +151,25 @@ chave de conta é o username normalizado (`trim` e minúsculas), exista a conta 
 | Limite | Chave | Padrão | Variáveis | No sucesso |
 | --- | --- | --- | --- | --- |
 | Por cliente | endereço resolvido acima (IPv6 por /64) | 5 tentativas / 1 min | `APP_AUTH_LOGIN_MAX_ATTEMPTS`, `APP_AUTH_LOGIN_WINDOW` | zerado |
-| Conta + cliente | conta e endereço resolvido | 5 falhas / 15 min | `APP_AUTH_LOGIN_ACCOUNT_CLIENT_MAX_FAILURES`, `APP_AUTH_LOGIN_ACCOUNT_CLIENT_WINDOW` | zerado |
-| Conta global | conta | 100 falhas / 15 min | `APP_AUTH_LOGIN_ACCOUNT_MAX_FAILURES`, `APP_AUTH_LOGIN_ACCOUNT_WINDOW` | **mantido** |
+| Conta + cliente | conta e endereço resolvido | 5 falhas / 15 min | `APP_AUTH_LOGIN_ACCOUNT_CLIENT_MAX_FAILURES`, `APP_AUTH_LOGIN_ACCOUNT_CLIENT_WINDOW` | **falhas mantidas** |
+| Conta global | conta | 100 falhas / 15 min | `APP_AUTH_LOGIN_ACCOUNT_MAX_FAILURES`, `APP_AUTH_LOGIN_ACCOUNT_WINDOW` | **falhas mantidas** |
 
 Ordem e contagem, aplicadas pelo `LoginThrottle` depois do limite por cliente:
 
 1. reserva uma vaga em conta + cliente. Se recusada, responde `429` e o contador global **não** é tocado;
 2. reserva uma vaga no contador global. Se recusada, responde `429` e devolve a vaga de conta + cliente;
 3. senha errada, conta inexistente ou inativa: as duas vagas ficam e contam como falha;
-4. sucesso: zera conta + cliente e devolve a vaga global, sem zerar as falhas já registradas;
+4. sucesso: devolve **apenas as duas vagas da própria tentativa**. As falhas já registradas e as
+   reservas de requisições concorrentes continuam contadas nos dois níveis até a janela expirar;
 5. erro inesperado: devolve as duas vagas.
 
+Cada janela tem uma geração própria, e uma vaga só é devolvida à janela em que foi reservada. Se a
+janela expirar ou for zerada enquanto a senha é verificada, a devolução é ignorada e nunca reduz a
+contagem da janela nova.
+
 As reservas acontecem antes da verificação da senha, então requisições paralelas não ultrapassam
-nenhum dos limites. Um cliente contribui com no máximo 5 falhas por janela de conta + cliente. Essa
+nenhum dos limites. Como nenhum resultado apaga falhas, um cliente contribui com no máximo 5 falhas
+por janela de conta + cliente, mesmo conhecendo a senha e intercalando sucessos. Essa
 janela nunca é menor que a global, então no máximo duas se sobrepõem a uma janela global, e um cliente
 soma no máximo 10 falhas a ela. A aplicação **recusa iniciar** se o limite global não for maior que o
 dobro do limite de conta + cliente, ou se a janela de conta + cliente for menor que a global. Assim,

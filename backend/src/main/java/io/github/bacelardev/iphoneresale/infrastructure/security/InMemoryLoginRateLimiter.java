@@ -12,7 +12,8 @@ import java.util.Map;
 /**
  * Fixed-window counter per key, bounded to {@code maxTrackedKeys} entries. Rejected attempts never
  * allocate entries. When the map is full, the least recently used key that is not blocking is
- * evicted first, so flooding the map with new keys cannot silently lift an active block.
+ * evicted first, so flooding the map with new keys cannot silently lift an active block. Each
+ * window carries its own generation, so a release only ever affects the window it reserved in.
  */
 public class InMemoryLoginRateLimiter implements LoginAttemptLimiter {
 
@@ -21,6 +22,7 @@ public class InMemoryLoginRateLimiter implements LoginAttemptLimiter {
     private final int maxTrackedKeys;
     private final Clock clock;
     private final LinkedHashMap<String, AttemptWindow> attempts = new LinkedHashMap<>(16, 0.75f, true);
+    private long lastGeneration = Decision.NO_WINDOW;
 
     public InMemoryLoginRateLimiter(int maxAttempts, Duration window, int maxTrackedKeys, Clock clock) {
         this.maxAttempts = maxAttempts;
@@ -37,28 +39,32 @@ public class InMemoryLoginRateLimiter implements LoginAttemptLimiter {
 
         if (current == null) {
             ensureCapacity();
-            attempts.put(key, new AttemptWindow(1, now.plus(window)));
-            return Decision.permit();
+            AttemptWindow opened = new AttemptWindow(1, now.plus(window), ++lastGeneration);
+            attempts.put(key, opened);
+            return Decision.permit(opened.generation);
         }
         if (current.attempts >= maxAttempts) {
             long seconds = Math.max(1, Duration.between(now, current.expiresAt).toSeconds());
             return Decision.rejected(seconds);
         }
 
-        attempts.put(key, new AttemptWindow(current.attempts + 1, current.expiresAt));
-        return Decision.permit();
+        attempts.put(key, current.withAttempts(current.attempts + 1));
+        return Decision.permit(current.generation);
     }
 
     @Override
-    public synchronized void release(String key) {
+    public synchronized void release(String key, Decision acquired) {
+        if (!acquired.allowed()) {
+            return;
+        }
         AttemptWindow current = attempts.get(key);
-        if (current == null) {
+        if (current == null || current.generation != acquired.window()) {
             return;
         }
         if (current.attempts <= 1) {
             attempts.remove(key);
         } else {
-            attempts.put(key, new AttemptWindow(current.attempts - 1, current.expiresAt));
+            attempts.put(key, current.withAttempts(current.attempts - 1));
         }
     }
 
@@ -100,6 +106,10 @@ public class InMemoryLoginRateLimiter implements LoginAttemptLimiter {
         }
     }
 
-    private record AttemptWindow(int attempts, Instant expiresAt) {
+    private record AttemptWindow(int attempts, Instant expiresAt, long generation) {
+
+        AttemptWindow withAttempts(int updated) {
+            return new AttemptWindow(updated, expiresAt, generation);
+        }
     }
 }

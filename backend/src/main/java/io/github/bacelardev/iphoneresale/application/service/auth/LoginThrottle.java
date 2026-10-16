@@ -13,18 +13,20 @@ import org.springframework.stereotype.Component;
  *   one resolved client address. Reaching it blocks only that combination, and the attempts it
  *   rejects never reach the account level.</li>
  *   <li><b>Account:</b> at most M failures per window from any client. It may block the account for
- *   every client, and a successful login never resets it.</li>
+ *   every client.</li>
  * </ol>
  *
  * <p>Both levels reserve a slot before the password is checked, so parallel requests cannot exceed
- * either limit. The reservations are kept when authentication fails and returned otherwise: a
- * request refused at the account level returns its account-and-client slot, a successful login
- * returns its account slot and clears its account-and-client counter, and an unexpected error
- * returns both. Unknown usernames are throttled exactly like existing ones.
+ * either limit. A failure keeps both reservations. Anything else returns exactly this attempt's own
+ * reservations and nothing more: a request refused at the account level returns its
+ * account-and-client slot, and a success or an unexpected error returns both. No outcome ever
+ * clears failures already counted, at either level, nor the reservations of concurrent requests.
+ * Unknown usernames are throttled exactly like existing ones.
  *
- * <p>One client contributes at most N failures per account-and-client window. That window is never
- * shorter than the account window, so at most two of them overlap any account window and one
- * client adds at most 2N failures to it; {@code AuthProperties} requires M &gt; 2N.
+ * <p>Failures stay counted until their window expires, so one client accumulates at most N failures
+ * per account-and-client window, whether or not it also succeeds. That window is never shorter than
+ * the account window, so at most two of them overlap any account window and one client adds at most
+ * 2N failures to it; {@code AuthProperties} requires M &gt; 2N.
  */
 @Component
 public class LoginThrottle {
@@ -52,10 +54,10 @@ public class LoginThrottle {
         }
         LoginAttemptLimiter.Decision global = accountLimiter.tryAcquire(normalizedUsername);
         if (!global.allowed()) {
-            accountClientLimiter.release(pairKey);
+            accountClientLimiter.release(pairKey, local);
             throw new LoginRateLimitedException(global.retryAfterSeconds());
         }
-        return new Admission(pairKey, normalizedUsername);
+        return new Admission(pairKey, local, normalizedUsername, global);
     }
 
     // Length-prefixed so no username or address can produce another pair's key.
@@ -66,33 +68,41 @@ public class LoginThrottle {
     public final class Admission implements AutoCloseable {
 
         private final String pairKey;
+        private final LoginAttemptLimiter.Decision localReservation;
         private final String accountKey;
+        private final LoginAttemptLimiter.Decision accountReservation;
         private boolean recorded;
 
-        private Admission(String pairKey, String accountKey) {
+        private Admission(String pairKey, LoginAttemptLimiter.Decision localReservation,
+                          String accountKey, LoginAttemptLimiter.Decision accountReservation) {
             this.pairKey = pairKey;
+            this.localReservation = localReservation;
             this.accountKey = accountKey;
+            this.accountReservation = accountReservation;
         }
 
-        /** Authentication failed: both reservations count as failures. */
+        /** Authentication failed: both reservations stay counted as failures. */
         public void failed() {
             recorded = true;
         }
 
-        /** Authentication succeeded: not a failure at either level; the account counter is kept. */
+        /** Authentication succeeded: returns this attempt's reservations; earlier failures stay. */
         public void succeeded() {
             recorded = true;
-            accountClientLimiter.reset(pairKey);
-            accountLimiter.release(accountKey);
+            returnReservations();
         }
 
         @Override
         public void close() {
             if (!recorded) {
                 recorded = true;
-                accountClientLimiter.release(pairKey);
-                accountLimiter.release(accountKey);
+                returnReservations();
             }
+        }
+
+        private void returnReservations() {
+            accountClientLimiter.release(pairKey, localReservation);
+            accountLimiter.release(accountKey, accountReservation);
         }
     }
 }

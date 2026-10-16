@@ -1,5 +1,6 @@
 package io.github.bacelardev.iphoneresale.infrastructure.security;
 
+import io.github.bacelardev.iphoneresale.application.port.security.LoginAttemptLimiter;
 import org.junit.jupiter.api.Test;
 
 import java.time.Clock;
@@ -46,16 +47,57 @@ class InMemoryLoginRateLimiterTest {
                 3, Duration.ofMinutes(1), 100, new MutableClock(Instant.parse("2026-09-06T12:00:00Z")));
 
         limiter.tryAcquire("key");
-        limiter.tryAcquire("key");
+        LoginAttemptLimiter.Decision second = limiter.tryAcquire("key");
         limiter.tryAcquire("key");
         assertThat(limiter.tryAcquire("key").allowed()).isFalse();
 
-        limiter.release("key");
+        limiter.release("key", second);
         assertThat(limiter.tryAcquire("key").allowed()).isTrue();
         assertThat(limiter.tryAcquire("key").allowed()).isFalse();
 
-        limiter.release("unknown");
+        limiter.release("unknown", second);
         assertThat(limiter.trackedKeyCount()).isEqualTo(1);
+    }
+
+    @Test
+    void releaseOfAReservationFromAnExpiredWindowLeavesTheNewWindowUntouched() {
+        MutableClock clock = new MutableClock(Instant.parse("2026-09-06T12:00:00Z"));
+        InMemoryLoginRateLimiter limiter = new InMemoryLoginRateLimiter(2, Duration.ofMinutes(1), 100, clock);
+        LoginAttemptLimiter.Decision stale = limiter.tryAcquire("key");
+
+        clock.advance(Duration.ofMinutes(1));
+        assertThat(limiter.tryAcquire("key").allowed()).isTrue();
+        limiter.release("key", stale);
+
+        assertThat(limiter.tryAcquire("key").allowed()).isTrue();
+        assertThat(limiter.tryAcquire("key").allowed()).isFalse();
+    }
+
+    @Test
+    void releaseOfAReservationTakenBeforeAResetLeavesTheNewWindowUntouched() {
+        InMemoryLoginRateLimiter limiter = new InMemoryLoginRateLimiter(
+                2, Duration.ofMinutes(1), 100, new MutableClock(Instant.parse("2026-09-06T12:00:00Z")));
+        LoginAttemptLimiter.Decision beforeReset = limiter.tryAcquire("key");
+
+        limiter.reset("key");
+        assertThat(limiter.tryAcquire("key").allowed()).isTrue();
+        limiter.release("key", beforeReset);
+
+        assertThat(limiter.tryAcquire("key").allowed()).isTrue();
+        assertThat(limiter.tryAcquire("key").allowed()).isFalse();
+    }
+
+    @Test
+    void releasingARejectionReturnsNothing() {
+        InMemoryLoginRateLimiter limiter = new InMemoryLoginRateLimiter(
+                1, Duration.ofMinutes(1), 100, new MutableClock(Instant.parse("2026-09-06T12:00:00Z")));
+        limiter.tryAcquire("key");
+        LoginAttemptLimiter.Decision rejection = limiter.tryAcquire("key");
+
+        limiter.release("key", rejection);
+
+        assertThat(rejection.allowed()).isFalse();
+        assertThat(limiter.tryAcquire("key").allowed()).isFalse();
     }
 
     @Test

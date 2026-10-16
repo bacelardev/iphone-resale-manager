@@ -90,6 +90,39 @@ class AccountLoginThrottleIT extends PostgresIntegrationTest {
     }
 
     @Test
+    void successDoesNotClearEarlierFailuresOfTheSameClient() throws Exception {
+        Account account = createAccount();
+        String client = client();
+        for (int attempt = 0; attempt < CLIENT_LIMIT - 1; attempt++) {
+            assertThat(login(client, account.username(), "invalid-password-value").getStatus()).isEqualTo(401);
+        }
+        assertThat(login(client, account.username(), account.password()).getStatus()).isEqualTo(200);
+
+        assertThat(login(client, account.username(), "invalid-password-value").getStatus())
+                .as("failure number %d", CLIENT_LIMIT).isEqualTo(401);
+        assertRateLimited(login(client, account.username(), account.password()));
+        assertThat(login(client(), account.username(), account.password()).getStatus()).isEqualTo(200);
+    }
+
+    @Test
+    void oneClientInterleavingFailuresAndSuccessesCannotBlockTheAccountForOthers() throws Exception {
+        Account account = createAccount();
+        String client = client();
+        int failures = 0;
+        for (int cycle = 0; cycle < 4; cycle++) {
+            for (int attempt = 0; attempt < CLIENT_LIMIT - 1; attempt++) {
+                int status = login(client, account.username(), "invalid-password-value").getStatus();
+                assertThat(status).isIn(401, 429);
+                if (status == 401) failures++;
+            }
+            assertThat(login(client, account.username(), account.password()).getStatus()).isIn(200, 429);
+        }
+
+        assertThat(failures).isEqualTo(CLIENT_LIMIT);
+        assertThat(login(client(), account.username(), account.password()).getStatus()).isEqualTo(200);
+    }
+
+    @Test
     void usernameVariantsShareTheSameCountersAndInvalidFormatsNeverAuthenticate() throws Exception {
         Account account = createAccount();
         String client = client();
