@@ -427,7 +427,7 @@ Response `200`:
 }
 ```
 
-Erros: `400 VALIDATION_ERROR`, `401 AUTHENTICATION_FAILED`, `429 LOGIN_RATE_LIMITED`. A resposta 401 é igual para username inexistente, senha incorreta ou usuário inativo. O rate limit padrão permite cinco tentativas por minuto por peer direto, é reiniciado no sucesso e inclui `Retry-After` ao bloquear.
+Erros: `400 VALIDATION_ERROR`, `401 AUTHENTICATION_FAILED`, `429 LOGIN_RATE_LIMITED`. A resposta 401 é igual para username inexistente, senha incorreta ou usuário inativo. Há dois limites independentes, ambos com janela expirável e reiniciados no sucesso: por cliente, cinco tentativas por minuto por padrão; e por conta (username normalizado), dez tentativas a cada 15 minutos por padrão, contadas a partir de qualquer endereço e também para usernames inexistentes. O endereço do cliente é o peer TCP, ou, com `APP_AUTH_LOGIN_TRUSTED_PROXY_HOPS` maior que zero, a entrada de `X-Forwarded-For` escrita pelo proxy confiável; entradas à esquerda e o cabeçalho `Forwarded` nunca são usados. Endereços IPv6 são agrupados por /64. Os dois limites produzem a mesma resposta `429`, com `Retry-After`, e uma conta bloqueada recusa até a senha correta até o fim da janela.
 
 ### GET `/auth/me`
 

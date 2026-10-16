@@ -1,11 +1,14 @@
 package io.github.bacelardev.iphoneresale.web.filter;
 
-import io.github.bacelardev.iphoneresale.infrastructure.security.InMemoryLoginRateLimiter;
+import io.github.bacelardev.iphoneresale.application.port.security.LoginAttemptLimiter;
+import io.github.bacelardev.iphoneresale.application.service.auth.LoginRateLimitedException;
+import io.github.bacelardev.iphoneresale.config.LoginRateLimitConfiguration;
 import io.github.bacelardev.iphoneresale.web.exception.ApiErrorWriter;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
@@ -19,11 +22,17 @@ public class LoginRateLimitFilter extends OncePerRequestFilter {
 
     private static final String LOGIN_PATH = "/api/v1/auth/login";
 
-    private final InMemoryLoginRateLimiter rateLimiter;
+    private final LoginAttemptLimiter rateLimiter;
+    private final LoginClientAddressResolver clientAddressResolver;
     private final ApiErrorWriter errorWriter;
 
-    public LoginRateLimitFilter(InMemoryLoginRateLimiter rateLimiter, ApiErrorWriter errorWriter) {
+    public LoginRateLimitFilter(
+            @Qualifier(LoginRateLimitConfiguration.CLIENT_LIMITER) LoginAttemptLimiter rateLimiter,
+            LoginClientAddressResolver clientAddressResolver,
+            ApiErrorWriter errorWriter
+    ) {
         this.rateLimiter = rateLimiter;
+        this.clientAddressResolver = clientAddressResolver;
         this.errorWriter = errorWriter;
     }
 
@@ -38,12 +47,12 @@ public class LoginRateLimitFilter extends OncePerRequestFilter {
             HttpServletResponse response,
             FilterChain filterChain
     ) throws ServletException, IOException {
-        String clientAddress = request.getRemoteAddr();
-        InMemoryLoginRateLimiter.Decision decision = rateLimiter.tryAcquire(clientAddress);
+        String clientAddress = clientAddressResolver.resolve(request);
+        LoginAttemptLimiter.Decision decision = rateLimiter.tryAcquire(clientAddress);
         if (!decision.allowed()) {
             response.setHeader("Retry-After", Long.toString(decision.retryAfterSeconds()));
-            errorWriter.write(request, response, 429, "LOGIN_RATE_LIMITED",
-                    "Muitas tentativas de autenticação. Tente novamente mais tarde.");
+            errorWriter.write(request, response, 429, LoginRateLimitedException.CODE,
+                    LoginRateLimitedException.MESSAGE);
             return;
         }
 

@@ -89,7 +89,45 @@ frontend valida que a API de produção usa HTTPS.
 
 O `StrictCorsFilter` continua allowlist-only e rejeita `*`. O perfil `prod` exige exatamente uma
 origem HTTPS, sem credenciais, porta, path, query ou fragmento. No Render,
-`SERVER_FORWARD_HEADERS_STRATEGY=framework` reconhece os headers do proxy gerenciado.
+`SERVER_FORWARD_HEADERS_STRATEGY=framework` reconhece o esquema HTTPS informado pelo proxy
+gerenciado, o que mantém `request.isSecure()` e o HSTS corretos.
+
+Essa estratégia **não** é usada para identificar o cliente no rate limit de login. O
+`ForwardedHeaderFilter` do Spring 6.2 adota o **primeiro** valor de `Forwarded` ou de
+`X-Forwarded-For` como endereço remoto, e esse valor é enviado pelo próprio cliente. Antes desta
+correção, alternar esse cabeçalho criava um contador novo a cada tentativa. O
+`LoginClientAddressResolver` lê a requisição do container, sem passar pelo wrapper do Spring, e usa:
+
+- `APP_AUTH_LOGIN_TRUSTED_PROXY_HOPS=0` (padrão da aplicação): o peer TCP; todo cabeçalho de
+  encaminhamento é ignorado;
+- `APP_AUTH_LOGIN_TRUSTED_PROXY_HOPS=N`: a N-ésima entrada de `X-Forwarded-For` contada da direita,
+  a única escrita por proxy confiável. Entradas à esquerda e o cabeçalho `Forwarded` são ignorados.
+  Se houver menos de N entradas ou o valor não for um IP literal, usa o peer TCP.
+
+O `render.yaml` define `APP_AUTH_LOGIN_TRUSTED_PROXY_HOPS=1`. **Justificativa:** o Render não
+documenta formalmente o formato do cabeçalho. Um relato público de teste indica que ele acrescenta o
+endereço do cliente ao `X-Forwarded-For` recebido, sem limpá-lo, o que torna a entrada mais à direita
+a única confiável. Com `0`, todo o tráfego chegaria pelo IP interno do proxy, todos os usuários
+compartilhariam um contador e qualquer pessoa poderia bloquear o login de todos com cinco tentativas
+por minuto. **Impactos possíveis se o formato real for outro:**
+
+| Formato real no Render | Efeito de `1` | Ajuste |
+| --- | --- | --- |
+| Acrescenta o IP do cliente à direita | Correto | Nenhum |
+| Há um salto adicional (ex.: CDN) antes do proxy do Render | Clientes atrás do mesmo nó do CDN compartilham contador | `2` |
+| Insere o IP real à esquerda e preserva o resto | Contador por IP volta a ser contornável; o limite por conta continua valendo | Rever a estratégia |
+
+**Verificação obrigatória em staging, antes de liberar o serviço**, sem registrar IPs em log, usando
+um username inexistente:
+
+1. de uma máquina, envie seis logins inválidos, cada um com um `X-Forwarded-For` falso diferente. A
+   sexta resposta deve ser `429`. Se for `401`, o cabeçalho continua forjável;
+2. bloqueie uma rede e, de outra rede, faça um login inválido. A resposta deve ser `401`. Se for
+   `429`, os clientes estão compartilhando contador;
+3. registre o resultado aqui antes de aprovar o deploy.
+
+`APP_AUTH_LOGIN_TRUSTED_PROXY_HOPS` maior que zero com `SERVER_FORWARD_HEADERS_STRATEGY=native` é
+recusado na inicialização, porque o `RemoteIpValve` do Tomcat já consome o cabeçalho.
 
 ## Healthcheck e UptimeRobot
 
@@ -98,6 +136,20 @@ Ele não testa credenciais, não consulta dados de negócio e não devolve vers�
 configuração. Configure o UptimeRobot com método GET e HTTPS após o deploy aprovado.
 
 ## Rate limiting e escala
+
+O login tem dois limites independentes, ambos com janela expirável, sem bloqueio permanente e
+reiniciados no sucesso:
+
+| Limite | Chave | Padrão | Variáveis |
+| --- | --- | --- | --- |
+| Por cliente | endereço resolvido acima (IPv6 por /64) | 5 tentativas / 1 min | `APP_AUTH_LOGIN_MAX_ATTEMPTS`, `APP_AUTH_LOGIN_WINDOW` |
+| Por conta | username normalizado, existente ou não | 10 tentativas / 15 min | `APP_AUTH_LOGIN_ACCOUNT_MAX_ATTEMPTS`, `APP_AUTH_LOGIN_ACCOUNT_WINDOW` |
+
+O limite por conta não depende do endereço do cliente e contém ataques distribuídos contra uma
+conta. Como toda limitação por conta, ele permite que um terceiro bloqueie temporariamente uma
+vítima: são necessárias dez tentativas a cada 15 minutos para mantê-la bloqueada. O bloqueio expira
+sozinho, e a resposta `429` é idêntica para os dois limites e para contas inexistentes. Nenhum
+username, IP, senha ou token é registrado em log.
 
 `InMemoryLoginRateLimiter` é adequado à topologia oficial de **uma instância**. Seu estado é perdido
 em restart e não é compartilhado. Antes de aumentar o serviço para múltiplas réplicas, substitua-o por

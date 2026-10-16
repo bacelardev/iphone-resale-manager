@@ -23,9 +23,17 @@ class SecurityPropertiesTest {
     @Test
     void rejectsInfiniteOrNonPositiveTokenLifetime() {
         assertThatThrownBy(() -> new AuthProperties(
-                Duration.ZERO, 5, Duration.ofMinutes(1), 10_000))
+                Duration.ZERO, 5, Duration.ofMinutes(1), 10_000, 10, Duration.ofMinutes(15), 10_000, 0))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("token-ttl");
+    }
+
+    @Test
+    void rejectsNonPositiveAccountLoginWindow() {
+        assertThatThrownBy(() -> new AuthProperties(
+                Duration.ofHours(12), 5, Duration.ofMinutes(1), 10_000, 10, Duration.ZERO, 10_000, 0))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("login-account-window");
     }
 
     @Test

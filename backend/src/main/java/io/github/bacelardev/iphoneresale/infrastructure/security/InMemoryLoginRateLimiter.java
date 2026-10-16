@@ -1,8 +1,6 @@
 package io.github.bacelardev.iphoneresale.infrastructure.security;
 
-import io.github.bacelardev.iphoneresale.config.properties.AuthProperties;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+import io.github.bacelardev.iphoneresale.application.port.security.LoginAttemptLimiter;
 
 import java.time.Clock;
 import java.time.Duration;
@@ -11,8 +9,7 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-@Component
-public class InMemoryLoginRateLimiter {
+public class InMemoryLoginRateLimiter implements LoginAttemptLimiter {
 
     private final int maxAttempts;
     private final Duration window;
@@ -20,19 +17,14 @@ public class InMemoryLoginRateLimiter {
     private final Clock clock;
     private final LinkedHashMap<String, AttemptWindow> attempts = new LinkedHashMap<>(16, 0.75f, true);
 
-    @Autowired
-    public InMemoryLoginRateLimiter(AuthProperties properties, Clock clock) {
-        this(properties.loginMaxAttempts(), properties.loginWindow(),
-                properties.loginMaxTrackedClients(), clock);
-    }
-
-    InMemoryLoginRateLimiter(int maxAttempts, Duration window, int maxTrackedClients, Clock clock) {
+    public InMemoryLoginRateLimiter(int maxAttempts, Duration window, int maxTrackedClients, Clock clock) {
         this.maxAttempts = maxAttempts;
         this.window = window;
         this.maxTrackedClients = maxTrackedClients;
         this.clock = clock;
     }
 
+    @Override
     public synchronized Decision tryAcquire(String clientAddress) {
         Instant now = clock.instant();
         purgeExpired(now);
@@ -52,6 +44,7 @@ public class InMemoryLoginRateLimiter {
         return Decision.permit();
     }
 
+    @Override
     public synchronized void reset(String clientAddress) {
         attempts.remove(clientAddress);
     }
@@ -81,16 +74,5 @@ public class InMemoryLoginRateLimiter {
     }
 
     private record AttemptWindow(int attempts, Instant expiresAt) {
-    }
-
-    public record Decision(boolean allowed, long retryAfterSeconds) {
-
-        static Decision permit() {
-            return new Decision(true, 0);
-        }
-
-        static Decision rejected(long retryAfterSeconds) {
-            return new Decision(false, retryAfterSeconds);
-        }
     }
 }
