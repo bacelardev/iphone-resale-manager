@@ -1,8 +1,6 @@
 package io.github.bacelardev.iphoneresale.infrastructure.security;
 
-import io.github.bacelardev.iphoneresale.config.properties.AuthProperties;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+import io.github.bacelardev.iphoneresale.application.port.security.LoginAttemptLimiter;
 
 import java.time.Clock;
 import java.time.Duration;
@@ -11,52 +9,71 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-@Component
-public class InMemoryLoginRateLimiter {
+/**
+ * Fixed-window counter per key, bounded to {@code maxTrackedKeys} entries. Rejected attempts never
+ * allocate entries. When the map is full, the least recently used key that is not blocking is
+ * evicted first, so flooding the map with new keys cannot silently lift an active block. Each
+ * window carries its own generation, so a release only ever affects the window it reserved in.
+ */
+public class InMemoryLoginRateLimiter implements LoginAttemptLimiter {
 
     private final int maxAttempts;
     private final Duration window;
-    private final int maxTrackedClients;
+    private final int maxTrackedKeys;
     private final Clock clock;
     private final LinkedHashMap<String, AttemptWindow> attempts = new LinkedHashMap<>(16, 0.75f, true);
+    private long lastGeneration = Decision.NO_WINDOW;
 
-    @Autowired
-    public InMemoryLoginRateLimiter(AuthProperties properties, Clock clock) {
-        this(properties.loginMaxAttempts(), properties.loginWindow(),
-                properties.loginMaxTrackedClients(), clock);
-    }
-
-    InMemoryLoginRateLimiter(int maxAttempts, Duration window, int maxTrackedClients, Clock clock) {
+    public InMemoryLoginRateLimiter(int maxAttempts, Duration window, int maxTrackedKeys, Clock clock) {
         this.maxAttempts = maxAttempts;
         this.window = window;
-        this.maxTrackedClients = maxTrackedClients;
+        this.maxTrackedKeys = maxTrackedKeys;
         this.clock = clock;
     }
 
-    public synchronized Decision tryAcquire(String clientAddress) {
+    @Override
+    public synchronized Decision tryAcquire(String key) {
         Instant now = clock.instant();
         purgeExpired(now);
-        AttemptWindow current = attempts.get(clientAddress);
+        AttemptWindow current = attempts.get(key);
 
         if (current == null) {
             ensureCapacity();
-            attempts.put(clientAddress, new AttemptWindow(1, now.plus(window)));
-            return Decision.permit();
+            AttemptWindow opened = new AttemptWindow(1, now.plus(window), ++lastGeneration);
+            attempts.put(key, opened);
+            return Decision.permit(opened.generation);
         }
         if (current.attempts >= maxAttempts) {
             long seconds = Math.max(1, Duration.between(now, current.expiresAt).toSeconds());
             return Decision.rejected(seconds);
         }
 
-        attempts.put(clientAddress, new AttemptWindow(current.attempts + 1, current.expiresAt));
-        return Decision.permit();
+        attempts.put(key, current.withAttempts(current.attempts + 1));
+        return Decision.permit(current.generation);
     }
 
-    public synchronized void reset(String clientAddress) {
-        attempts.remove(clientAddress);
+    @Override
+    public synchronized void release(String key, Decision acquired) {
+        if (!acquired.allowed()) {
+            return;
+        }
+        AttemptWindow current = attempts.get(key);
+        if (current == null || current.generation != acquired.window()) {
+            return;
+        }
+        if (current.attempts <= 1) {
+            attempts.remove(key);
+        } else {
+            attempts.put(key, current.withAttempts(current.attempts - 1));
+        }
     }
 
-    synchronized int trackedClientCount() {
+    @Override
+    public synchronized void reset(String key) {
+        attempts.remove(key);
+    }
+
+    synchronized int trackedKeyCount() {
         return attempts.size();
     }
 
@@ -70,27 +87,29 @@ public class InMemoryLoginRateLimiter {
     }
 
     private void ensureCapacity() {
-        if (attempts.size() < maxTrackedClients) {
+        if (attempts.size() < maxTrackedKeys) {
             return;
         }
-        Iterator<String> iterator = attempts.keySet().iterator();
-        if (iterator.hasNext()) {
-            iterator.next();
-            iterator.remove();
+        Iterator<AttemptWindow> windows = attempts.values().iterator();
+        while (windows.hasNext()) {
+            if (windows.next().attempts < maxAttempts) {
+                windows.remove();
+                return;
+            }
+        }
+        // Every tracked key is blocking: drop the least recently used one to stay bounded. Reaching
+        // this state requires maxTrackedKeys keys that each accumulated maxAttempts attempts.
+        Iterator<String> eldest = attempts.keySet().iterator();
+        if (eldest.hasNext()) {
+            eldest.next();
+            eldest.remove();
         }
     }
 
-    private record AttemptWindow(int attempts, Instant expiresAt) {
-    }
+    private record AttemptWindow(int attempts, Instant expiresAt, long generation) {
 
-    public record Decision(boolean allowed, long retryAfterSeconds) {
-
-        static Decision permit() {
-            return new Decision(true, 0);
-        }
-
-        static Decision rejected(long retryAfterSeconds) {
-            return new Decision(false, retryAfterSeconds);
+        AttemptWindow withAttempts(int updated) {
+            return new AttemptWindow(updated, expiresAt, generation);
         }
     }
 }
