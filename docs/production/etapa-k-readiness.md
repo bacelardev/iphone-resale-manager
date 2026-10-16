@@ -115,16 +115,24 @@ por minuto. **Impactos possíveis se o formato real for outro:**
 | --- | --- | --- |
 | Acrescenta o IP do cliente à direita | Correto | Nenhum |
 | Há um salto adicional (ex.: CDN) antes do proxy do Render | Clientes atrás do mesmo nó do CDN compartilham contador | `2` |
-| Insere o IP real à esquerda e preserva o resto | Contador por IP volta a ser contornável; o limite por conta continua valendo | Rever a estratégia |
+| Insere o IP real à esquerda e preserva o resto | Contador por IP volta a ser contornável; os limites por conta continuam valendo | Rever a estratégia |
+| Não acrescenta `X-Forwarded-For` | A entrada mais à direita é do cliente: contador por IP contornável | Rever a estratégia |
+| Acrescenta à primeira linha do cabeçalho, não à última | Uma linha extra enviada pelo cliente vira a entrada usada | Rever a estratégia |
+
+A configuração também supõe que **todo** tráfego passe pelo proxy do Render. Um acesso que não
+passe por ele, por exemplo pela rede privada entre serviços da mesma conta, consegue forjar o
+cabeçalho.
 
 **Verificação obrigatória em staging, antes de liberar o serviço**, sem registrar IPs em log, usando
 um username inexistente:
 
 1. de uma máquina, envie seis logins inválidos, cada um com um `X-Forwarded-For` falso diferente. A
    sexta resposta deve ser `429`. Se for `401`, o cabeçalho continua forjável;
-2. bloqueie uma rede e, de outra rede, faça um login inválido. A resposta deve ser `401`. Se for
+2. repita o passo 1 enviando o valor falso numa **segunda linha** de `X-Forwarded-For`. A sexta
+   resposta também deve ser `429`;
+3. bloqueie uma rede e, de outra rede, faça um login inválido. A resposta deve ser `401`. Se for
    `429`, os clientes estão compartilhando contador;
-3. registre o resultado aqui antes de aprovar o deploy.
+4. registre o resultado aqui antes de aprovar o deploy.
 
 `APP_AUTH_LOGIN_TRUSTED_PROXY_HOPS` maior que zero com `SERVER_FORWARD_HEADERS_STRATEGY=native` é
 recusado na inicialização, porque o `RemoteIpValve` do Tomcat já consome o cabeçalho.
@@ -137,19 +145,43 @@ configuração. Configure o UptimeRobot com método GET e HTTPS após o deploy a
 
 ## Rate limiting e escala
 
-O login tem dois limites independentes, ambos com janela expirável, sem bloqueio permanente e
-reiniciados no sucesso:
+O login tem três limites, todos com janela fixa que expira sozinha e sem bloqueio permanente. A
+chave de conta é o username normalizado (`trim` e minúsculas), exista a conta ou não.
 
-| Limite | Chave | Padrão | Variáveis |
-| --- | --- | --- | --- |
-| Por cliente | endereço resolvido acima (IPv6 por /64) | 5 tentativas / 1 min | `APP_AUTH_LOGIN_MAX_ATTEMPTS`, `APP_AUTH_LOGIN_WINDOW` |
-| Por conta | username normalizado, existente ou não | 10 tentativas / 15 min | `APP_AUTH_LOGIN_ACCOUNT_MAX_ATTEMPTS`, `APP_AUTH_LOGIN_ACCOUNT_WINDOW` |
+| Limite | Chave | Padrão | Variáveis | No sucesso |
+| --- | --- | --- | --- | --- |
+| Por cliente | endereço resolvido acima (IPv6 por /64) | 5 tentativas / 1 min | `APP_AUTH_LOGIN_MAX_ATTEMPTS`, `APP_AUTH_LOGIN_WINDOW` | zerado |
+| Conta + cliente | conta e endereço resolvido | 5 falhas / 15 min | `APP_AUTH_LOGIN_ACCOUNT_CLIENT_MAX_FAILURES`, `APP_AUTH_LOGIN_ACCOUNT_CLIENT_WINDOW` | zerado |
+| Conta global | conta | 100 falhas / 15 min | `APP_AUTH_LOGIN_ACCOUNT_MAX_FAILURES`, `APP_AUTH_LOGIN_ACCOUNT_WINDOW` | **mantido** |
 
-O limite por conta não depende do endereço do cliente e contém ataques distribuídos contra uma
-conta. Como toda limitação por conta, ele permite que um terceiro bloqueie temporariamente uma
-vítima: são necessárias dez tentativas a cada 15 minutos para mantê-la bloqueada. O bloqueio expira
-sozinho, e a resposta `429` é idêntica para os dois limites e para contas inexistentes. Nenhum
-username, IP, senha ou token é registrado em log.
+Ordem e contagem, aplicadas pelo `LoginThrottle` depois do limite por cliente:
+
+1. reserva uma vaga em conta + cliente. Se recusada, responde `429` e o contador global **não** é tocado;
+2. reserva uma vaga no contador global. Se recusada, responde `429` e devolve a vaga de conta + cliente;
+3. senha errada, conta inexistente ou inativa: as duas vagas ficam e contam como falha;
+4. sucesso: zera conta + cliente e devolve a vaga global, sem zerar as falhas já registradas;
+5. erro inesperado: devolve as duas vagas.
+
+As reservas acontecem antes da verificação da senha, então requisições paralelas não ultrapassam
+nenhum dos limites. Um cliente contribui com no máximo 5 falhas por janela de conta + cliente. Essa
+janela nunca é menor que a global, então no máximo duas se sobrepõem a uma janela global, e um cliente
+soma no máximo 10 falhas a ela. A aplicação **recusa iniciar** se o limite global não for maior que o
+dobro do limite de conta + cliente, ou se a janela de conta + cliente for menor que a global. Assim,
+um cliente sozinho nunca bloqueia a conta para os outros, mesmo que o contador por cliente seja zerado
+por um login bem-sucedido.
+
+**Riscos residuais.** Bloquear uma conta para todos exige falhas vindas de pelo menos 11 endereços
+distintos dentro de 15 minutos. Um atacante com muitos IPs, ou com um bloco IPv6 maior que /64,
+consegue isso; o bloqueio dura no máximo a janela, mas pode ser renovado. Quem compartilha o mesmo IP
+público que a vítima (NAT corporativo ou doméstico) pode bloquear a combinação conta + cliente dela. A
+resposta `429` é idêntica para todos os limites e para contas inexistentes. Nenhum username, IP,
+senha ou token é registrado em log.
+
+**Memória.** Cada mapa guarda no máximo `APP_AUTH_LOGIN_MAX_TRACKED_CLIENTS` ou
+`APP_AUTH_LOGIN_MAX_TRACKED_ACCOUNTS` chaves (10.000). Tentativas recusadas não criam entradas. Com o
+mapa cheio, a entrada removida é a menos usada recentemente **que não esteja bloqueando**. Um
+bloqueio ativo só é descartado se o mapa inteiro estiver bloqueado, o que exige 10.000 chaves com o
+limite atingido.
 
 `InMemoryLoginRateLimiter` é adequado à topologia oficial de **uma instância**. Seu estado é perdido
 em restart e não é compartilhado. Antes de aumentar o serviço para múltiplas réplicas, substitua-o por

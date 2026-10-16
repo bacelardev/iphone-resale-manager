@@ -9,30 +9,35 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+/**
+ * Fixed-window counter per key, bounded to {@code maxTrackedKeys} entries. Rejected attempts never
+ * allocate entries. When the map is full, the least recently used key that is not blocking is
+ * evicted first, so flooding the map with new keys cannot silently lift an active block.
+ */
 public class InMemoryLoginRateLimiter implements LoginAttemptLimiter {
 
     private final int maxAttempts;
     private final Duration window;
-    private final int maxTrackedClients;
+    private final int maxTrackedKeys;
     private final Clock clock;
     private final LinkedHashMap<String, AttemptWindow> attempts = new LinkedHashMap<>(16, 0.75f, true);
 
-    public InMemoryLoginRateLimiter(int maxAttempts, Duration window, int maxTrackedClients, Clock clock) {
+    public InMemoryLoginRateLimiter(int maxAttempts, Duration window, int maxTrackedKeys, Clock clock) {
         this.maxAttempts = maxAttempts;
         this.window = window;
-        this.maxTrackedClients = maxTrackedClients;
+        this.maxTrackedKeys = maxTrackedKeys;
         this.clock = clock;
     }
 
     @Override
-    public synchronized Decision tryAcquire(String clientAddress) {
+    public synchronized Decision tryAcquire(String key) {
         Instant now = clock.instant();
         purgeExpired(now);
-        AttemptWindow current = attempts.get(clientAddress);
+        AttemptWindow current = attempts.get(key);
 
         if (current == null) {
             ensureCapacity();
-            attempts.put(clientAddress, new AttemptWindow(1, now.plus(window)));
+            attempts.put(key, new AttemptWindow(1, now.plus(window)));
             return Decision.permit();
         }
         if (current.attempts >= maxAttempts) {
@@ -40,16 +45,29 @@ public class InMemoryLoginRateLimiter implements LoginAttemptLimiter {
             return Decision.rejected(seconds);
         }
 
-        attempts.put(clientAddress, new AttemptWindow(current.attempts + 1, current.expiresAt));
+        attempts.put(key, new AttemptWindow(current.attempts + 1, current.expiresAt));
         return Decision.permit();
     }
 
     @Override
-    public synchronized void reset(String clientAddress) {
-        attempts.remove(clientAddress);
+    public synchronized void release(String key) {
+        AttemptWindow current = attempts.get(key);
+        if (current == null) {
+            return;
+        }
+        if (current.attempts <= 1) {
+            attempts.remove(key);
+        } else {
+            attempts.put(key, new AttemptWindow(current.attempts - 1, current.expiresAt));
+        }
     }
 
-    synchronized int trackedClientCount() {
+    @Override
+    public synchronized void reset(String key) {
+        attempts.remove(key);
+    }
+
+    synchronized int trackedKeyCount() {
         return attempts.size();
     }
 
@@ -63,13 +81,22 @@ public class InMemoryLoginRateLimiter implements LoginAttemptLimiter {
     }
 
     private void ensureCapacity() {
-        if (attempts.size() < maxTrackedClients) {
+        if (attempts.size() < maxTrackedKeys) {
             return;
         }
-        Iterator<String> iterator = attempts.keySet().iterator();
-        if (iterator.hasNext()) {
-            iterator.next();
-            iterator.remove();
+        Iterator<AttemptWindow> windows = attempts.values().iterator();
+        while (windows.hasNext()) {
+            if (windows.next().attempts < maxAttempts) {
+                windows.remove();
+                return;
+            }
+        }
+        // Every tracked key is blocking: drop the least recently used one to stay bounded. Reaching
+        // this state requires maxTrackedKeys keys that each accumulated maxAttempts attempts.
+        Iterator<String> eldest = attempts.keySet().iterator();
+        if (eldest.hasNext()) {
+            eldest.next();
+            eldest.remove();
         }
     }
 

@@ -6,11 +6,8 @@ import io.github.bacelardev.iphoneresale.application.port.security.AccessTokenGe
 import io.github.bacelardev.iphoneresale.application.port.security.AccessTokenHasher;
 import io.github.bacelardev.iphoneresale.application.port.security.AuthSessionStore;
 import io.github.bacelardev.iphoneresale.application.port.security.AuthUserStore;
-import io.github.bacelardev.iphoneresale.application.port.security.LoginAttemptLimiter;
 import io.github.bacelardev.iphoneresale.application.port.security.PasswordHashService;
-import io.github.bacelardev.iphoneresale.config.LoginRateLimitConfiguration;
 import io.github.bacelardev.iphoneresale.config.properties.AuthProperties;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,7 +25,7 @@ public class AuthenticateUserService {
     private final AccessTokenGenerator tokenGenerator;
     private final AccessTokenHasher tokenHasher;
     private final AuthProperties properties;
-    private final LoginAttemptLimiter accountLimiter;
+    private final LoginThrottle loginThrottle;
     private final Clock clock;
     private final String dummyPasswordHash;
 
@@ -39,7 +36,7 @@ public class AuthenticateUserService {
             AccessTokenGenerator tokenGenerator,
             AccessTokenHasher tokenHasher,
             AuthProperties properties,
-            @Qualifier(LoginRateLimitConfiguration.ACCOUNT_LIMITER) LoginAttemptLimiter accountLimiter,
+            LoginThrottle loginThrottle,
             Clock clock
     ) {
         this.userStore = userStore;
@@ -48,33 +45,32 @@ public class AuthenticateUserService {
         this.tokenGenerator = tokenGenerator;
         this.tokenHasher = tokenHasher;
         this.properties = properties;
-        this.accountLimiter = accountLimiter;
+        this.loginThrottle = loginThrottle;
         this.clock = clock;
         this.dummyPasswordHash = passwordHashService.encode("dummy-authentication-value");
     }
 
     @Transactional
-    public IssuedAccessToken authenticate(String username, String password) {
+    public IssuedAccessToken authenticate(String username, String password, String clientAddress) {
         String normalizedUsername = username.trim().toLowerCase(Locale.ROOT);
-        // Counted for unknown usernames too, so throttling never reveals whether an account exists.
-        LoginAttemptLimiter.Decision decision = accountLimiter.tryAcquire(normalizedUsername);
-        if (!decision.allowed()) {
-            throw new LoginRateLimitedException(decision.retryAfterSeconds());
-        }
-        Optional<AuthUserData> candidate = userStore.findByUsername(normalizedUsername);
-        String storedHash = candidate.map(AuthUserData::passwordHash).orElse(dummyPasswordHash);
-        boolean passwordMatches = passwordHashService.matches(password, storedHash);
+        // Throttled for unknown usernames too, so limiting never reveals whether an account exists.
+        try (LoginThrottle.Admission admission = loginThrottle.admit(normalizedUsername, clientAddress)) {
+            Optional<AuthUserData> candidate = userStore.findByUsername(normalizedUsername);
+            String storedHash = candidate.map(AuthUserData::passwordHash).orElse(dummyPasswordHash);
+            boolean passwordMatches = passwordHashService.matches(password, storedHash);
 
-        if (candidate.isEmpty() || !candidate.orElseThrow().active() || !passwordMatches) {
-            throw new AuthenticationFailedException();
-        }
+            if (candidate.isEmpty() || !candidate.orElseThrow().active() || !passwordMatches) {
+                admission.failed();
+                throw new AuthenticationFailedException();
+            }
 
-        AuthUserData user = candidate.orElseThrow();
-        Instant issuedAt = clock.instant();
-        Instant expiresAt = issuedAt.plus(properties.tokenTtl());
-        String rawToken = tokenGenerator.generate();
-        sessionStore.create(user.id(), tokenHasher.hash(rawToken), issuedAt, expiresAt);
-        accountLimiter.reset(normalizedUsername);
-        return new IssuedAccessToken(rawToken, expiresAt, user);
+            AuthUserData user = candidate.orElseThrow();
+            Instant issuedAt = clock.instant();
+            Instant expiresAt = issuedAt.plus(properties.tokenTtl());
+            String rawToken = tokenGenerator.generate();
+            sessionStore.create(user.id(), tokenHasher.hash(rawToken), issuedAt, expiresAt);
+            admission.succeeded();
+            return new IssuedAccessToken(rawToken, expiresAt, user);
+        }
     }
 }

@@ -9,13 +9,14 @@ import org.springframework.context.annotation.Configuration;
 import java.time.Clock;
 
 /**
- * Two independent login limiters: one keyed by the resolved client address and one keyed by the
- * normalized account identifier, so rotating addresses cannot bypass the per-account limit.
+ * Three independent login limiters: per resolved client address (applied by the login filter), per
+ * normalized account and client, and per normalized account (both applied by the login throttle).
  */
 @Configuration(proxyBeanMethods = false)
 public class LoginRateLimitConfiguration {
 
     public static final String CLIENT_LIMITER = "clientLoginAttemptLimiter";
+    public static final String ACCOUNT_CLIENT_LIMITER = "accountClientLoginAttemptLimiter";
     public static final String ACCOUNT_LIMITER = "accountLoginAttemptLimiter";
 
     @Bean(CLIENT_LIMITER)
@@ -24,9 +25,15 @@ public class LoginRateLimitConfiguration {
                 properties.loginMaxTrackedClients(), clock);
     }
 
+    @Bean(ACCOUNT_CLIENT_LIMITER)
+    LoginAttemptLimiter accountClientLoginAttemptLimiter(AuthProperties properties, Clock clock) {
+        return new InMemoryLoginRateLimiter(properties.loginAccountClientMaxFailures(),
+                properties.loginAccountClientWindow(), properties.loginMaxTrackedAccounts(), clock);
+    }
+
     @Bean(ACCOUNT_LIMITER)
     LoginAttemptLimiter accountLoginAttemptLimiter(AuthProperties properties, Clock clock) {
-        return new InMemoryLoginRateLimiter(properties.loginAccountMaxAttempts(),
+        return new InMemoryLoginRateLimiter(properties.loginAccountMaxFailures(),
                 properties.loginAccountWindow(), properties.loginMaxTrackedAccounts(), clock);
     }
 }
