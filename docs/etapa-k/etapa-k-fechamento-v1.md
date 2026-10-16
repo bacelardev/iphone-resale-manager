@@ -50,13 +50,29 @@ foi registrada em vez de inventar uma migração de roles.
   verify #106, Frontend verify #122), com todos os steps e gates de zero skips verdes.
 - Branch de origem mantida para recuperação.
 - A integração do código **não** equivale a implantação: nenhum deploy, serviço externo,
-  credencial real ou smoke test de produção foi executado. Os limites acima permanecem válidos.
+  credencial real, migration em ambiente externo ou smoke test de produção foi executado. A
+  aplicação não foi implantada nem validada operacionalmente em produção. Os limites da seção
+  anterior permanecem válidos integralmente.
+
+## Encerramento documental (PR #7, em Draft)
+
+- Este registro de fechamento, o CHANGELOG, o roadmap e o relatório de auditoria são atualizados
+  pelo PR #7 (`codex/etapa-k-encerramento-docs` → `main`), exclusivamente documental: não altera
+  código, testes, migrations, workflows nem configuração de infraestrutura.
+- O PR #7 **está aberto como Draft, sem merge**. Não está aprovado nem encerrado, e depende de
+  revisão humana. Enquanto não houver merge, `main` permanece com o estado documental anterior.
+- O encerramento documental da Etapa K é distinto da integração do código (concluída pelo PR #6)
+  e ambos são distintos de implantação em produção (não iniciada).
 
 ## Auditoria pós-integração (2026-10-14)
 
 Auditoria somente leitura sobre a árvore integrada, registrada em
-`auditoria-etapa-k-pr6-2026-10-14.md`. Resultado: aprovado tecnicamente, sem bloqueios. Os
-riscos abaixo **não foram corrigidos** e permanecem como follow-up em PRs próprios:
+`auditoria-etapa-k-pr6-2026-10-14.md`. Resultado: aprovada tecnicamente, sem achado que exigisse
+reverter ou refazer o merge do PR #6. O escopo dessa aprovação é limitado a revisão de código e
+configuração no repositório: **não** é aprovação de deploy nem atestado de validação operacional,
+e não significa ausência de risco. Os riscos técnicos abaixo **não foram corrigidos**, não têm
+evidência de correção e permanecem como follow-up em PRs próprios — alguns precisam ser tratados
+antes do primeiro deploy:
 
 - rate limiting de login baseado em `getRemoteAddr()` com `forward-headers-strategy=framework`
   no Render, o que permite contornar o limite por `X-Forwarded-For`; sem limite por username;
@@ -69,7 +85,10 @@ riscos abaixo **não foram corrigidos** e permanecem como follow-up em PRs próp
 - lacunas de testes: URL assinada expirada/forjada, `ImageKitSdkGateway`, validador de
   produção e `AuditQueryService`; sanitizador oculta `passwordChanged`.
 
-## Validação local
+## Validação local na sessão de implementação da Etapa K
+
+Registro histórico da sessão que produziu o PR #6. Os números abaixo não foram reconferidos pela
+auditoria pós-integração nem por esta revisão documental, que não executaram testes:
 
 - backend Java 21: 181 fontes e 21 fontes de teste compiladas;
 - backend unitário: 34 testes, zero falhas, erros ou skips;

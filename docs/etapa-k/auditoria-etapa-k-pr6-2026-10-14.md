@@ -4,10 +4,19 @@
 - Data da auditoria: 2026-10-14
 - Auditor: Claude Code (sessão autônoma), a pedido de Bacelar
 - Natureza: auditoria pós-integração, somente leitura. Nenhuma alteração no repositório, nenhum teste executado localmente, nenhum deploy ou recurso de produção tocado.
+- Objeto auditado: a árvore integrada em `main` pelo merge commit `7ccedeb`, no estado em que ela se encontrava em 2026-10-14.
+- Registro deste relatório: o arquivo é introduzido no repositório pelo PR #7 (`codex/etapa-k-encerramento-docs` → `main`), exclusivamente documental e **aberto como Draft, sem merge**. Todas as observações abaixo descrevem o estado de `main` em `7ccedeb`, antes de qualquer alteração documental proposta pelo PR #7.
+- Revisão editorial em 2026-10-16, ainda na branch do PR #7: esclarecimento do escopo da aprovação (seção 1), separação entre riscos técnicos e pendências documentais (seção 7) e atualização da seção 13 para refletir que o PR #7 existe e está em Draft. Os achados técnicos originais foram preservados sem alteração de conteúdo; nenhum foi marcado como resolvido.
 
 ## 1. Resultado
 
 **Aprovado tecnicamente, como auditoria pós-integração, com ressalvas não impeditivas.**
+
+Escopo e limites desta aprovação:
+
+- É uma revisão de código somente leitura sobre a árvore já integrada. Não é aprovação de deploy, nem atestado de que a aplicação foi implantada ou validada operacionalmente em produção.
+- "Não impeditiva" significa que nenhum achado exigia reverter ou refazer o merge do PR #6 já realizado. **Não** significa ausência de risco: as ressalvas de prioridade 1 e 2 da seção 7 permanecem abertas e algumas precisam ser tratadas antes do primeiro deploy.
+- A evidência de execução de testes é exclusivamente o CI do GitHub Actions (seção 5). Nenhum teste foi executado nesta sessão.
 
 O PR #6 já estava integrado em `main` antes desta sessão (merge em 2026-10-13 04:33:49Z). O usuário confirmou que esse merge foi autorizado. A seção "merge após confirmação" do roteiro original ficou sem objeto. O usuário optou por relatório apenas, sem correções nesta execução.
 
@@ -74,7 +83,8 @@ Todos os steps concluíram com sucesso, incluindo os gates "Require PostgreSQL i
 Limitações de evidência:
 
 - Logs do GitHub Actions retornam 403 sem autenticação. As contagens exatas (75 Vitest, 68 Playwright) e o aviso de bundle de 559 kB não puderam ser confirmados, apenas o sucesso de cada step.
-- A máquina local não tem Maven, Node, Java 21 nem Docker ativo. Nenhum teste foi executado localmente. A evidência de testes é exclusivamente o CI, que cobre a mesma tree integrada.
+- A máquina local desta sessão de auditoria não tem Maven, Node, Java 21 nem Docker ativo. Nenhum teste foi executado nesta sessão. A evidência de testes aqui usada é exclusivamente o CI, que cobre a mesma tree integrada.
+- A seção "Validação local" de `etapa-k-fechamento-v1.md` registra números da sessão de implementação da Etapa K (compilação, 34 testes unitários de backend, 75 testes de frontend, build Vite). Esta auditoria **não** re-executou nem reconferiu esses números; eles permanecem como registro histórico daquela sessão, não como evidência produzida aqui.
 
 ## 6. Migrations V1–V6
 
@@ -104,29 +114,38 @@ A Etapa K não criou migration. Flyway e `ddl-auto=validate` são exercitados no
 
 Nenhum teste foi executado contra o ImageKit real. A cobertura do adapter é unitária com gateway falso (`ImageKitPhotoStorageTest`); `ImageKitSdkGateway` não tem teste algum.
 
-### Ressalvas (nenhuma impeditiva)
+### Ressalvas técnicas (nenhuma impeditiva do merge já realizado)
 
-Prioridade 1, antes do primeiro deploy:
+Esta subseção trata apenas de **riscos técnicos de código e configuração**. Nenhum deles foi corrigido nesta sessão e nenhum é tratado pelo PR #7, que é exclusivamente documental. As pendências de estado da documentação estão separadas na subseção seguinte.
+
+Prioridade 1, a tratar antes do primeiro deploy:
 
 1. **Rate limiter de login contornável.** `LoginRateLimitFilter.java:41` usa `getRemoteAddr()`. O Render ativa `SERVER_FORWARD_HEADERS_STRATEGY=framework`, que faz o Spring confiar no `X-Forwarded-For` mais à esquerda, controlável pelo cliente. Sem limite por username. Requer decidir qual header o proxy do Render controla.
 2. **Validador de produção tardio e sem testes.** `ProductionConfigurationValidator` é um `ApplicationRunner`: roda após Flyway e após o servidor aceitar requisições, com ordem indefinida em relação ao runner de bootstrap. Só ativo no perfil exatamente `prod`. A verificação de SSL é substring e rejeita `sslmode=verify-full`.
-3. **Docs desatualizados.** `CHANGELOG.md:3-9` e `docs/architecture/roadmap-implementacao.md:116` ainda dizem "Draft PR aguardando revisão humana".
 
 Prioridade 2:
 
-4. **Auditoria oculta `passwordChanged`.** O denylist em `AuditQueryService.java:32-34` remove qualquer chave contendo "password"; `UserService.java:102` grava `passwordChanged: true` e `docs/api/casos-de-uso.md:144` espera esse registro.
-5. **Hook de rollback apaga em `STATUS_UNKNOWN`.** `DeviceService.java:372` deleta o upload sempre que `status != STATUS_COMMITTED`; se a conexão cair durante um commit bem-sucedido, a linha aponta para arquivo apagado.
-6. **Troca de senha sem senha atual e sem revogar outras sessões.** `UserService.java:92-97`, `UpdateUserRequest.java:8-11`. Um token roubado basta para tomar a conta. `newPassword` sem `@NotBlank` no update.
-7. **Lacunas de teste.** Nenhum teste de URL expirada ou forjada (exigido pelas instruções da K-03); nenhum teste de `ImageKitSdkGateway`, nem com servidor HTTP falso; nenhum teste do validador de produção; nenhum teste unitário de `AuditQueryService`.
-8. **Operação de fotos.** Remoção de foto agora apaga o conteúdo também no provider local (mudança de comportamento); falha de delete no ImageKit é logada sem `fileId`; cópias migradas de fotos legadas removidas não são apagadas no ImageKit; upload com `fileId` sem `filePath` não é limpo; o runbook não exige que arquivos migrados sejam privados; `APP_PHOTO_STORAGE_ROOT=/tmp` no Render torna o fallback local inútil; falhas 502 de storage não são logadas.
+3. **Auditoria oculta `passwordChanged`.** O denylist em `AuditQueryService.java:32-34` remove qualquer chave contendo "password"; `UserService.java:102` grava `passwordChanged: true` e `docs/api/casos-de-uso.md:144` espera esse registro.
+4. **Hook de rollback apaga em `STATUS_UNKNOWN`.** `DeviceService.java:372` deleta o upload sempre que `status != STATUS_COMMITTED`; se a conexão cair durante um commit bem-sucedido, a linha aponta para arquivo apagado.
+5. **Troca de senha sem senha atual e sem revogar outras sessões.** `UserService.java:92-97`, `UpdateUserRequest.java:8-11`. Um token roubado basta para tomar a conta. `newPassword` sem `@NotBlank` no update.
+6. **Lacunas de teste.** Nenhum teste de URL expirada ou forjada (exigido pelas instruções da K-03); nenhum teste de `ImageKitSdkGateway`, nem com servidor HTTP falso; nenhum teste do validador de produção; nenhum teste unitário de `AuditQueryService`.
+7. **Operação de fotos.** Remoção de foto agora apaga o conteúdo também no provider local (mudança de comportamento); falha de delete no ImageKit é logada sem `fileId`; cópias migradas de fotos legadas removidas não são apagadas no ImageKit; upload com `fileId` sem `filePath` não é limpo; o runbook não exige que arquivos migrados sejam privados; `APP_PHOTO_STORAGE_ROOT=/tmp` no Render torna o fallback local inútil; falhas 502 de storage não são logadas.
 
 Prioridade 3:
 
-9. Netlify sem CSP nem anti-framing (a API tem; token em `sessionStorage`).
-10. Denylist de sanitização sem `apiKey`, `authorization`, `cookie`, `otp`.
-11. Dockerfile sem `HEALTHCHECK` (o Render usa `healthCheckPath`); jar hard-coded `0.0.1-SNAPSHOT`.
-12. 405 sem header `Allow`; `RuntimeException` do ImageIO vira 500 em vez de 415; EXIF não removido.
-13. Cada leitura de foto baixa o objeto inteiro do ImageKit em memória, sem cache; uploads ocorrem dentro da transação segurando lock de linha.
+8. Netlify sem CSP nem anti-framing (a API tem; token em `sessionStorage`).
+9. Denylist de sanitização sem `apiKey`, `authorization`, `cookie`, `otp`.
+10. Dockerfile sem `HEALTHCHECK` (o Render usa `healthCheckPath`); jar hard-coded `0.0.1-SNAPSHOT`.
+11. 405 sem header `Allow`; `RuntimeException` do ImageIO vira 500 em vez de 415; EXIF não removido.
+12. Cada leitura de foto baixa o objeto inteiro do ImageKit em memória, sem cache; uploads ocorrem dentro da transação segurando lock de linha.
+
+### Pendências documentais observadas na auditoria (não são riscos técnicos)
+
+Natureza distinta das ressalvas acima: não há defeito de código, apenas documentos que, **no momento da auditoria (2026-10-14, `main` em `7ccedeb`)**, ainda descreviam a Etapa K como proposta em Draft aguardando revisão humana.
+
+- **D1. Estado documental defasado.** `CHANGELOG.md:3-9` e `docs/architecture/roadmap-implementacao.md:116`, como estavam em `7ccedeb`, ainda diziam "versão proposta em Draft PR, aguardando revisão humana", apesar de o PR #6 já ter sido integrado em 2026-10-13.
+
+Encaminhamento: o **PR #7** (`codex/etapa-k-encerramento-docs` → `main`) é o PR exclusivamente documental responsável por atualizar `CHANGELOG.md`, `docs/architecture/roadmap-implementacao.md` e `docs/etapa-k/etapa-k-fechamento-v1.md` e por incorporar este relatório. O PR #7 **está aberto como Draft e não foi integrado**; portanto, enquanto ele não sofrer merge, `main` continua com o estado documental descrito em D1. Este encaminhamento não altera nenhuma das ressalvas técnicas, que seguem abertas.
 
 ## 8. Gatilhos de CI/CD
 
@@ -141,7 +160,9 @@ Prioridade 3:
 
 ## 10. Problemas encontrados e correções realizadas
 
-Nenhuma correção foi realizada, por decisão do usuário (relatório apenas). Nenhum achado é impeditivo. As ressalvas da seção 7 devem entrar em PRs de follow-up sobre `main`, nunca por push direto nem reescrita de histórico. Qualquer mudança de código só poderá ser validada pelo CI do novo PR, dado que não há toolchain local.
+Nenhuma correção de código foi realizada, por decisão do usuário (relatório apenas). Nenhum achado exigia reverter o merge já realizado. As ressalvas técnicas da seção 7 devem entrar em PRs de follow-up sobre `main`, nunca por push direto nem reescrita de histórico. Qualquer mudança de código só poderá ser validada pelo CI do novo PR, dado que não há toolchain local.
+
+A pendência documental D1 é a única tratada em documentação, pelo PR #7, que não toca código, testes, workflows nem configuração de infraestrutura. Nenhuma ressalva técnica foi corrigida por ele e nenhuma deve ser considerada resolvida sem evidência verificável de correção.
 
 ## 11. Pendências externas
 
@@ -159,9 +180,20 @@ Nenhuma correção foi realizada, por decisão do usuário (relatório apenas). 
 - Itens de prioridade 3 da seção 7.
 - Filtros `userId` e `entityId` na tela de histórico; refresh do contexto de auth ao editar o próprio usuário; axe nas três larguras e com diálogo aberto; e2e para edição e ativação/desativação de usuários.
 
-## 13. Situação atual e encerramento
+## 13. Situação atual e ações restantes
 
-- PR #6: integrado e fechado. Branch de origem `codex/etapa-k-production-readiness` preservada e recuperável.
-- `main`: `7ccedeb`, CI verde, sem deploy.
-- Ações restantes para encerramento formal: PR docs-only atualizando CHANGELOG, roadmap e etapa-k-fechamento para registrar a integração em `7ccedeb` sem deploy; PRs de follow-up para as ressalvas de prioridade 1 e 2.
-- A conclusão formal da Etapa K não equivale a implantação concluída. Nenhuma etapa nova foi iniciada.
+Estado em 2026-10-16, com os três planos explicitamente separados:
+
+| Plano | Estado |
+| --- | --- |
+| Integração de código | **Concluída.** PR #6 integrado e fechado em 2026-10-13 pelo merge commit `7ccedeb`; branch de origem `codex/etapa-k-production-readiness` preservada e recuperável. `main` em `7ccedeb`, CI verde (#106/#122), sem deploy. |
+| Encerramento documental | **Em andamento, não concluído.** PR #7 (`codex/etapa-k-encerramento-docs`) está aberto como **Draft**, sem merge, e contém CHANGELOG, roadmap, documento de fechamento e este relatório. Enquanto não houver merge, `main` mantém o estado documental descrito em D1. |
+| Implantação em produção | **Não iniciada.** Nenhum deploy, conta externa, credencial real, migration em ambiente externo ou smoke test foi executado. |
+
+Ações restantes:
+
+- Revisão humana e decisão sobre o PR #7, que permanece Draft até autorização explícita. Nenhuma ação de merge foi executada.
+- PRs de follow-up para as ressalvas técnicas de prioridade 1 e 2 da seção 7, em branches próprias sobre `main`. Nenhuma foi aberta até esta data.
+- Pendências externas da seção 11, todas condicionadas a autorização explícita de deploy.
+
+O encerramento documental da Etapa K não equivale à integração do código, e nenhum dos dois equivale a implantação ou validação operacional em produção. Nenhuma etapa posterior foi iniciada.
