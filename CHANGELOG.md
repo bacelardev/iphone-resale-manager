@@ -1,12 +1,27 @@
 # Changelog
 
-## Etapa K — versão 1.0 proposta
+## Etapa K — versão 1.0 integrada, sem deploy
 
 - Histórico/auditoria consultável e gestão final de usuários implementados.
 - Storage ImageKit privado preparado com fallback reversível para fotos locais existentes.
 - Readiness para Render, Netlify, Neon e UptimeRobot, sem deploy.
 - Healthcheck público mínimo, hardening de uploads e validação fail-fast do perfil de produção.
-- V1–V6 preservadas; versão proposta em Draft PR, aguardando revisão humana.
+- V1–V6 preservadas; nenhuma migration nova.
+- Código da etapa integrado em `main` pelo merge do PR #6 em 2026-10-13 (head `9c20e52`,
+  merge commit `7ccedeb`), com Backend verify #105/#106 e Frontend verify #121/#122 aprovados
+  no CI do GitHub Actions.
+- Integração de código não equivale a implantação: nenhum deploy, serviço externo,
+  credencial real, migration em ambiente externo ou smoke test de produção foi executado.
+  A aplicação não foi implantada nem validada operacionalmente em produção.
+- Registro documental do encerramento conduzido pelo PR #7 (`codex/etapa-k-encerramento-docs`),
+  exclusivamente documental e **aberto como Draft, sem merge**. Até o merge, este registro
+  não está integrado em `main`.
+- Auditoria pós-integração de 2026-10-14: revisão de código somente leitura sobre a árvore
+  integrada, aprovada tecnicamente sem achado que exigisse reverter o merge. Não é aprovação
+  de deploy. Riscos técnicos seguem abertos — rate limiting de login atrás do proxy, momento e
+  cobertura da validação de configuração de produção, troca de senha sem revogar sessões,
+  consistência e ciclo de vida das fotos e lacunas de testes —, registrados em
+  `docs/etapa-k/auditoria-etapa-k-pr6-2026-10-14.md` e não corrigidos.
 
 ## Etapa J — versão 1.0 aprovada
 
