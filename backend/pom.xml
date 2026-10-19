@@ -20,6 +20,8 @@
     <properties>
         <java.version>21</java.version>
         <bouncycastle.version>1.80</bouncycastle.version>
+        <!-- 1.21.0 pins Docker API v1.32, rejected by engines requiring v1.40+; 1.21.4 tries v1.44 first. -->
+        <testcontainers.version>1.21.4</testcontainers.version>
     </properties>
 
     <dependencies>
