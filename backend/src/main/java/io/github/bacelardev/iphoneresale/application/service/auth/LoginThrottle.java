@@ -65,13 +65,35 @@ public class LoginThrottle {
         return normalizedUsername.length() + ":" + normalizedUsername + "@" + clientAddress;
     }
 
+    /**
+     * One admitted login attempt, holding one reservation at each level. It starts {@code PENDING}
+     * and settles exactly once, into one of three terminal states:
+     *
+     * <ul>
+     *   <li>{@code FAILED}: both reservations stay counted;</li>
+     *   <li>{@code SUCCEEDED}: both reservations are returned, earlier failures stay;</li>
+     *   <li>{@code ABANDONED}: closed without an outcome, both reservations are returned.</li>
+     * </ul>
+     *
+     * <p>Reservations are returned at most once, on the single transition out of {@code PENDING}.
+     * Repeating the outcome already recorded, or closing a settled admission, is an idempotent
+     * no-op. Recording a different outcome after settling throws {@link IllegalStateException},
+     * because the counters cannot be changed anymore: a failure stays counted and a returned
+     * reservation is never returned twice.
+     *
+     * <p>Transitions are atomic: concurrent calls on the same admission settle it exactly once, and
+     * the reservations are returned while the transition still holds the admission's lock. The
+     * limiters never call back into an admission, so this lock cannot deadlock with theirs.
+     */
     public final class Admission implements AutoCloseable {
+
+        private enum State { PENDING, FAILED, SUCCEEDED, ABANDONED }
 
         private final String pairKey;
         private final LoginAttemptLimiter.Decision localReservation;
         private final String accountKey;
         private final LoginAttemptLimiter.Decision accountReservation;
-        private boolean recorded;
+        private State state = State.PENDING;
 
         private Admission(String pairKey, LoginAttemptLimiter.Decision localReservation,
                           String accountKey, LoginAttemptLimiter.Decision accountReservation) {
@@ -83,26 +105,34 @@ public class LoginThrottle {
 
         /** Authentication failed: both reservations stay counted as failures. */
         public void failed() {
-            recorded = true;
+            settle(State.FAILED);
         }
 
         /** Authentication succeeded: returns this attempt's reservations; earlier failures stay. */
         public void succeeded() {
-            recorded = true;
-            returnReservations();
+            settle(State.SUCCEEDED);
         }
 
+        /** Returns the reservations of an admission that recorded no outcome; otherwise a no-op. */
         @Override
-        public void close() {
-            if (!recorded) {
-                recorded = true;
-                returnReservations();
+        public synchronized void close() {
+            if (state == State.PENDING) {
+                settle(State.ABANDONED);
             }
         }
 
-        private void returnReservations() {
-            accountClientLimiter.release(pairKey, localReservation);
-            accountLimiter.release(accountKey, accountReservation);
+        private synchronized void settle(State outcome) {
+            if (state == outcome) {
+                return;
+            }
+            if (state != State.PENDING) {
+                throw new IllegalStateException("Login admission already settled as " + state);
+            }
+            state = outcome;
+            if (outcome != State.FAILED) {
+                accountClientLimiter.release(pairKey, localReservation);
+                accountLimiter.release(accountKey, accountReservation);
+            }
         }
     }
 }

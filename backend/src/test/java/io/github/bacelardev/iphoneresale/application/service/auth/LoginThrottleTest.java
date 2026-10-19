@@ -10,7 +10,9 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
+import java.util.EnumMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -196,32 +198,55 @@ class LoginThrottleTest {
     @Test
     void oneClientKnowingThePasswordCannotReachTheAccountLimitByInterleavingSuccesses() {
         String client = client();
-        int failures = 0;
-        for (int cycle = 0; cycle < 50; cycle++) {
-            for (int attempt = 0; attempt < CLIENT_LIMIT - 1; attempt++) {
-                if (fail("victim", client)) failures++;
-            }
-            succeed("victim", client);
+        Map<Outcome, Integer> tally = new EnumMap<>(Outcome.class);
+        List<Outcome> sequence = new ArrayList<>();
+        for (int cycle = 0; cycle < 20; cycle++) {
+            sequence.add(record(tally, attempt("victim", client, false)));
+            sequence.add(record(tally, attempt("victim", client, true)));
         }
 
-        assertThat(failures).isEqualTo(CLIENT_LIMIT);
-        assertThat(failuresBeforeAccountBlocks("victim")).isEqualTo(ACCOUNT_LIMIT - CLIENT_LIMIT);
+        // Failures are never forgiven: each success is admitted only while the client still has
+        // room, so the client alternates until its fifth failure and is refused from then on.
+        assertThat(sequence.subList(0, 10)).containsExactly(
+                Outcome.FAILED, Outcome.SUCCEEDED, Outcome.FAILED, Outcome.SUCCEEDED,
+                Outcome.FAILED, Outcome.SUCCEEDED, Outcome.FAILED, Outcome.SUCCEEDED,
+                Outcome.FAILED, Outcome.REFUSED);
+        assertThat(tally).containsEntry(Outcome.FAILED, CLIENT_LIMIT)
+                .containsEntry(Outcome.SUCCEEDED, CLIENT_LIMIT - 1)
+                .containsEntry(Outcome.REFUSED, 40 - (2 * CLIENT_LIMIT - 1));
+
+        assertThat(attempt("victim", client(), true)).as("another legitimate client").isEqualTo(Outcome.SUCCEEDED);
+        assertThat(failuresBeforeAccountBlocks("victim")).as("account counter holds exactly the 5 failures")
+                .isEqualTo(ACCOUNT_LIMIT - CLIENT_LIMIT);
     }
 
     @Test
     void oneClientInterleavingFailuresAndSuccessesCannotBlockOthersOverManyWindows() {
         String attacker = client();
         String owner = client();
-        for (int minute = 0; minute < 24 * 60; minute++) {
+        Map<Outcome, Integer> attackerTally = new EnumMap<>(Outcome.class);
+        Map<Outcome, Integer> ownerTally = new EnumMap<>(Outcome.class);
+        int minutes = 24 * 60;
+        for (int minute = 0; minute < minutes; minute++) {
             for (int attempt = 0; attempt < CLIENT_LIMIT - 1; attempt++) {
-                fail("victim", attacker);
+                record(attackerTally, attempt("victim", attacker, false));
             }
-            succeed("victim", attacker);
+            record(attackerTally, attempt("victim", attacker, true));
             if (minute % 10 == 5) {
-                assertThat(succeed("victim", owner)).as("owner at minute %d", minute).isTrue();
+                assertThat(record(ownerTally, attempt("victim", owner, true)))
+                        .as("owner at minute %d", minute).isEqualTo(Outcome.SUCCEEDED);
             }
             clock.advance(Duration.ofMinutes(1));
         }
+
+        // Every 15-minute window: minute 0 admits 4 failures and the success; minute 1 admits the
+        // fifth failure and refuses the other 4 requests; minutes 2-14 refuse all 5 requests.
+        int windows = minutes / (int) WINDOW.toMinutes();
+        assertThat(attackerTally).containsEntry(Outcome.FAILED, windows * CLIENT_LIMIT)
+                .containsEntry(Outcome.SUCCEEDED, windows)
+                .containsEntry(Outcome.REFUSED, windows * (4 + 13 * 5));
+        assertThat(ownerTally).containsEntry(Outcome.SUCCEEDED, minutes / 10)
+                .doesNotContainKey(Outcome.REFUSED);
     }
 
     @Test
@@ -249,11 +274,8 @@ class LoginThrottleTest {
             int recordedFailures = concurrentlyMixed(account, client, 64, round % 2 == 0);
 
             assertThat(recordedFailures).as("round %d", round).isBetween(0, CLIENT_LIMIT);
-            int remainingForClient = 0;
-            while (fail(account, client)) {
-                remainingForClient++;
-            }
-            assertThat(remainingForClient).as("round %d", round).isEqualTo(CLIENT_LIMIT - recordedFailures);
+            assertThat(remainingClientFailures(account, client)).as("round %d", round)
+                    .isEqualTo(CLIENT_LIMIT - recordedFailures);
             assertThat(failuresBeforeAccountBlocks(account)).as("round %d", round)
                     .isEqualTo(ACCOUNT_LIMIT - CLIENT_LIMIT);
         }
@@ -299,6 +321,190 @@ class LoginThrottleTest {
         }
 
         assertThat(failuresBeforeAccountBlocks("victim")).isEqualTo(ACCOUNT_LIMIT);
+    }
+
+    @Test
+    void repeatedSucceededReturnsTheReservationsOnlyOnce() {
+        String client = client();
+        assertThat(fail("victim", client)).isTrue();
+        assertThat(fail("victim", client)).isTrue();
+        LoginThrottle.Admission admission = throttle.admit("victim", client);
+        admission.succeeded();
+        admission.succeeded();
+        admission.succeeded();
+        admission.close();
+
+        // Two failures kept, one success slot returned once: exactly three more failures fit.
+        assertThat(remainingClientFailures("victim", client)).isEqualTo(CLIENT_LIMIT - 2);
+        assertThat(failuresBeforeAccountBlocks("victim")).isEqualTo(ACCOUNT_LIMIT - CLIENT_LIMIT);
+    }
+
+    @Test
+    void repeatedCloseReturnsTheReservationsOnlyOnce() {
+        String client = client();
+        assertThat(fail("victim", client)).isTrue();
+        LoginThrottle.Admission admission = throttle.admit("victim", client);
+        admission.close();
+        admission.close();
+        admission.close();
+
+        assertThat(remainingClientFailures("victim", client)).isEqualTo(CLIENT_LIMIT - 1);
+        assertThat(failuresBeforeAccountBlocks("victim")).isEqualTo(ACCOUNT_LIMIT - CLIENT_LIMIT);
+    }
+
+    @Test
+    void succeededFollowedByCloseReleasesExactlyOnce() {
+        String client = client();
+        assertThat(fail("victim", client)).isTrue();
+        assertThat(fail("victim", client)).isTrue();
+        assertThat(fail("victim", client)).isTrue();
+        try (LoginThrottle.Admission admission = throttle.admit("victim", client)) {
+            admission.succeeded();
+        }
+
+        assertThat(remainingClientFailures("victim", client)).isEqualTo(CLIENT_LIMIT - 3);
+        assertThat(failuresBeforeAccountBlocks("victim")).isEqualTo(ACCOUNT_LIMIT - CLIENT_LIMIT);
+    }
+
+    @Test
+    void failedFollowedBySucceededKeepsTheFailureAndRejectsTheContradiction() {
+        String client = client();
+        LoginThrottle.Admission admission = throttle.admit("victim", client);
+        admission.failed();
+
+        assertThatThrownBy(admission::succeeded).isInstanceOf(IllegalStateException.class);
+        admission.failed();
+        admission.close();
+
+        // The recorded failure plus four more fill the client; all five stay on the account too.
+        assertThat(remainingClientFailures("victim", client)).isEqualTo(CLIENT_LIMIT - 1);
+        assertThat(failuresBeforeAccountBlocks("victim")).isEqualTo(ACCOUNT_LIMIT - CLIENT_LIMIT);
+    }
+
+    @Test
+    void succeededFollowedByFailedCannotCountAReturnedReservation() {
+        String client = client();
+        LoginThrottle.Admission admission = throttle.admit("victim", client);
+        admission.succeeded();
+
+        assertThatThrownBy(admission::failed).isInstanceOf(IllegalStateException.class);
+        admission.close();
+
+        // Nothing was counted: the client still fits five failures, which then count on the account.
+        assertThat(remainingClientFailures("victim", client)).isEqualTo(CLIENT_LIMIT);
+        assertThat(failuresBeforeAccountBlocks("victim")).isEqualTo(ACCOUNT_LIMIT - CLIENT_LIMIT);
+    }
+
+    @Test
+    void outcomeAfterCloseIsRejectedWithoutTouchingTheCounters() {
+        String client = client();
+        LoginThrottle.Admission abandoned = throttle.admit("victim", client);
+        abandoned.close();
+
+        assertThatThrownBy(abandoned::failed).isInstanceOf(IllegalStateException.class);
+        assertThatThrownBy(abandoned::succeeded).isInstanceOf(IllegalStateException.class);
+
+        assertThat(remainingClientFailures("victim", client)).isEqualTo(CLIENT_LIMIT);
+        assertThat(failuresBeforeAccountBlocks("victim")).isEqualTo(ACCOUNT_LIMIT - CLIENT_LIMIT);
+    }
+
+    @Test
+    void repeatedSettlingOfConcurrentAdmissionsReturnsEachReservationOnce() {
+        String client = client();
+        LoginThrottle.Admission first = throttle.admit("victim", client);
+        LoginThrottle.Admission second = throttle.admit("victim", client);
+        LoginThrottle.Admission third = throttle.admit("victim", client);
+
+        first.succeeded();
+        first.succeeded();
+        first.close();
+        second.failed();
+        second.failed();
+        second.close();
+        third.close();
+        third.close();
+
+        assertThat(remainingClientFailures("victim", client)).isEqualTo(CLIENT_LIMIT - 1);
+        assertThat(failuresBeforeAccountBlocks("victim")).isEqualTo(ACCOUNT_LIMIT - CLIENT_LIMIT);
+    }
+
+    @Test
+    void repeatedSucceededOnAStaleAdmissionNeverLowersTheNewWindow() {
+        String client = client();
+        LoginThrottle.Admission stale = throttle.admit("victim", client);
+
+        clock.advance(WINDOW);
+        assertThat(fail("victim", client)).isTrue();
+        stale.succeeded();
+        stale.succeeded();
+        stale.close();
+
+        assertThat(remainingClientFailures("victim", client)).isEqualTo(CLIENT_LIMIT - 1);
+        assertThat(failuresBeforeAccountBlocks("victim")).isEqualTo(ACCOUNT_LIMIT - CLIENT_LIMIT);
+    }
+
+    /**
+     * Races eight threads on the same admission, half the time with contradictory outcomes. The race
+     * window is a few nanoseconds, so the test repeats it many times: without an atomic transition
+     * it was observed to fail after several thousand rounds, so a pass is strong but probabilistic
+     * evidence. The guarantee itself comes from the synchronized transition.
+     */
+    @Test
+    void concurrentSettlingOfOneAdmissionReturnsEachReservationAtMostOnce() throws Exception {
+        int accountLimit = 2 * CLIENT_LIMIT + 1;
+        int threads = 8;
+        ExecutorService executor = Executors.newFixedThreadPool(threads);
+        try {
+            for (int round = 0; round < 50_000; round++) {
+                throttle = new LoginThrottle(
+                        new InMemoryLoginRateLimiter(CLIENT_LIMIT, WINDOW, 1_000, clock),
+                        new InMemoryLoginRateLimiter(accountLimit, WINDOW, 1_000, clock));
+                String client = client();
+                assertThat(fail("victim", client)).isTrue();
+                assertThat(fail("victim", client)).isTrue();
+                LoginThrottle.Admission admission = throttle.admit("victim", client);
+                boolean contradictory = round % 2 == 1;
+
+                CountDownLatch start = new CountDownLatch(1);
+                List<Future<Outcome>> rejectedOutcomes = new ArrayList<>();
+                for (int index = 0; index < threads; index++) {
+                    Outcome outcome = contradictory && index % 2 == 1 ? Outcome.FAILED : Outcome.SUCCEEDED;
+                    rejectedOutcomes.add(executor.submit(() -> {
+                        start.await();
+                        try {
+                            if (outcome == Outcome.FAILED) admission.failed();
+                            else admission.succeeded();
+                            return null;
+                        } catch (IllegalStateException contradiction) {
+                            return outcome;
+                        } finally {
+                            admission.close();
+                        }
+                    }));
+                }
+                start.countDown();
+                List<Outcome> rejected = new ArrayList<>();
+                for (Future<Outcome> future : rejectedOutcomes) {
+                    Outcome loser = future.get(10, TimeUnit.SECONDS);
+                    if (loser != null) rejected.add(loser);
+                }
+
+                // Exactly one outcome wins: every call of the other kind is rejected, none of its own.
+                Outcome winner = rejected.contains(Outcome.FAILED) ? Outcome.SUCCEEDED
+                        : contradictory ? Outcome.FAILED : Outcome.SUCCEEDED;
+                assertThat(rejected).as("round %d", round).doesNotContain(winner);
+                if (contradictory) assertThat(rejected).as("round %d", round).hasSize(threads / 2);
+                else assertThat(rejected).as("round %d", round).isEmpty();
+
+                int clientFailures = 2 + (winner == Outcome.FAILED ? 1 : 0);
+                assertThat(remainingClientFailures("victim", client)).as("round %d, %s", round, winner)
+                        .isEqualTo(CLIENT_LIMIT - clientFailures);
+                assertThat(failuresBeforeAccountBlocks("victim")).as("round %d, %s", round, winner)
+                        .isEqualTo(accountLimit - CLIENT_LIMIT);
+            }
+        } finally {
+            executor.shutdownNow();
+        }
     }
 
     @Test
@@ -357,6 +563,27 @@ class LoginThrottleTest {
         }
     }
 
+    private enum Outcome { FAILED, SUCCEEDED, REFUSED }
+
+    /** One authentication with the given password correctness, reporting what actually happened. */
+    private Outcome attempt(String account, String client, boolean correctPassword) {
+        try (LoginThrottle.Admission admission = throttle.admit(account, client)) {
+            if (correctPassword) {
+                admission.succeeded();
+                return Outcome.SUCCEEDED;
+            }
+            admission.failed();
+            return Outcome.FAILED;
+        } catch (LoginRateLimitedException limited) {
+            return Outcome.REFUSED;
+        }
+    }
+
+    private static Outcome record(Map<Outcome, Integer> tally, Outcome outcome) {
+        tally.merge(outcome, 1, Integer::sum);
+        return outcome;
+    }
+
     /** One successful authentication; false when the throttle refused the attempt. */
     private boolean succeed(String account, String client) {
         try (LoginThrottle.Admission admission = throttle.admit(account, client)) {
@@ -413,6 +640,16 @@ class LoginThrottleTest {
         } finally {
             executor.shutdownNow();
         }
+    }
+
+    /** Fails from {@code client} until it is blocked; returns how many failures still fitted. */
+    private int remainingClientFailures(String account, String client) {
+        int failures = 0;
+        while (fail(account, client)) {
+            failures++;
+            assertThat(failures).isLessThanOrEqualTo(CLIENT_LIMIT);
+        }
+        return failures;
     }
 
     private void exhaustClient(String account, String client) {

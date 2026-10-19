@@ -11,6 +11,8 @@ import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -108,18 +110,31 @@ class AccountLoginThrottleIT extends PostgresIntegrationTest {
     void oneClientInterleavingFailuresAndSuccessesCannotBlockTheAccountForOthers() throws Exception {
         Account account = createAccount();
         String client = client();
-        int failures = 0;
-        for (int cycle = 0; cycle < 4; cycle++) {
-            for (int attempt = 0; attempt < CLIENT_LIMIT - 1; attempt++) {
-                int status = login(client, account.username(), "invalid-password-value").getStatus();
-                assertThat(status).isIn(401, 429);
-                if (status == 401) failures++;
-            }
-            assertThat(login(client, account.username(), account.password()).getStatus()).isIn(200, 429);
+        List<Integer> statuses = new ArrayList<>();
+        for (int cycle = 0; cycle < 6; cycle++) {
+            statuses.add(login(client, account.username(), "invalid-password-value").getStatus());
+            statuses.add(login(client, account.username(), account.password()).getStatus());
         }
 
-        assertThat(failures).isEqualTo(CLIENT_LIMIT);
+        // Real sign-ins are admitted only while the client has room; the fifth failure blocks it.
+        assertThat(statuses).containsExactly(
+                401, 200, 401, 200, 401, 200, 401, 200,
+                401, 429,
+                429, 429);
+        assertThat(statuses.stream().filter(status -> status == 401)).as("failures counted").hasSize(CLIENT_LIMIT);
+        assertThat(statuses.stream().filter(status -> status == 200)).as("successful sign-ins").hasSize(CLIENT_LIMIT - 1);
+        assertThat(statuses.stream().filter(status -> status == 429)).as("refused by the limit").hasSize(3);
+
+        // Another legitimate client still signs in, and the account counter holds exactly those 5
+        // failures: 6 more from other clients reach the limit of 11 and only then block everyone.
         assertThat(login(client(), account.username(), account.password()).getStatus()).isEqualTo(200);
+        String second = client();
+        for (int failure = 0; failure < CLIENT_LIMIT; failure++) {
+            assertThat(login(second, account.username(), "invalid-password-value").getStatus()).isEqualTo(401);
+        }
+        assertThat(login(client(), account.username(), "invalid-password-value").getStatus())
+                .as("failure number %d", ACCOUNT_LIMIT).isEqualTo(401);
+        assertRateLimited(login(client(), account.username(), account.password()));
     }
 
     @Test
