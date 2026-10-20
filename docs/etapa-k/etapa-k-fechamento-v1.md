@@ -40,7 +40,55 @@ foi registrada em vez de inventar uma migração de roles.
 - migração de fotos deve preservar backup local e manter o path relativo;
 - nenhuma migration foi criada; V1–V6 permanecem byte a byte preservadas.
 
-## Validação local
+## Integração
+
+- PR #6 (`codex/etapa-k-production-readiness` → `main`) integrado em 2026-10-13 por merge commit
+  `7ccedeb6c88bc56036e058edf23c2c9d2c46acb9`; head integrado
+  `9c20e52036c174ecb26511eee23c80efe18e8dd9`; árvore `d618e50fc86166bd9e0b39ea39ebf2878195b8c5`,
+  idêntica à do head.
+- CI aprovado no head (Backend verify #105, Frontend verify #121) e no merge commit (Backend
+  verify #106, Frontend verify #122), com todos os steps e gates de zero skips verdes.
+- Branch de origem mantida para recuperação.
+- A integração do código **não** equivale a implantação: nenhum deploy, serviço externo,
+  credencial real, migration em ambiente externo ou smoke test de produção foi executado. A
+  aplicação não foi implantada nem validada operacionalmente em produção. Os limites da seção
+  anterior permanecem válidos integralmente.
+
+## Encerramento documental (PR #7, em Draft)
+
+- Este registro de fechamento, o CHANGELOG, o roadmap e o relatório de auditoria são atualizados
+  pelo PR #7 (`codex/etapa-k-encerramento-docs` → `main`), exclusivamente documental: não altera
+  código, testes, migrations, workflows nem configuração de infraestrutura.
+- O PR #7 **está aberto como Draft, sem merge**. Não está aprovado nem encerrado, e depende de
+  revisão humana. Enquanto não houver merge, `main` permanece com o estado documental anterior.
+- O encerramento documental da Etapa K é distinto da integração do código (concluída pelo PR #6)
+  e ambos são distintos de implantação em produção (não iniciada).
+
+## Auditoria pós-integração (2026-10-14)
+
+Auditoria somente leitura sobre a árvore integrada, registrada em
+`auditoria-etapa-k-pr6-2026-10-14.md`. Resultado: aprovada tecnicamente, sem achado que exigisse
+reverter ou refazer o merge do PR #6. O escopo dessa aprovação é limitado a revisão de código e
+configuração no repositório: **não** é aprovação de deploy nem atestado de validação operacional,
+e não significa ausência de risco. Os riscos técnicos abaixo **não foram corrigidos**, não têm
+evidência de correção e permanecem como follow-up em PRs próprios — alguns precisam ser tratados
+antes do primeiro deploy:
+
+- rate limiting de login baseado em `getRemoteAddr()` com `forward-headers-strategy=framework`
+  no Render, o que permite contornar o limite por `X-Forwarded-For`; sem limite por username;
+- `ProductionConfigurationValidator` executa como `ApplicationRunner`, após Flyway e após o
+  servidor aceitar requisições, apenas no perfil `prod` e sem testes;
+- troca da própria senha sem exigir a senha atual e sem revogar as demais sessões;
+- consistência do armazenamento de fotos: compensação de upload também em `STATUS_UNKNOWN`,
+  remoção agora apaga conteúdo no provider local, falha de delete no ImageKit sem `fileId` no
+  log, cópias migradas de fotos legadas não removidas, runbook sem exigir upload privado;
+- lacunas de testes: URL assinada expirada/forjada, `ImageKitSdkGateway`, validador de
+  produção e `AuditQueryService`; sanitizador oculta `passwordChanged`.
+
+## Validação local na sessão de implementação da Etapa K
+
+Registro histórico da sessão que produziu o PR #6. Os números abaixo não foram reconferidos pela
+auditoria pós-integração nem por esta revisão documental, que não executaram testes:
 
 - backend Java 21: 181 fontes e 21 fontes de teste compiladas;
 - backend unitário: 34 testes, zero falhas, erros ou skips;

@@ -113,7 +113,9 @@ Status: concluída na versão inicial.
 - H: manutenções, peças e importação histórica, **versão 1.0 aprovada** e **Etapa H encerrada**.
 - I: vendas, lucro, margem e reversão, **versão 1.0 aprovada** e **Etapa I encerrada**.
 - J: financeiro e conclusão da implantação aprovados e encerrados pelo PR #5.
-- K: fechamento de produção da V1 em proposta, aguardando revisão humana; sem deploy.
+- K: fechamento de produção da V1 com código integrado pelo PR #6; registro documental do
+  encerramento no PR #7, ainda em Draft, sem merge; sem deploy nem validação operacional em
+  produção.
 
 
 ## Etapa G encerrada
@@ -154,3 +156,29 @@ Status: concluída na versão inicial.
 **Versão 1.0 aprovada e encerrada pelo PR #5.** A etapa fechou o ciclo financeiro operacional,
 concluiu a implantação existente, ativou Financeiro e Dashboard com dados reais e oficializou
 Delarte Control / Desenvolvido por Andelar. A Etapa K é o fechamento de produção da V1.
+
+## Etapa K — código integrado, encerramento documental em Draft
+
+- Base: `main` em `4984b987a45974cf98318f755dc2037718c30320`.
+- Branch: `codex/etapa-k-production-readiness`; PR #6 integrado em 2026-10-13 por merge commit
+  `7ccedeb6c88bc56036e058edf23c2c9d2c46acb9` (head `9c20e52036c174ecb26511eee23c80efe18e8dd9`).
+- CI no head e no merge: Backend verify #105/#106 e Frontend verify #121/#122 aprovados, com
+  PostgreSQL/Testcontainers, Flyway, Hibernate validate e gates de zero skips. Toda a evidência
+  de execução de testes vem do GitHub Actions; não houve execução local nesta revisão.
+- V1–V6 preservadas; nenhuma migration nova. Papel único `SOCIO` confirmado.
+- Status, em três planos distintos:
+  - **Código: integrado.** Versão 1.0 da Etapa K em `main` desde o merge do PR #6.
+  - **Encerramento documental: em andamento.** Conduzido pelo PR #7
+    (`codex/etapa-k-encerramento-docs`), exclusivamente documental e **aberto como Draft, sem
+    merge**. Não está aprovado nem encerrado; depende de revisão humana.
+  - **Implantação em produção: não iniciada.** Nenhum deploy, conta externa, credencial real,
+    migration em ambiente externo ou smoke test foi executado. A aplicação **não** foi
+    implantada nem validada operacionalmente em produção.
+- Auditoria pós-integração de 2026-10-14: revisão de código somente leitura sobre a árvore
+  integrada, aprovada tecnicamente, sem achado que exigisse reverter o merge do PR #6. Não é
+  aprovação de deploy e não cobre validação operacional. Riscos técnicos seguem **abertos e não
+  corrigidos**: rate limiting de login atrás do proxy, momento e cobertura da validação de
+  configuração de produção, troca de senha sem exigir a senha atual e sem revogar sessões,
+  consistência e ciclo de vida das fotos e lacunas de testes. Detalhes e separação entre riscos
+  técnicos e pendências documentais em `docs/etapa-k/auditoria-etapa-k-pr6-2026-10-14.md`.
+- Nenhuma etapa posterior iniciada.
