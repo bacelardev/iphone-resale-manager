@@ -9,6 +9,7 @@ import io.github.bacelardev.iphoneresale.infrastructure.security.BearerTokenAuth
 import io.github.bacelardev.iphoneresale.web.dto.auth.LoginRequest;
 import io.github.bacelardev.iphoneresale.web.dto.auth.LoginResponse;
 import io.github.bacelardev.iphoneresale.web.dto.auth.UserResponse;
+import io.github.bacelardev.iphoneresale.web.filter.LoginClientAddressResolver;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
@@ -25,22 +26,26 @@ public class AuthController {
     private final AuthenticateUserService authenticateUserService;
     private final GetCurrentUserService getCurrentUserService;
     private final LogoutUserService logoutUserService;
+    private final LoginClientAddressResolver clientAddressResolver;
 
     public AuthController(
             AuthenticateUserService authenticateUserService,
             GetCurrentUserService getCurrentUserService,
-            LogoutUserService logoutUserService
+            LogoutUserService logoutUserService,
+            LoginClientAddressResolver clientAddressResolver
     ) {
         this.authenticateUserService = authenticateUserService;
         this.getCurrentUserService = getCurrentUserService;
         this.logoutUserService = logoutUserService;
+        this.clientAddressResolver = clientAddressResolver;
     }
 
     @PostMapping("/login")
-    public LoginResponse login(@Valid @RequestBody LoginRequest request) {
+    public LoginResponse login(@Valid @RequestBody LoginRequest request, HttpServletRequest httpRequest) {
         IssuedAccessToken issued = authenticateUserService.authenticate(
                 request.username(),
-                request.password()
+                request.password(),
+                clientAddressResolver.resolve(httpRequest)
         );
         return new LoginResponse(
                 issued.value(),

@@ -11,6 +11,8 @@ services:
         value: prod
       - key: SERVER_FORWARD_HEADERS_STRATEGY
         value: framework
+      - key: APP_AUTH_LOGIN_TRUSTED_PROXY_HOPS
+        value: "1"
       - key: APP_BOOTSTRAP_ENABLED
         value: "false"
       - key: APP_PHOTO_STORAGE_PROVIDER

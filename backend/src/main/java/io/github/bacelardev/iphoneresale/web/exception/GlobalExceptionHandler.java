@@ -1,6 +1,7 @@
 package io.github.bacelardev.iphoneresale.web.exception;
 
 import io.github.bacelardev.iphoneresale.application.service.auth.AuthenticationFailedException;
+import io.github.bacelardev.iphoneresale.application.service.auth.LoginRateLimitedException;
 import io.github.bacelardev.iphoneresale.application.service.auth.UnauthenticatedException;
 import io.github.bacelardev.iphoneresale.application.service.BusinessException;
 import io.github.bacelardev.iphoneresale.web.dto.error.ApiErrorResponse;
@@ -65,6 +66,17 @@ public class GlobalExceptionHandler {
         headers.set(HttpHeaders.WWW_AUTHENTICATE, "Bearer realm=\"iphone-resale\"");
         return new ResponseEntity<>(error(request, 401, "AUTHENTICATION_FAILED",
                 "Usuário ou senha inválidos.", List.of()), headers, HttpStatus.UNAUTHORIZED);
+    }
+
+    @ExceptionHandler(LoginRateLimitedException.class)
+    ResponseEntity<ApiErrorResponse> loginRateLimited(
+            LoginRateLimitedException exception,
+            HttpServletRequest request
+    ) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.set(HttpHeaders.RETRY_AFTER, Long.toString(exception.retryAfterSeconds()));
+        return new ResponseEntity<>(error(request, 429, LoginRateLimitedException.CODE,
+                LoginRateLimitedException.MESSAGE, List.of()), headers, HttpStatus.TOO_MANY_REQUESTS);
     }
 
     @ExceptionHandler(UnauthenticatedException.class)
