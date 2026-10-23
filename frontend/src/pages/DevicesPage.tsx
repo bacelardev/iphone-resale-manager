@@ -17,7 +17,7 @@ import { ErrorState } from '@/components/ui/error-state';
 import { Input } from '@/components/ui/input';
 import { PageHeader } from '@/components/ui/page-header';
 import { Select } from '@/components/ui/select';
-import { DeviceGridSkeleton, RefreshStatus } from '@/components/ui/skeleton';
+import { DeviceGridSkeleton, PageStatus, RefreshStatus } from '@/components/ui/skeleton';
 import {
   getInitialization,
   listColors,
@@ -191,7 +191,7 @@ export function DevicesPage() {
       )}
       <RefreshStatus active={devices.isPlaceholderData} label="Atualizando aparelhos…" />
       {!!devices.data?.content.length && (
-        <div className="device-grid refreshable" aria-busy={devices.isPlaceholderData}>
+        <div className="device-grid" aria-busy={devices.isPlaceholderData}>
           {devices.data.content.map((device) => (
             <DeviceCard key={device.id} device={device} />
           ))}
@@ -207,9 +207,9 @@ export function DevicesPage() {
           >
             Anterior
           </Button>
-          <span>
+          <PageStatus busy={paging}>
             Página {devices.data.page + 1} de {devices.data.totalPages}
-          </span>
+          </PageStatus>
           <Button
             variant="secondary"
             disabled={devices.data.last}

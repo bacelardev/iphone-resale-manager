@@ -95,6 +95,9 @@ describe('UsersPage pagination', () => {
     expect(requestedPages()).toEqual([0, 1]);
     expect(screen.getByText('Sócio da página 1')).toBeVisible();
     expect(container.querySelector('.user-list')).toHaveAttribute('aria-busy', 'true');
+    // The wait is shown in the page label; the rows and badges keep their full contrast.
+    expect(container.querySelector('.page-status')).toHaveAttribute('data-busy');
+    expect(screen.getByRole('status')).toHaveTextContent('Atualizando usuários…');
     expect(next).toHaveAttribute('aria-disabled', 'true');
     expect(next).toHaveFocus();
 
@@ -104,6 +107,7 @@ describe('UsersPage pagination', () => {
     await release(1);
     expect(next).not.toHaveAttribute('aria-disabled');
     expect(container.querySelector('.user-list')).toHaveAttribute('aria-busy', 'false');
+    expect(container.querySelector('.page-status')).not.toHaveAttribute('data-busy');
 
     await userEvent.click(next);
     expect(requestedPages()).toEqual([0, 1, 2]);

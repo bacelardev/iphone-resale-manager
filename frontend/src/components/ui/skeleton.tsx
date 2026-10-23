@@ -31,6 +31,23 @@ export function RefreshStatus({ active, label }: { active: boolean; label: strin
   );
 }
 
+/**
+ * Page position between the paging buttons. While the next page loads, a visible "Atualizando…"
+ * mark replaces it in the same grid cell, so the buttons never shift and the listed content keeps
+ * its full contrast. The mark stays out of the accessibility tree: `RefreshStatus` announces it.
+ */
+export function PageStatus({ busy, children }: { busy: boolean; children: ReactNode }) {
+  return (
+    <span className="page-status" data-busy={busy || undefined}>
+      <span className="page-status-position">{children}</span>
+      <span className="page-status-busy" aria-hidden>
+        <span className="spinner page-status-spinner" />
+        Atualizando…
+      </span>
+    </span>
+  );
+}
+
 /** Names the loading state for assistive technology; the placeholder shapes stay hidden. */
 function LoadingRegion({
   label,

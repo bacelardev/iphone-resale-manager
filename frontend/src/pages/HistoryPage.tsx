@@ -9,7 +9,7 @@ import { FormField } from '@/components/ui/form-field';
 import { Input } from '@/components/ui/input';
 import { PageHeader } from '@/components/ui/page-header';
 import { Select } from '@/components/ui/select';
-import { ListSkeleton, RefreshStatus } from '@/components/ui/skeleton';
+import { ListSkeleton, PageStatus, RefreshStatus } from '@/components/ui/skeleton';
 import { getAuditEvent, listAuditEvents } from '@/features/audit/api';
 import { keepPreviousPage, withoutLastSegment } from '@/lib/query/placeholder';
 import { useRetainedValue } from '@/lib/utils/use-retained-value';
@@ -53,6 +53,16 @@ export function HistoryPage() {
     queryFn: () => getAuditEvent(shownId!),
     enabled: shownId != null,
   });
+  // While the previous page is on screen its limits may be stale, so paging waits for the current
+  // page. The target derives from the page displayed, never from the pending `page` state.
+  const paging = events.isPlaceholderData;
+  function goToPage(offset: number) {
+    const current = events.data;
+    if (paging || !current) return;
+    const target = current.page + offset;
+    if (target < 0 || target >= current.totalPages) return;
+    setPage(target);
+  }
 
   return (
     <div className="history-page">
@@ -143,7 +153,7 @@ export function HistoryPage() {
       {!!events.data?.content.length && (
         <Card className="stage-k-list-card">
           <ul
-            className="stage-k-list refreshable"
+            className="stage-k-list"
             aria-live="polite"
             aria-busy={events.isPlaceholderData}
           >
@@ -170,7 +180,8 @@ export function HistoryPage() {
             totalPages={events.data.totalPages}
             first={events.data.first}
             last={events.data.last}
-            onPage={setPage}
+            busy={paging}
+            onStep={goToPage}
           />
         </Card>
       )}
@@ -239,24 +250,27 @@ function Pagination(props: {
   totalPages: number;
   first: boolean;
   last: boolean;
-  onPage(page: number): void;
+  busy: boolean;
+  onStep(offset: number): void;
 }) {
   return (
     <nav className="stage-k-pagination" aria-label="Paginação do histórico">
       <Button
         variant="secondary"
         disabled={props.first}
-        onClick={() => props.onPage(props.page - 1)}
+        aria-disabled={props.busy || undefined}
+        onClick={() => props.onStep(-1)}
       >
         Anterior
       </Button>
-      <span>
+      <PageStatus busy={props.busy}>
         Página {props.totalPages === 0 ? 0 : props.page + 1} de {props.totalPages}
-      </span>
+      </PageStatus>
       <Button
         variant="secondary"
         disabled={props.last}
-        onClick={() => props.onPage(props.page + 1)}
+        aria-disabled={props.busy || undefined}
+        onClick={() => props.onStep(1)}
       >
         Próxima
       </Button>

@@ -9,7 +9,7 @@ import { FormField } from '@/components/ui/form-field';
 import { Input } from '@/components/ui/input';
 import { PageHeader } from '@/components/ui/page-header';
 import { Select } from '@/components/ui/select';
-import { ListSkeleton, RefreshStatus } from '@/components/ui/skeleton';
+import { ListSkeleton, PageStatus, RefreshStatus } from '@/components/ui/skeleton';
 import { useAuth } from '@/features/auth/context';
 import { createUser, listUsers, setUserActive, updateUser } from '@/features/users/api';
 import { keepPreviousPage, withoutLastSegment } from '@/lib/query/placeholder';
@@ -112,7 +112,7 @@ export function UsersPage() {
       {!!users.data?.content.length && (
         <Card className="stage-k-list-card">
           <ul
-            className="stage-k-list user-list refreshable"
+            className="stage-k-list user-list"
             aria-live="polite"
             aria-busy={users.isPlaceholderData}
           >
@@ -158,9 +158,9 @@ export function UsersPage() {
             >
               Anterior
             </Button>
-            <span>
+            <PageStatus busy={paging}>
               Página {users.data.page + 1} de {users.data.totalPages}
-            </span>
+            </PageStatus>
             <Button
               variant="secondary"
               disabled={users.data.last}

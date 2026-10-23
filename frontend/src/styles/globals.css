@@ -2521,12 +2521,36 @@ input[type='checkbox'] {
   padding: 22px;
 }
 
-/* Content kept on screen while its next page loads. */
-.refreshable {
-  transition: opacity 150ms ease-out;
+/* Content kept on screen while its next page loads stays at full contrast; the wait is shown in
+   the page label instead. Both labels share one grid cell, so the swap never moves the buttons.
+   With reduced motion the spinner stops, and the "Atualizando…" text still names the state. */
+.page-status {
+  display: inline-grid;
+  justify-items: center;
+  align-items: center;
 }
-.refreshable[aria-busy='true'] {
-  opacity: 0.6;
+.page-status > * {
+  grid-area: 1 / 1;
+}
+.page-status-busy {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  visibility: hidden;
+}
+.page-status[data-busy] .page-status-position {
+  visibility: hidden;
+}
+.page-status[data-busy] .page-status-busy {
+  visibility: visible;
+}
+.page-status-spinner {
+  width: 10px;
+  height: 10px;
+  border-width: 1.5px;
+}
+.page-status:not([data-busy]) .page-status-spinner {
+  animation: none;
 }
 /* Paging controls wait for the current page; `aria-disabled` keeps keyboard focus in place. */
 .button[aria-disabled='true'] {

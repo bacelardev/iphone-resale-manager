@@ -1,11 +1,26 @@
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { render, screen } from '@testing-library/react';
 import {
   DeviceGridSkeleton,
   ListSkeleton,
   PageSkeleton,
+  PageStatus,
   RefreshStatus,
   ValueSkeleton,
 } from './skeleton';
+
+/** Flat `selector { declarations }` pairs of the global stylesheet, including those inside @media. */
+function cssRules() {
+  // jsdom applies no stylesheet; the rules are checked where they are defined. Vitest runs from
+  // frontend/, the project root of every test script.
+  const css = readFileSync(resolve(process.cwd(), 'src/styles/globals.css'), 'utf8');
+  return Array.from(css.matchAll(/([^{}]+)\{([^{}]*)\}/g), ([, selector, body]) => ({
+    selector: selector!.replace(/\/\*[\s\S]*?\*\//g, '').trim(),
+    body: body!,
+  }));
+}
+const dimming = /(^|[;\s])(opacity|filter|color)\s*:/;
 
 describe('loading skeletons', () => {
   it.each([
@@ -47,5 +62,29 @@ describe('loading skeletons', () => {
     expect(screen.getByRole('status')).toBeEmptyDOMElement();
     rerender(<RefreshStatus active label="Atualizando usuários…" />);
     expect(screen.getByRole('status')).toHaveTextContent('Atualizando usuários…');
+  });
+
+  it('swaps the page position for a visible refresh mark that is not announced twice', () => {
+    const { container, rerender } = render(<PageStatus busy={false}>Página 1 de 3</PageStatus>);
+    const status = container.querySelector('.page-status');
+    expect(status).not.toHaveAttribute('data-busy');
+    expect(screen.getByText('Página 1 de 3')).toHaveClass('page-status-position');
+    // The mark is always rendered, so both labels reserve the same space and nothing shifts.
+    const mark = screen.getByText('Atualizando…');
+    expect(mark).toHaveAttribute('aria-hidden', 'true');
+    expect(mark.querySelector('.spinner')).not.toBeNull();
+
+    rerender(<PageStatus busy>Página 1 de 3</PageStatus>);
+    expect(status).toHaveAttribute('data-busy');
+    expect(screen.getByText('Atualizando…')).toBe(mark);
+  });
+
+  it('never fades or recolours content while its next page loads', () => {
+    const rules = cssRules();
+    const busy = rules.filter((rule) => /aria-busy/.test(rule.selector));
+    busy.forEach((rule) => expect(rule.body).not.toMatch(dimming));
+    const indicator = rules.filter((rule) => rule.selector.includes('.page-status'));
+    expect(indicator.length).toBeGreaterThan(0);
+    indicator.forEach((rule) => expect(rule.body).not.toMatch(/(^|[;\s])(opacity|filter)\s*:/));
   });
 });

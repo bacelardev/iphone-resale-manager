@@ -103,6 +103,9 @@ describe('DevicesPage pagination', () => {
     // The previous page stays on screen, marked as refreshing, and paging is unavailable.
     expect(screen.getByText('iPhone página 1')).toBeVisible();
     expect(container.querySelector('.device-grid')).toHaveAttribute('aria-busy', 'true');
+    // The wait is shown in the page label; the cards themselves keep their full contrast.
+    expect(container.querySelector('.page-status')).toHaveAttribute('data-busy');
+    expect(screen.getByRole('status')).toHaveTextContent('Atualizando aparelhos…');
     expect(next).toHaveAttribute('aria-disabled', 'true');
     expect(next).toHaveFocus();
 
@@ -115,6 +118,7 @@ describe('DevicesPage pagination', () => {
     expect(next).not.toHaveAttribute('aria-disabled');
     expect(previous).toBeEnabled();
     expect(container.querySelector('.device-grid')).toHaveAttribute('aria-busy', 'false');
+    expect(container.querySelector('.page-status')).not.toHaveAttribute('data-busy');
 
     await userEvent.click(next);
     expect(requestedPages()).toEqual([0, 1, 2]);
