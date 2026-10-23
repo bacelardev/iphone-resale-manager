@@ -2,12 +2,14 @@ import { useMemo, useState, type FormEvent } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { IconArrowLeft, IconReceipt } from '@tabler/icons-react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
+import { AnimatedValue } from '@/components/ui/animated-value';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { ErrorState } from '@/components/ui/error-state';
 import { FormField } from '@/components/ui/form-field';
 import { Input } from '@/components/ui/input';
 import { PageHeader } from '@/components/ui/page-header';
+import { PageSkeleton } from '@/components/ui/skeleton';
 import { getDevice } from '@/features/devices/api';
 import { calculateSalePreview } from '@/features/sales/calculations';
 import { registerSale } from '@/features/sales/api';
@@ -58,7 +60,7 @@ export function SaleFormPage() {
     },
   });
 
-  if (device.isLoading) return <p className="loading-copy">Carregando aparelho…</p>;
+  if (device.isLoading) return <PageSkeleton label="Carregando aparelho…" />;
   if (device.error) return <ErrorState error={device.error} retry={() => void device.refetch()} />;
   if (!device.data) return null;
   const value = device.data;
@@ -162,7 +164,15 @@ function Summary({
   return (
     <div className={tone ? `sale-value-${tone}` : undefined}>
       <dt>{label}</dt>
-      <dd>{strong ? <strong>{value}</strong> : value}</dd>
+      <dd>
+        {strong ? (
+          <strong>
+            <AnimatedValue value={value} />
+          </strong>
+        ) : (
+          <AnimatedValue value={value} />
+        )}
+      </dd>
     </div>
   );
 }

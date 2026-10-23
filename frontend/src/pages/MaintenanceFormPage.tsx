@@ -2,12 +2,14 @@ import { useMemo, useState, type FormEvent } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { IconArrowLeft, IconPlus, IconTrash } from '@tabler/icons-react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
+import { AnimatedValue } from '@/components/ui/animated-value';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { ErrorState } from '@/components/ui/error-state';
 import { FormField } from '@/components/ui/form-field';
 import { Input } from '@/components/ui/input';
 import { PageHeader } from '@/components/ui/page-header';
+import { PageSkeleton } from '@/components/ui/skeleton';
 import { getDevice, getInitialization, listParts } from '@/features/devices/api';
 import { registerMaintenance } from '@/features/maintenances/api';
 import { PartPicker } from '@/features/maintenances/PartPicker';
@@ -81,7 +83,7 @@ export function MaintenanceFormPage({ origin }: { origin: 'operational' | 'initi
   }
 
   if (device.isLoading || parts.isLoading || initialization.isLoading) {
-    return <p className="loading-copy">Preparando formulário…</p>;
+    return <PageSkeleton label="Preparando formulário…" />;
   }
   if (device.error || parts.error || initialization.error) {
     return <ErrorState error={device.error ?? parts.error ?? initialization.error} />;
@@ -152,7 +154,9 @@ export function MaintenanceFormPage({ origin }: { origin: 'operational' | 'initi
             </FormField>
             <div className="maintenance-total-preview">
               <span>Total calculado</span>
-              <strong>{money.format(total)}</strong>
+              <strong>
+                <AnimatedValue value={money.format(total)} />
+              </strong>
               <small>O backend recalcula e valida este valor.</small>
             </div>
           </Card>

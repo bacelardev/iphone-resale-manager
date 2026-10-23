@@ -20,6 +20,7 @@ import { FormField } from '@/components/ui/form-field';
 import { Input } from '@/components/ui/input';
 import { PageHeader } from '@/components/ui/page-header';
 import { Select } from '@/components/ui/select';
+import { PageSkeleton } from '@/components/ui/skeleton';
 import { CatalogPicker } from '@/features/devices/CatalogPicker';
 import { MaintenancesSection } from '@/features/maintenances/MaintenancesSection';
 import {
@@ -33,6 +34,7 @@ import {
   updateDevice,
 } from '@/features/devices/api';
 import { apiAssetUrl } from '@/lib/api/client';
+import { useRetainedValue } from '@/lib/utils/use-retained-value';
 import type { DeviceDetail, DevicePhoto, DeviceStatus } from '@/types/stage-g';
 
 const money = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
@@ -55,6 +57,8 @@ export function DeviceDetailPage() {
   const [editing, setEditing] = useState(false);
   const [archiving, setArchiving] = useState(false);
   const [lightbox, setLightbox] = useState<DevicePhoto>();
+  // Keeps the enlarged photo in the lightbox while it animates out.
+  const shownPhoto = useRetainedValue(lightbox);
   const [reason, setReason] = useState('');
   const status = useMutation({
     mutationFn: ({
@@ -75,7 +79,7 @@ export function DeviceDetailPage() {
     },
   });
 
-  if (device.isLoading) return <p className="loading-copy">Carregando aparelho…</p>;
+  if (device.isLoading) return <PageSkeleton label="Carregando aparelho…" />;
   if (device.error) return <ErrorState error={device.error} retry={() => void device.refetch()} />;
   if (!device.data) return null;
   const value = device.data;
@@ -279,12 +283,15 @@ export function DeviceDetailPage() {
       </Dialog>
 
       <Dialog open={!!lightbox} onOpenChange={(open) => !open && setLightbox(undefined)}>
-        <DialogContent title="Foto do aparelho" description={`Posição ${lightbox?.position ?? ''}`}>
-          {lightbox && (
+        <DialogContent
+          title="Foto do aparelho"
+          description={`Posição ${shownPhoto?.position ?? ''}`}
+        >
+          {shownPhoto && (
             <img
               className="lightbox-image"
-              src={apiAssetUrl(lightbox.url)}
-              alt={`Foto ampliada ${lightbox.position}`}
+              src={apiAssetUrl(shownPhoto.url)}
+              alt={`Foto ampliada ${shownPhoto.position}`}
             />
           )}
         </DialogContent>

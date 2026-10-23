@@ -233,8 +233,12 @@ test.describe.serial('Etapa H com backend e PostgreSQL reais', () => {
       `/devices/${importedDeviceId}/maintenances/${historicalMaintenanceId}`,
     );
     await page.getByRole('button', { name: 'Cancelar lançamento' }).click();
+    const dialog = page.getByRole('dialog', { name: 'Cancelar manutenção' });
     await page.getByLabel('Motivo').fill('Correção histórica E2E.');
     await page.getByRole('button', { name: 'Confirmar cancelamento' }).click();
+    // The dialog closes on success and stays mounted while it animates out; its description
+    // repeats the page text checked below, so wait until it is gone.
+    await expect(dialog).not.toBeVisible();
     await expect(page.getByText('Cancelada', { exact: true })).toBeVisible();
     await expect(page.getByText('Custo histórico — sem nova saída de caixa')).toBeVisible();
   });

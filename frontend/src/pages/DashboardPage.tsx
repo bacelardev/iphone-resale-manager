@@ -1,10 +1,12 @@
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { IconArrowRight, IconDeviceMobile, IconHistory, IconWallet } from '@tabler/icons-react';
+import { AnimatedValue } from '@/components/ui/animated-value';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import { ErrorState } from '@/components/ui/error-state';
 import { PageHeader } from '@/components/ui/page-header';
+import { ValueSkeleton } from '@/components/ui/skeleton';
 import { useAuth } from '@/features/auth/context';
 import { getInitialization, listDevices } from '@/features/devices/api';
 import { getFinancialSummary } from '@/features/financial/api';
@@ -40,6 +42,9 @@ export function DashboardPage() {
   });
 
   const error = summary.error || available.error || maintenance.error || sold.error;
+  const financialLoading = initialization.isLoading || summary.isLoading;
+  const loading =
+    financialLoading || available.isLoading || maintenance.isLoading || sold.isLoading;
   return (
     <div className="dashboard-page">
       <PageHeader
@@ -53,18 +58,21 @@ export function DashboardPage() {
         }
       />
       {error && <ErrorState error={error} />}
-      <div className="dashboard-metrics" aria-live="polite">
+      <div className="dashboard-metrics" aria-live="polite" aria-busy={loading}>
         <DashboardMetric
           label="Saldo atual"
           value={summary.data ? money.format(summary.data.closingBalance) : '—'}
+          loading={financialLoading}
         />
         <DashboardMetric
           label="Faturamento do mês"
           value={summary.data ? money.format(summary.data.revenue) : '—'}
+          loading={financialLoading}
         />
         <DashboardMetric
           label={summary.data && summary.data.profit < 0 ? 'Prejuízo do mês' : 'Lucro do mês'}
           value={summary.data ? money.format(summary.data.profit) : '—'}
+          loading={financialLoading}
         />
         <DashboardMetric
           label="Margem"
@@ -73,17 +81,28 @@ export function DashboardPage() {
               ? '—'
               : `${percent.format(summary.data.marginPercent)}%`
           }
+          loading={financialLoading}
         />
         <DashboardMetric
           label="Capital em estoque"
           value={summary.data ? money.format(summary.data.stockCapital) : '—'}
+          loading={financialLoading}
         />
-        <DashboardMetric label="Disponíveis" value={String(available.data?.totalElements ?? '—')} />
+        <DashboardMetric
+          label="Disponíveis"
+          value={String(available.data?.totalElements ?? '—')}
+          loading={available.isLoading}
+        />
         <DashboardMetric
           label="Em manutenção"
           value={String(maintenance.data?.totalElements ?? '—')}
+          loading={maintenance.isLoading}
         />
-        <DashboardMetric label="Vendidos" value={String(sold.data?.totalElements ?? '—')} />
+        <DashboardMetric
+          label="Vendidos"
+          value={String(sold.data?.totalElements ?? '—')}
+          loading={sold.isLoading}
+        />
       </div>
       <p className="financial-explanation">
         Saldo em caixa representa dinheiro disponível; capital em estoque representa o investimento
@@ -113,11 +132,19 @@ export function DashboardPage() {
   );
 }
 
-function DashboardMetric({ label, value }: { label: string; value: string }) {
+function DashboardMetric({
+  label,
+  value,
+  loading,
+}: {
+  label: string;
+  value: string;
+  loading: boolean;
+}) {
   return (
     <Card className="dashboard-metric">
       <span>{label}</span>
-      <strong>{value}</strong>
+      <strong>{loading ? <ValueSkeleton /> : <AnimatedValue value={value} />}</strong>
     </Card>
   );
 }

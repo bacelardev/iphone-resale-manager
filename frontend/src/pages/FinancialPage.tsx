@@ -7,6 +7,7 @@ import {
   IconRefresh,
   IconRotateClockwise,
 } from '@tabler/icons-react';
+import { AnimatedValue } from '@/components/ui/animated-value';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
@@ -15,6 +16,7 @@ import { FormField } from '@/components/ui/form-field';
 import { Input } from '@/components/ui/input';
 import { PageHeader } from '@/components/ui/page-header';
 import { Select } from '@/components/ui/select';
+import { ListSkeleton, RefreshStatus, ValueSkeleton } from '@/components/ui/skeleton';
 import { useAuth } from '@/features/auth/context';
 import {
   completeInitialization,
@@ -29,6 +31,7 @@ import {
   listFinancialTransactions,
 } from '@/features/financial/api';
 import { customPeriod, periodFor, type PeriodPreset } from '@/features/financial/periods';
+import { useRetainedValue } from '@/lib/utils/use-retained-value';
 import type {
   FinancialDirection,
   FinancialTransaction,
@@ -119,6 +122,7 @@ export function FinancialPage() {
 
   const loading = initialization.isLoading || summary.isLoading || transactions.isLoading;
   const error = initialization.error || summary.error || transactions.error;
+  const totals = summary.data;
 
   return (
     <div className="financial-page">
@@ -160,38 +164,42 @@ export function FinancialPage() {
             onCustomTo={setCustomTo}
           />
           {error && <ErrorState error={error} retry={() => void client.invalidateQueries()} />}
-          {loading && <p className="loading-copy">Calculando visão financeira…</p>}
-          {summary.data && (
+          <RefreshStatus active={summary.isLoading} label="Calculando visão financeira…" />
+          {(totals || summary.isLoading) && (
             <>
-              <div className="financial-cards">
+              <div className="financial-cards" aria-busy={summary.isLoading}>
                 <Metric
                   label="Saldo inicial do período"
-                  value={money.format(summary.data.openingBalance)}
+                  value={totals && money.format(totals.openingBalance)}
                 />
                 <Metric
                   label="Saldo final do período"
-                  value={money.format(summary.data.closingBalance)}
+                  value={totals && money.format(totals.closingBalance)}
                   strong
                 />
-                <Metric label="Faturamento" value={money.format(summary.data.revenue)} />
+                <Metric label="Faturamento" value={totals && money.format(totals.revenue)} />
                 <Metric
-                  label={summary.data.profit < 0 ? 'Prejuízo' : 'Lucro'}
-                  value={money.format(summary.data.profit)}
-                  tone={summary.data.profit < 0 ? 'negative' : 'positive'}
+                  label={totals && totals.profit < 0 ? 'Prejuízo' : 'Lucro'}
+                  value={totals && money.format(totals.profit)}
+                  tone={totals ? (totals.profit < 0 ? 'negative' : 'positive') : undefined}
                 />
                 <Metric
                   label="Margem"
                   value={
-                    summary.data.marginPercent === null
+                    totals &&
+                    (totals.marginPercent === null
                       ? '—'
-                      : `${percent.format(summary.data.marginPercent)}%`
+                      : `${percent.format(totals.marginPercent)}%`)
                   }
                 />
-                <Metric label="Compras" value={money.format(summary.data.devicePurchaseCost)} />
-                <Metric label="Manutenções" value={money.format(summary.data.maintenanceCost)} />
+                <Metric label="Compras" value={totals && money.format(totals.devicePurchaseCost)} />
+                <Metric
+                  label="Manutenções"
+                  value={totals && money.format(totals.maintenanceCost)}
+                />
                 <Metric
                   label="Capital em estoque"
-                  value={money.format(summary.data.stockCapital)}
+                  value={totals && money.format(totals.stockCapital)}
                 />
               </div>
               <p className="financial-explanation">
@@ -246,7 +254,9 @@ export function FinancialPage() {
                 </Select>
               </FormField>
             </div>
-            {!transactions.data?.content.length && !loading ? (
+            {transactions.isLoading ? (
+              <ListSkeleton label="Carregando movimentações…" rows={3} divided />
+            ) : !transactions.data?.content.length && !loading ? (
               <p className="empty-copy">Nenhuma movimentação encontrada neste período.</p>
             ) : (
               <div className="transaction-list" aria-live="polite">
@@ -344,14 +354,15 @@ function Metric({
   strong,
 }: {
   label: string;
-  value: string;
+  /** Undefined while the period is loading: never a value from another period. */
+  value?: string;
   tone?: 'positive' | 'negative';
   strong?: boolean;
 }) {
   return (
     <Card className={`financial-metric ${tone ? `metric-${tone}` : ''}`}>
       <span>{label}</span>
-      <strong>{value}</strong>
+      <strong>{value === undefined ? <ValueSkeleton /> : <AnimatedValue value={value} />}</strong>
       {strong && <small>posição ao fim do período</small>}
     </Card>
   );
@@ -395,8 +406,8 @@ function TransactionRow({
 }
 
 function OperationDialog({
-  operation,
-  reversal,
+  operation: requested,
+  reversal: requestedReversal,
   userId,
   userName,
   onClose,
@@ -407,6 +418,14 @@ function OperationDialog({
   userName: string;
   onClose(): void;
 }) {
+  const current = useMemo(
+    () => (requested ? { operation: requested, reversal: requestedReversal } : null),
+    [requested, requestedReversal],
+  );
+  // The dialog closes once `requested` is cleared but keeps this content while it animates out.
+  const shown = useRetainedValue(current);
+  const operation = shown?.operation ?? null;
+  const reversal = shown?.reversal ?? null;
   const client = useQueryClient();
   const [amount, setAmount] = useState('');
   const [occurredAt, setOccurredAt] = useState(() => new Date().toISOString().slice(0, 16));
@@ -469,13 +488,14 @@ function OperationDialog({
 
   function submit(event: FormEvent) {
     event.preventDefault();
-    if (!description.trim() || mutation.isPending) return;
+    // A dismissed dialog that is still animating out must never submit.
+    if (!requested || !description.trim() || mutation.isPending) return;
     if (operation !== 'reversal' && Number(amount) <= 0) return;
     mutation.mutate();
   }
 
   return (
-    <Dialog open onOpenChange={(open) => !open && onClose()}>
+    <Dialog open={requested !== null} onOpenChange={(open) => !open && onClose()}>
       <DialogContent
         title={title}
         description={

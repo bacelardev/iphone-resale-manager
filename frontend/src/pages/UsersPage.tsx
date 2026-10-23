@@ -9,8 +9,11 @@ import { FormField } from '@/components/ui/form-field';
 import { Input } from '@/components/ui/input';
 import { PageHeader } from '@/components/ui/page-header';
 import { Select } from '@/components/ui/select';
+import { ListSkeleton, RefreshStatus } from '@/components/ui/skeleton';
 import { useAuth } from '@/features/auth/context';
 import { createUser, listUsers, setUserActive, updateUser } from '@/features/users/api';
+import { keepPreviousPage, withoutLastSegment } from '@/lib/query/placeholder';
+import { useRetainedValue } from '@/lib/utils/use-retained-value';
 import type { AppUser } from '@/types/stage-k';
 
 export function UsersPage() {
@@ -20,20 +23,32 @@ export function UsersPage() {
   const [active, setActive] = useState<'' | 'true' | 'false'>('');
   const [page, setPage] = useState(0);
   const [editing, setEditing] = useState<AppUser | 'create' | null>(null);
+  const usersKey = ['users', search, active, page] as const;
   const users = useQuery({
-    queryKey: ['users', search, active, page],
+    queryKey: usersKey,
     queryFn: () =>
       listUsers({
         search: search || undefined,
         active: active === '' ? undefined : active === 'true',
         page,
       }),
+    placeholderData: keepPreviousPage(usersKey, withoutLastSegment),
   });
   const toggle = useMutation({
     mutationFn: ({ target, value }: { target: AppUser; value: boolean }) =>
       setUserActive(target, value),
     onSuccess: async () => client.invalidateQueries({ queryKey: ['users'] }),
   });
+  // While the previous page is on screen its limits may be stale, so paging waits for the current
+  // page. The target derives from the page displayed, never from the pending `page` state.
+  const paging = users.isPlaceholderData;
+  function goToPage(offset: number) {
+    const current = users.data;
+    if (paging || !current) return;
+    const target = current.page + offset;
+    if (target < 0 || target >= current.totalPages) return;
+    setPage(target);
+  }
 
   return (
     <div className="users-page">
@@ -81,7 +96,12 @@ export function UsersPage() {
       {(users.error || toggle.error) && (
         <ErrorState error={users.error ?? toggle.error} retry={() => void users.refetch()} />
       )}
-      {users.isLoading && <p className="loading-copy">Carregando usuários…</p>}
+      {users.isLoading && (
+        <Card className="stage-k-list-card">
+          <ListSkeleton label="Carregando usuários…" rows={3} />
+        </Card>
+      )}
+      <RefreshStatus active={users.isPlaceholderData} label="Atualizando usuários…" />
       {users.data?.content.length === 0 && (
         <Card className="stage-k-empty">
           <IconUser size={28} aria-hidden />
@@ -91,7 +111,11 @@ export function UsersPage() {
       )}
       {!!users.data?.content.length && (
         <Card className="stage-k-list-card">
-          <ul className="stage-k-list user-list" aria-live="polite">
+          <ul
+            className="stage-k-list user-list refreshable"
+            aria-live="polite"
+            aria-busy={users.isPlaceholderData}
+          >
             {users.data.content.map((item) => (
               <li key={item.id}>
                 <div className="user-list-row">
@@ -129,7 +153,8 @@ export function UsersPage() {
             <Button
               variant="secondary"
               disabled={users.data.first}
-              onClick={() => setPage(page - 1)}
+              aria-disabled={paging || undefined}
+              onClick={() => goToPage(-1)}
             >
               Anterior
             </Button>
@@ -139,7 +164,8 @@ export function UsersPage() {
             <Button
               variant="secondary"
               disabled={users.data.last}
-              onClick={() => setPage(page + 1)}
+              aria-disabled={paging || undefined}
+              onClick={() => goToPage(1)}
             >
               Próxima
             </Button>
@@ -166,14 +192,16 @@ function UserDialog(props: {
   onClose(): void;
   onSaved(): Promise<void>;
 }) {
-  const existing = props.value && props.value !== 'create' ? props.value : null;
+  // Keeps the title and form while the dialog animates out after `value` is cleared.
+  const shown = useRetainedValue(props.value);
+  const existing = shown && shown !== 'create' ? shown : null;
   return (
     <Dialog open={props.value !== null} onOpenChange={(open) => !open && props.onClose()}>
       <DialogContent
         title={existing ? 'Editar usuário' : 'Novo usuário'}
         description="O papel SOCIO é único nesta versão e não pode ser alterado."
       >
-        {props.value && (
+        {shown && (
           <UserForm
             key={existing?.id ?? 'create'}
             value={existing}

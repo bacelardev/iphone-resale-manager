@@ -2379,3 +2379,181 @@ input[type='checkbox'] {
     transition: none;
   }
 }
+
+/* Motion e carregamento — saída de overlays, skeletons e atualização de valores */
+
+/* Radix keeps closed content mounted until this animation ends; with reduced motion the global
+   rule removes it and the content unmounts at once. `translate` composes with the positioning
+   `transform` of each placement, so exits never jump. */
+.dialog-overlay[data-state='closed'] {
+  animation: fade-out 150ms ease-in forwards;
+  pointer-events: none;
+}
+.dialog-content[data-state='closed'] {
+  animation: modal-out 150ms ease-in forwards;
+  pointer-events: none;
+}
+.dialog-drawer[data-state='closed'] {
+  animation-name: drawer-out;
+}
+.dialog-sheet[data-state='closed'] {
+  animation-name: sheet-out;
+}
+@media (min-width: 700px) {
+  .sale-cancel-dialog[data-state='closed'] {
+    animation-name: modal-out;
+  }
+}
+@media (min-width: 760px) {
+  .financial-dialog[data-state='closed'] {
+    animation-name: modal-out;
+  }
+}
+@keyframes fade-out {
+  to {
+    opacity: 0;
+  }
+}
+@keyframes modal-out {
+  to {
+    opacity: 0;
+    translate: 0 8px;
+  }
+}
+@keyframes drawer-out {
+  to {
+    opacity: 0;
+    translate: -20px 0;
+  }
+}
+@keyframes sheet-out {
+  to {
+    opacity: 0;
+    translate: 0 20px;
+  }
+}
+
+.skeleton-flush {
+  margin-top: 0;
+}
+.skeleton-title {
+  height: 18px;
+}
+.skeleton-heading {
+  height: 34px;
+  border-radius: 8px;
+}
+.skeleton-value {
+  display: inline-block;
+  width: min(9ch, 100%);
+  height: 0.9em;
+  margin-top: 0;
+  border-radius: 6px;
+  vertical-align: middle;
+}
+.skeleton-fill {
+  width: 100%;
+  height: 100%;
+  margin-top: 0;
+  border-radius: 0;
+}
+.skeleton-pill {
+  flex-shrink: 0;
+  width: 72px;
+  height: 24px;
+  margin-top: 0;
+  border-radius: 99px;
+}
+.device-card-skeleton {
+  pointer-events: none;
+}
+.skeleton-pair {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 20px;
+  padding-top: 17px;
+  border-top: 1px solid #262626;
+}
+.skeleton-list {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.skeleton-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: 72px;
+  padding: 16px;
+  border: 1px solid var(--color-border);
+  border-radius: 16px;
+  background: var(--color-card);
+}
+.skeleton-row-main {
+  flex: 1;
+  min-width: 0;
+}
+.skeleton-list-divided {
+  gap: 0;
+}
+.skeleton-list-divided .skeleton-row {
+  padding: 16px 0;
+  border: 0;
+  border-top: 1px solid #292929;
+  border-radius: 0;
+  background: transparent;
+}
+.skeleton-spaced {
+  margin-top: 20px;
+}
+.page-skeleton-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+  gap: 16px;
+  margin-top: 30px;
+}
+.page-skeleton-card {
+  min-height: 180px;
+  padding: 22px;
+}
+
+/* Content kept on screen while its next page loads. */
+.refreshable {
+  transition: opacity 150ms ease-out;
+}
+.refreshable[aria-busy='true'] {
+  opacity: 0.6;
+}
+/* Paging controls wait for the current page; `aria-disabled` keeps keyboard focus in place. */
+.button[aria-disabled='true'] {
+  cursor: wait;
+  opacity: 0.55;
+}
+
+.animated-value {
+  display: inline-block;
+  max-width: 100%;
+}
+/* Two identical keyframes: switching between them restarts the animation without a remount.
+   Only the position moves: fading financial text would drop below the 4.5:1 contrast minimum
+   on cards during the update (the profit and loss colours already need opacity above 0.79). */
+.animated-value[data-motion='a'] {
+  animation: value-update-a 180ms ease-out;
+}
+.animated-value[data-motion='b'] {
+  animation: value-update-b 180ms ease-out;
+}
+@keyframes value-update-a {
+  from {
+    translate: 0 4px;
+  }
+}
+@keyframes value-update-b {
+  from {
+    translate: 0 4px;
+  }
+}

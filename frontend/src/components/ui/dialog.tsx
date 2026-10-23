@@ -1,6 +1,7 @@
 import type { ComponentProps, ReactNode } from 'react';
 import * as Primitive from '@radix-ui/react-dialog';
 import { IconX } from '@tabler/icons-react';
+import { blockInputWhileClosing } from '@/lib/dom/block-input-while-closing';
 import { cn } from '@/lib/utils/cn';
 import { Button } from './button';
 
@@ -30,6 +31,7 @@ export function DialogContent({
     <Primitive.Portal>
       <Primitive.Overlay className="dialog-overlay" />
       <Primitive.Content
+        ref={blockInputWhileClosing}
         className={cn(
           'dialog-content',
           placement === 'drawer' && 'dialog-drawer',

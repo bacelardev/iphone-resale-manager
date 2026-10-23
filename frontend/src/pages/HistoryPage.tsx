@@ -9,7 +9,10 @@ import { FormField } from '@/components/ui/form-field';
 import { Input } from '@/components/ui/input';
 import { PageHeader } from '@/components/ui/page-header';
 import { Select } from '@/components/ui/select';
+import { ListSkeleton, RefreshStatus } from '@/components/ui/skeleton';
 import { getAuditEvent, listAuditEvents } from '@/features/audit/api';
+import { keepPreviousPage, withoutLastSegment } from '@/lib/query/placeholder';
+import { useRetainedValue } from '@/lib/utils/use-retained-value';
 import {
   auditActions,
   auditedEntityTypes,
@@ -30,8 +33,9 @@ export function HistoryPage() {
   const [to, setTo] = useState('');
   const [page, setPage] = useState(0);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const eventsKey = ['audit', entityType, action, from, to, page] as const;
   const events = useQuery({
-    queryKey: ['audit', entityType, action, from, to, page],
+    queryKey: eventsKey,
     queryFn: () =>
       listAuditEvents({
         entityType: entityType || undefined,
@@ -40,11 +44,14 @@ export function HistoryPage() {
         to: to || undefined,
         page,
       }),
+    placeholderData: keepPreviousPage(eventsKey, withoutLastSegment),
   });
+  // Keeps the last event in the drawer while it animates out after being closed.
+  const shownId = useRetainedValue(selectedId);
   const detail = useQuery({
-    queryKey: ['audit-detail', selectedId],
-    queryFn: () => getAuditEvent(selectedId!),
-    enabled: selectedId !== null,
+    queryKey: ['audit-detail', shownId],
+    queryFn: () => getAuditEvent(shownId!),
+    enabled: shownId != null,
   });
 
   return (
@@ -120,7 +127,12 @@ export function HistoryPage() {
       </Card>
 
       {events.error && <ErrorState error={events.error} retry={() => void events.refetch()} />}
-      {events.isLoading && <p className="loading-copy">Carregando histórico…</p>}
+      {events.isLoading && (
+        <Card className="stage-k-list-card">
+          <ListSkeleton label="Carregando histórico…" rows={4} />
+        </Card>
+      )}
+      <RefreshStatus active={events.isPlaceholderData} label="Atualizando histórico…" />
       {events.data && events.data.content.length === 0 && (
         <Card className="stage-k-empty">
           <IconHistory size={28} aria-hidden />
@@ -130,7 +142,11 @@ export function HistoryPage() {
       )}
       {!!events.data?.content.length && (
         <Card className="stage-k-list-card">
-          <ul className="stage-k-list" aria-live="polite">
+          <ul
+            className="stage-k-list refreshable"
+            aria-live="polite"
+            aria-busy={events.isPlaceholderData}
+          >
             {events.data.content.map((event) => (
               <li key={event.id}>
                 <button type="button" onClick={() => setSelectedId(event.id)}>
@@ -165,7 +181,14 @@ export function HistoryPage() {
           description="Registro somente leitura preservado pela auditoria."
           placement="drawer"
         >
-          {detail.isLoading && <p className="loading-copy">Carregando detalhes…</p>}
+          {detail.isLoading && (
+            <ListSkeleton
+              label="Carregando detalhes…"
+              rows={3}
+              divided
+              className="skeleton-spaced"
+            />
+          )}
           {detail.error && <ErrorState error={detail.error} retry={() => void detail.refetch()} />}
           {detail.data && (
             <dl className="stage-k-detail-list">

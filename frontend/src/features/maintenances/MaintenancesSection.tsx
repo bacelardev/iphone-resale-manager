@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { ErrorState } from '@/components/ui/error-state';
+import { ListSkeleton } from '@/components/ui/skeleton';
 import { getInitialization } from '@/features/devices/api';
 import { listMaintenances } from '@/features/maintenances/api';
 import type { DeviceDetail } from '@/types/stage-g';
@@ -65,7 +66,9 @@ export function MaintenancesSection({ device }: { device: DeviceDetail }) {
         )}
       </div>
       {query.error && <ErrorState error={query.error} retry={() => void query.refetch()} />}
-      {query.isLoading && <p className="loading-copy">Carregando manutenções…</p>}
+      {query.isLoading && (
+        <ListSkeleton label="Carregando manutenções…" rows={2} className="skeleton-spaced" />
+      )}
       {query.data?.content.length === 0 && (
         <div className="maintenance-empty">
           <IconTool size={28} aria-hidden />

@@ -10,6 +10,7 @@ import { ErrorState } from '@/components/ui/error-state';
 import { FormField } from '@/components/ui/form-field';
 import { Input } from '@/components/ui/input';
 import { PageHeader } from '@/components/ui/page-header';
+import { PageSkeleton } from '@/components/ui/skeleton';
 import { getDevice } from '@/features/devices/api';
 import { cancelSale, getSale } from '@/features/sales/api';
 
@@ -41,7 +42,7 @@ export function SaleDetailPage() {
     },
   });
 
-  if (sale.isLoading || device.isLoading) return <p className="loading-copy">Carregando venda…</p>;
+  if (sale.isLoading || device.isLoading) return <PageSkeleton label="Carregando venda…" />;
   if (sale.error) return <ErrorState error={sale.error} retry={() => void sale.refetch()} />;
   if (device.error) return <ErrorState error={device.error} retry={() => void device.refetch()} />;
   if (!sale.data || !device.data) return null;

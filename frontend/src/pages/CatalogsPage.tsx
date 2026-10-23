@@ -8,6 +8,7 @@ import { ErrorState } from '@/components/ui/error-state';
 import { FormField } from '@/components/ui/form-field';
 import { Input } from '@/components/ui/input';
 import { PageHeader } from '@/components/ui/page-header';
+import { ListSkeleton } from '@/components/ui/skeleton';
 import {
   createColor,
   createModel,
@@ -160,7 +161,7 @@ function CatalogSection({
       </form>
       {creation.error && <ErrorState error={creation.error} />}
       {error != null && <ErrorState error={error} />}
-      {loading && <p className="loading-copy">Carregando catálogo…</p>}
+      {loading && <ListSkeleton label="Carregando catálogo…" rows={3} divided />}
       <FormField id={`${fields}-search`} label={`Buscar em ${title.toLowerCase()}`}>
         <Input
           id={`${fields}-search`}

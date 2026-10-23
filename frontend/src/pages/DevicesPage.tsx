@@ -17,6 +17,7 @@ import { ErrorState } from '@/components/ui/error-state';
 import { Input } from '@/components/ui/input';
 import { PageHeader } from '@/components/ui/page-header';
 import { Select } from '@/components/ui/select';
+import { DeviceGridSkeleton, RefreshStatus } from '@/components/ui/skeleton';
 import {
   getInitialization,
   listColors,
@@ -27,6 +28,7 @@ import {
 } from '@/features/devices/api';
 import { apiAssetUrl } from '@/lib/api/client';
 import { nowAsLocalDateTimeValue, toLocalDateTimeValue } from '@/lib/date/local-datetime';
+import { keepPreviousPage } from '@/lib/query/placeholder';
 import type { CatalogItem, DeviceStatus, DeviceSummary } from '@/types/stage-g';
 
 const money = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
@@ -47,9 +49,14 @@ export function DevicesPage() {
   });
   const models = useQuery({ queryKey: ['models', 'all'], queryFn: () => listModels() });
   const colors = useQuery({ queryKey: ['colors', 'all'], queryFn: () => listColors() });
+  const devicesKey = ['devices', filters] as const;
   const devices = useQuery({
-    queryKey: ['devices', filters],
+    queryKey: devicesKey,
     queryFn: () => listDevices(filters),
+    placeholderData: keepPreviousPage(devicesKey, (key) => [
+      key[0],
+      { ...(key[1] as DeviceFilters), page: undefined },
+    ]),
   });
   const start = useMutation({
     mutationFn: () => startInitialization(new Date(cutoff).toISOString()),
@@ -59,6 +66,16 @@ export function DevicesPage() {
     },
   });
   const preparing = initialization.data?.status === 'PREPARING';
+  // While the previous page is on screen its limits may be stale, so paging waits for the current
+  // page. The target derives from the page displayed, never from the pending filters.
+  const paging = devices.isPlaceholderData;
+  function goToPage(offset: number) {
+    const current = devices.data;
+    if (paging || !current) return;
+    const target = current.page + offset;
+    if (target < 0 || target >= current.totalPages) return;
+    setFilters((value) => ({ ...value, page: target }));
+  }
 
   return (
     <div className="devices-page">
@@ -161,7 +178,7 @@ export function DevicesPage() {
         </div>
       </div>
 
-      {devices.isLoading && <p className="loading-copy">Carregando aparelhos…</p>}
+      {devices.isLoading && <DeviceGridSkeleton label="Carregando aparelhos…" />}
       {devices.error && <ErrorState error={devices.error} retry={() => void devices.refetch()} />}
       {devices.data?.content.length === 0 && (
         <Card>
@@ -172,8 +189,9 @@ export function DevicesPage() {
           />
         </Card>
       )}
+      <RefreshStatus active={devices.isPlaceholderData} label="Atualizando aparelhos…" />
       {!!devices.data?.content.length && (
-        <div className="device-grid">
+        <div className="device-grid refreshable" aria-busy={devices.isPlaceholderData}>
           {devices.data.content.map((device) => (
             <DeviceCard key={device.id} device={device} />
           ))}
@@ -184,7 +202,8 @@ export function DevicesPage() {
           <Button
             variant="secondary"
             disabled={devices.data.first}
-            onClick={() => setFilters((current) => ({ ...current, page: (current.page ?? 0) - 1 }))}
+            aria-disabled={paging || undefined}
+            onClick={() => goToPage(-1)}
           >
             Anterior
           </Button>
@@ -194,7 +213,8 @@ export function DevicesPage() {
           <Button
             variant="secondary"
             disabled={devices.data.last}
-            onClick={() => setFilters((current) => ({ ...current, page: (current.page ?? 0) + 1 }))}
+            aria-disabled={paging || undefined}
+            onClick={() => goToPage(1)}
           >
             Próxima
           </Button>
